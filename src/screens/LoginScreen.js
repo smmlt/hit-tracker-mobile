@@ -15,12 +15,12 @@ export default function LoginScreen({ navigation }) {
     setError('');
 
     if (!email || !password) {
-      setError('Заполните все поля');
+      setError('Заповніть усі поля');
       return;
     }
 
     if (!isValidEmail(email)) {
-      setError('Введите корректный email (например, user@domain.com)');
+      setError('Введіть коректний email (наприклад, user@domain.com)');
       return;
     }
 
@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Вход в систему</Text>
+      <Text style={styles.title}>Вхід до системи</Text>
 
       {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
 
@@ -64,11 +64,11 @@ export default function LoginScreen({ navigation }) {
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={isLoading}>
-        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Войти</Text>}
+        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Увійти</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.linkText}>Нет аккаунта? Зарегистрироваться</Text>
+        <Text style={styles.linkText}>Немає облікового запису? Зареєструватися</Text>
       </TouchableOpacity>
     </View>
   );

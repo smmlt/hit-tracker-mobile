@@ -17,12 +17,12 @@ export default function RegisterScreen({ navigation }) {
     setError('');
 
     if (!isValidEmail(email)) {
-      setError('Введите корректный email адрес');
+      setError('Введіть коректну email-адресу');
       return;
     }
 
     if (!isValidPassword(password)) {
-      setError('Пароль не соответствует всем требованиям');
+      setError('Пароль не відповідає всім вимогам');
       return;
     }
 
@@ -31,7 +31,7 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Регистрация</Text>
+      <Text style={styles.title}>Реєстрація</Text>
 
       {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
 
@@ -66,24 +66,24 @@ export default function RegisterScreen({ navigation }) {
       </View>
 
       <View style={styles.hintsContainer}>
-        <Text style={styles.hintTitle}>Требования к паролю:</Text>
+        <Text style={styles.hintTitle}>Вимоги до пароля:</Text>
         <Text style={[styles.hintItem, criteria.minLength ? styles.hintSuccess : styles.hintPending]}>
-          {criteria.minLength ? '✓' : '•'} Минимум 8 символов
+          {criteria.minLength ? '✓' : '•'} Мінімум 8 символів
         </Text>
         <Text style={[styles.hintItem, criteria.hasNumber ? styles.hintSuccess : styles.hintPending]}>
-          {criteria.hasNumber ? '✓' : '•'} Хотя бы одна цифра
+          {criteria.hasNumber ? '✓' : '•'} Принаймні одна цифра
         </Text>
         <Text style={[styles.hintItem, criteria.hasUpper ? styles.hintSuccess : styles.hintPending]}>
-          {criteria.hasUpper ? '✓' : '•'} Хотя бы одна заглавная буква
+          {criteria.hasUpper ? '✓' : '•'} Принаймні одна велика літера
         </Text>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={isLoading}>
-        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Зарегистрироваться</Text>}
+        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Зареєструватися</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.linkText}>Уже есть аккаунт? Войти</Text>
+        <Text style={styles.linkText}>Вже є обліковий запис? Увійти</Text>
       </TouchableOpacity>
     </View>
   );
