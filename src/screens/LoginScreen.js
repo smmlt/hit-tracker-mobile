@@ -11,7 +11,7 @@ export default function LoginScreen({ navigation }) {
   const [error, setError] = useState('');
   const { login, isLoading } = useContext(AuthContext);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
 
     if (!email || !password) {
@@ -24,7 +24,11 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    login(email, password);
+    try {
+      await login(email, password);
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    }
   };
 
   return (

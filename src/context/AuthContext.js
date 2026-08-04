@@ -2,7 +2,21 @@ import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+
+const normalizeAuthError = (status, data) => {
+  const message = String(data?.message || '').toLowerCase();
+
+  if (status === 401 || status === 404 || message.includes('not found') || message.includes('user')) {
+    return 'User not found. Please register first.';
+  }
+
+  if (message.includes('already exists') || message.includes('exist')) {
+    return 'This email is already registered.';
+  }
+
+  return data?.message || 'Authentication failed';
+};
 
 export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
@@ -24,13 +38,16 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Помилка авторизації');
+        throw new Error(normalizeAuthError(response.status, data));
       }
 
-      setUserToken(data.token);
-      setUserData(data.user);
+      const accessToken = data.accessToken || data.token;
+      setUserToken(accessToken);
+      setUserData(data.user || null);
+
+      return data;
     } catch (error) {
-      throw error; // Прокидаємо помилку на екран для відображення UI-помилки
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -51,11 +68,14 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Помилка реєстрації');
+        throw new Error(normalizeAuthError(response.status, data));
       }
 
-      setUserToken(data.token);
-      setUserData(data.user);
+      const accessToken = data.accessToken || data.token;
+      setUserToken(accessToken);
+      setUserData(data.user || null);
+
+      return data;
     } catch (error) {
       throw error;
     } finally {

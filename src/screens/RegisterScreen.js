@@ -13,7 +13,7 @@ export default function RegisterScreen({ navigation }) {
 
   const criteria = getPasswordCriteria(password);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setError('');
 
     if (!isValidEmail(email)) {
@@ -26,7 +26,11 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    register(email, password);
+    try {
+      await register(email, password);
+    } catch (err) {
+      setError(err.message || 'Registration failed');
+    }
   };
 
   return (
