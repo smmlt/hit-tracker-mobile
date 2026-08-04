@@ -15,12 +15,12 @@ export default function LoginScreen({ navigation }) {
     setError('');
 
     if (!email || !password) {
-      setError('Заповніть усі поля');
+      setError('Please fill in all fields');
       return;
     }
 
     if (!isValidEmail(email)) {
-      setError('Введіть коректний email (наприклад, user@domain.com)');
+      setError('Please enter a valid email (for example, user@domain.com)');
       return;
     }
 
@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Вхід до системи</Text>
+      <Text style={styles.title}>Sign in</Text>
 
       {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
 
@@ -42,11 +42,11 @@ export default function LoginScreen({ navigation }) {
         autoCapitalize="none"
       />
 
-      {/* Поле пароля */}
+      {/* Password field */}
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.passwordInput}
-          placeholder="Пароль"
+          placeholder="Password"
           value={password}
           onChangeText={(text) => { setPassword(text); setError(''); }}
           secureTextEntry={!showPassword}
@@ -64,11 +64,11 @@ export default function LoginScreen({ navigation }) {
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={isLoading}>
-        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Увійти</Text>}
+        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign in</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.linkText}>Немає облікового запису? Зареєструватися</Text>
+        <Text style={styles.linkText}>Don’t have an account? Sign up</Text>
       </TouchableOpacity>
     </View>
   );

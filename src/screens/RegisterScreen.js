@@ -17,12 +17,12 @@ export default function RegisterScreen({ navigation }) {
     setError('');
 
     if (!isValidEmail(email)) {
-      setError('Введіть коректну email-адресу');
+      setError('Please enter a valid email address');
       return;
     }
 
     if (!isValidPassword(password)) {
-      setError('Пароль не відповідає всім вимогам');
+      setError('Password does not meet all requirements');
       return;
     }
 
@@ -31,7 +31,7 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Реєстрація</Text>
+      <Text style={styles.title}>Sign up</Text>
 
       {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
 
@@ -44,11 +44,11 @@ export default function RegisterScreen({ navigation }) {
         autoCapitalize="none"
       />
 
-      {/* Поле пароля */}
+      {/* Password field */}
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.passwordInput}
-          placeholder="Пароль"
+          placeholder="Password"
           value={password}
           onChangeText={(text) => { setPassword(text); setError(''); }}
           secureTextEntry={!showPassword}
@@ -66,24 +66,24 @@ export default function RegisterScreen({ navigation }) {
       </View>
 
       <View style={styles.hintsContainer}>
-        <Text style={styles.hintTitle}>Вимоги до пароля:</Text>
+        <Text style={styles.hintTitle}>Password requirements:</Text>
         <Text style={[styles.hintItem, criteria.minLength ? styles.hintSuccess : styles.hintPending]}>
-          {criteria.minLength ? '✓' : '•'} Мінімум 8 символів
+          {criteria.minLength ? '✓' : '•'} Minimum 8 characters
         </Text>
         <Text style={[styles.hintItem, criteria.hasNumber ? styles.hintSuccess : styles.hintPending]}>
-          {criteria.hasNumber ? '✓' : '•'} Принаймні одна цифра
+          {criteria.hasNumber ? '✓' : '•'} At least one number
         </Text>
         <Text style={[styles.hintItem, criteria.hasUpper ? styles.hintSuccess : styles.hintPending]}>
-          {criteria.hasUpper ? '✓' : '•'} Принаймні одна велика літера
+          {criteria.hasUpper ? '✓' : '•'} At least one uppercase letter
         </Text>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={isLoading}>
-        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Зареєструватися</Text>}
+        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create account</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.linkText}>Вже є обліковий запис? Увійти</Text>
+        <Text style={styles.linkText}>Already have an account? Sign in</Text>
       </TouchableOpacity>
     </View>
   );

@@ -1,10 +1,10 @@
-// Проверка формата Email
+// Validate email format
 export const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email.trim());
 };
 
-// Проверка критериев пароля
+// Check password criteria
 export const getPasswordCriteria = (password) => {
   return {
     minLength: password.length >= 8,
@@ -13,7 +13,7 @@ export const getPasswordCriteria = (password) => {
   };
 };
 
-// Полная проверка валидности пароля
+// Full password validity check
 export const isValidPassword = (password) => {
   const criteria = getPasswordCriteria(password);
   return criteria.minLength && criteria.hasNumber && criteria.hasUpper;

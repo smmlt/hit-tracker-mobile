@@ -7,11 +7,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Головний екран застосунку</Text>
-      <Text style={styles.subtitle}>Ви успішно увійшли!</Text>
+      <Text style={styles.title}>Main app screen</Text>
+      <Text style={styles.subtitle}>You have successfully signed in!</Text>
 
       <TouchableOpacity style={styles.button} onPress={logout}>
-        <Text style={styles.buttonText}>Вийти з облікового запису</Text>
+        <Text style={styles.buttonText}>Sign out</Text>
       </TouchableOpacity>
     </View>
   );

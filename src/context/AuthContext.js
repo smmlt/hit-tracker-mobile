@@ -6,7 +6,7 @@ export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Имитация входа в систему
+  // Simulated sign in
   const login = (email, password) => {
     setIsLoading(true);
     setTimeout(() => {
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     }, 1000);
   };
 
-  // Имитация регистрации
+  // Simulated sign up
   const register = (email, password) => {
     setIsLoading(true);
     setTimeout(() => {
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     }, 1000);
   };
 
-  // Выход из аккаунта
+  // Sign out
   const logout = () => {
     setUserToken(null);
   };

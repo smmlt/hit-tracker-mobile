@@ -25,7 +25,7 @@ export default function AppNavigator() {
             <Stack.Screen 
               name="Register" 
               component={RegisterScreen} 
-              options={{ title: 'Регистрация' }} 
+              options={{ title: 'Sign up' }} 
             />
           </>
         ) : (
