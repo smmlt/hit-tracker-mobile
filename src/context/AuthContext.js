@@ -1,8 +1,35 @@
 import React, { createContext, useState } from 'react';
+import Constants from 'expo-constants';
 
 export const AuthContext = createContext();
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const getApiBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl) {
+    return envUrl.replace(/\/$/, '');
+  }
+
+  const debuggerHost =
+    Constants.expoConfig?.hostUri ||
+    Constants.expoConfig?.debuggerHost ||
+    Constants.manifest?.debuggerHost;
+
+  if (debuggerHost) {
+    const normalizedHost = String(debuggerHost)
+      .replace(/^https?:\/\//, '')
+      .replace(/^exp:\/\//, '')
+      .split(':')[0]
+      .replace(/\/$/, '');
+
+    if (normalizedHost && normalizedHost !== 'localhost') {
+      return `http://${normalizedHost}:3000`;
+    }
+  }
+
+  return 'http://localhost:3000';
+};
+
+const API_URL = getApiBaseUrl();
 
 const normalizeAuthError = (status, data) => {
   const message = String(data?.message || '').toLowerCase();
