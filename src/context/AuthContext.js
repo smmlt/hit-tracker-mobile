@@ -1,76 +1,61 @@
-import React, { createContext, useState } from 'react';
-import Constants from 'expo-constants';
+import React, { createContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authService } from '../services/authService';
 
+// Створюємо контекст аутентифікації для глобального управління станом користувача
 export const AuthContext = createContext();
 
-const getApiBaseUrl = () => {
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (envUrl) {
-    return envUrl.replace(/\/$/, '');
-  }
-
-  const debuggerHost =
-    Constants.expoConfig?.hostUri ||
-    Constants.expoConfig?.debuggerHost ||
-    Constants.manifest?.debuggerHost;
-
-  if (debuggerHost) {
-    const normalizedHost = String(debuggerHost)
-      .replace(/^https?:\/\//, '')
-      .replace(/^exp:\/\//, '')
-      .split(':')[0]
-      .replace(/\/$/, '');
-
-    if (normalizedHost && normalizedHost !== 'localhost') {
-      return `http://${normalizedHost}:3000`;
-    }
-  }
-
-  return 'http://localhost:3000';
-};
-
-const API_URL = getApiBaseUrl();
-
-const normalizeAuthError = (status, data) => {
-  const message = String(data?.message || '').toLowerCase();
-
-  if (status === 401 || status === 404 || message.includes('not found') || message.includes('user')) {
-    return 'User not found. Please register first.';
-  }
-
-  if (message.includes('already exists') || message.includes('exist')) {
-    return 'This email is already registered.';
-  }
-
-  return data?.message || 'Authentication failed';
-};
-
 export const AuthProvider = ({ children }) => {
+  // Стани для зберігання токена, даних користувача та статусу завантаження
   const [userToken, setUserToken] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Починаємо з true, поки перевіряємо сховище
 
-  // Вхід через NestJS API
+  /**
+   * При першому запуску програми або оновленні сторінки перевіряємо сховище на наявність токена
+   */
+  useEffect(() => {
+    const loadStoredAuth = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem('userToken');
+        const storedUser = await AsyncStorage.getItem('userData');
+
+        if (storedToken) {
+          setUserToken(storedToken);
+          if (storedUser) {
+            setUserData(JSON.parse(storedUser));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load auth data from storage:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStoredAuth();
+  }, []);
+
+  /**
+   * Авторизація користувача через сервіс аутентифікації
+   */
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(normalizeAuthError(response.status, data));
-      }
+      // Викликаємо метод із сервісу (він сам робить запит і перевіряє помилки)
+      const data = await authService.login(email, password);
 
       const accessToken = data.accessToken || data.token;
+      const user = data.user || null;
+
+      // Зберігаємо токен та дані користувача в локальне сховище пристрою/браузера
+      await AsyncStorage.setItem('userToken', accessToken);
+      if (user) {
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
+      }
+
       setUserToken(accessToken);
-      setUserData(data.user || null);
+      setUserData(user);
 
       return data;
     } catch (error) {
@@ -80,27 +65,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Реєстрація через NestJS API
+  /**
+   * Реєстрація нового користувача через сервіс аутентифікації
+   */
   const register = async (email, password) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(normalizeAuthError(response.status, data));
-      }
+      // Викликаємо метод реєстрації із сервісу
+      const data = await authService.register(email, password);
 
       const accessToken = data.accessToken || data.token;
+      const user = data.user || null;
+
+      // Зберігаємо токен одразу після успішної реєстрації
+      await AsyncStorage.setItem('userToken', accessToken);
+      if (user) {
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
+      }
+
       setUserToken(accessToken);
-      setUserData(data.user || null);
+      setUserData(user);
 
       return data;
     } catch (error) {
@@ -110,10 +94,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Вихід
-  const logout = () => {
-    setUserToken(null);
-    setUserData(null);
+  /**
+   * Вихід користувача із системи (очищення сховища та станів)
+   */
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userData');
+      setUserToken(null);
+      setUserData(null);
+    } catch (error) {
+      console.error('Failed to clear storage during logout:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
