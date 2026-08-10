@@ -1,22 +1,38 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 import { authService } from '../services/authService';
 
-// Створюємо контекст аутентифікації для глобального управління станом користувача
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Стани для зберігання токена, даних користувача та статусу завантаження
   const [userToken, setUserToken] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Починаємо з true, поки перевіряємо сховище
+  const [isLoading, setIsLoading] = useState(true);
 
-  /**
-   * При першому запуску програми або оновленні сторінки перевіряємо сховище на наявність токена
-   */
+  const saveAuthToken = async (token) => {
+    await AsyncStorage.setItem('userToken', token);
+    setUserToken(token);
+  };
+
   useEffect(() => {
-    const loadStoredAuth = async () => {
+    const initAuth = async () => {
       try {
+        // 1. Перевірка для Web (витягуємо токен з URL хешу #accessToken=...)
+        if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const tokenFromUrl = hashParams.get('accessToken');
+
+          if (tokenFromUrl) {
+            await saveAuthToken(tokenFromUrl);
+            window.location.hash = ''; // Прибираємо токен з адресного рядка
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // 2. Стандартна перевірка збережених даних з AsyncStorage
         const storedToken = await AsyncStorage.getItem('userToken');
         const storedUser = await AsyncStorage.getItem('userData');
 
@@ -33,28 +49,41 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    loadStoredAuth();
+    // 3. Обробник для мобільних пристроїв (Deep Linking: hittracker://...)
+    const handleDeepLink = async (event) => {
+      if (!event?.url) return;
+      const parsed = Linking.parse(event.url);
+      const token = parsed.queryParams?.accessToken;
+
+      if (token) {
+        await saveAuthToken(token);
+      }
+    };
+
+    initAuth();
+
+    // Підписка на Deep Link тільки для iOS / Android
+    if (Platform.OS !== 'web') {
+      Linking.getInitialURL().then((url) => {
+        if (url) handleDeepLink({ url });
+      });
+
+      const subscription = Linking.addEventListener('url', handleDeepLink);
+      return () => subscription.remove();
+    }
   }, []);
 
-  /**
-   * Авторизація користувача через сервіс аутентифікації
-   */
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      // Викликаємо метод із сервісу (він сам робить запит і перевіряє помилки)
       const data = await authService.login(email, password);
-
       const accessToken = data.accessToken || data.token;
       const user = data.user || null;
 
-      // Зберігаємо токен та дані користувача в локальне сховище пристрою/браузера
-      await AsyncStorage.setItem('userToken', accessToken);
+      await saveAuthToken(accessToken);
       if (user) {
         await AsyncStorage.setItem('userData', JSON.stringify(user));
       }
-
-      setUserToken(accessToken);
       setUserData(user);
 
       return data;
@@ -65,25 +94,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Реєстрація нового користувача через сервіс аутентифікації
-   */
   const register = async (email, password) => {
     setIsLoading(true);
     try {
-      // Викликаємо метод реєстрації із сервісу
       const data = await authService.register(email, password);
-
       const accessToken = data.accessToken || data.token;
       const user = data.user || null;
 
-      // Зберігаємо токен одразу після успішної реєстрації
-      await AsyncStorage.setItem('userToken', accessToken);
+      await saveAuthToken(accessToken);
       if (user) {
         await AsyncStorage.setItem('userData', JSON.stringify(user));
       }
-
-      setUserToken(accessToken);
       setUserData(user);
 
       return data;
@@ -94,9 +115,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Вихід користувача із системи (очищення сховища та станів)
-   */
   const logout = async () => {
     setIsLoading(true);
     try {
