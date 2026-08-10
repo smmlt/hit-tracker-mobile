@@ -18,7 +18,7 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
   // Додай цей лог для відладки:
-  console.log('📡 FETCHING URL:', url);
+  // console.log('📡 FETCHING URL:', url);
 
   const response = await fetch(url, {
     ...options,
