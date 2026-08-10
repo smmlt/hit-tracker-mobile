@@ -20,7 +20,6 @@ import { CustomToast } from '../components/CustomToast';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { HistoryCard } from '../components/HistoryCard';
 
-// Увімкнення експериментальної анімації для Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -28,20 +27,17 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function HistoryScreen() {
   const { userToken } = useContext(AuthContext);
   
-  // Стани компонента
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [expandedId, setExpandedId] = useState(null); // ID розгорнутої картки
-  const [workoutToDelete, setWorkoutToDelete] = useState(null); // ID тренування для видалення
+  const [expandedId, setExpandedId] = useState(null);
+  const [workoutToDelete, setWorkoutToDelete] = useState(null);
 
-  // Стани для кастомного сповіщення (Toast)
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const isFocused = useIsFocused();
 
-  // Прибираємо фокус/клавіатуру при переході на інший екран
   useEffect(() => {
     if (!isFocused) {
       Keyboard.dismiss();
@@ -51,7 +47,6 @@ export default function HistoryScreen() {
     }
   }, [isFocused]);
 
-  // Функція для показу сповіщень
   const showToast = (message, type = 'success') => {
     setToast({ visible: true, message, type });
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
@@ -63,7 +58,6 @@ export default function HistoryScreen() {
     }, 4000);
   };
 
-  // Завантаження історії тренувань з сервера
   const fetchHistory = async () => {
     try {
       const data = await workoutsService.getHistory(userToken);
@@ -81,13 +75,11 @@ export default function HistoryScreen() {
     fetchHistory();
   }, []);
 
-  // Обробник оновлення сторінки (Pull-to-refresh)
   const onRefresh = () => {
     setRefreshing(true);
     fetchHistory();
   };
 
-  // Перемикання стану розгортання/згортання картки тренування
   const toggleExpand = (id) => {
     if (Platform.OS !== 'web') {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -95,7 +87,6 @@ export default function HistoryScreen() {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  // Підтвердження та виконання видалення тренування
   const confirmDeleteWorkout = async () => {
     if (!workoutToDelete) return;
     const workoutId = workoutToDelete;
@@ -111,7 +102,6 @@ export default function HistoryScreen() {
     }
   };
 
-  // Показуємо спіннер завантаження, поки дані не отримані
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -151,7 +141,6 @@ export default function HistoryScreen() {
         )}
       </ScrollView>
 
-      {/* Модальне вікно підтвердження видалення */}
       <ConfirmDialog
         visible={!!workoutToDelete}
         title="Delete Workout?"
@@ -160,7 +149,6 @@ export default function HistoryScreen() {
         onConfirm={confirmDeleteWorkout}
       />
 
-      {/* Кастомний компонент сповіщень */}
       <CustomToast
         visible={toast.visible}
         message={toast.message}

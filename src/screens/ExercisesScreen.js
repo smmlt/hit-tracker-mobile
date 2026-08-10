@@ -10,7 +10,7 @@ import {
   Animated,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
-import { API_URL } from '../constants/config';
+import { apiFetch } from '../services/api';
 
 import { ExerciseItem } from '../components/ExerciseItem';
 import { ExerciseFormModal } from '../components/ExerciseFormModal';
@@ -23,12 +23,10 @@ export default function ExercisesScreen() {
   const [musclesList, setMusclesList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Стан фільтрів та відкритих карток
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState(null);
   const [expandedExerciseId, setExpandedExerciseId] = useState(null);
 
-  // Стан модального вікна додавання вправи
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -36,13 +34,9 @@ export default function ExercisesScreen() {
   const [selectedMuscleIds, setSelectedMuscleIds] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Стан для кастомних Toast-сповіщень та їх анімації
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  /**
-   * Показує плавальне сповіщення (Toast) з анімацією появи та автоприховуванням
-   */
   const showToast = (message, type = 'success') => {
     setToast({ visible: true, message, type });
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
@@ -56,19 +50,16 @@ export default function ExercisesScreen() {
   const fetchData = async () => {
     try {
       const [resExercises, resMuscles] = await Promise.all([
-        fetch(`${API_URL}/exercises`, {
-          headers: { Authorization: `Bearer ${userToken}` },
-        }),
-        fetch(`${API_URL}/exercises/muscles`, {
-          headers: { Authorization: `Bearer ${userToken}` },
-        }),
+        apiFetch('/exercises', {}, userToken),
+        apiFetch('/exercises/muscles', {}, userToken),
       ]);
 
-      const dataExercises = await resExercises.json();
-      const dataMuscles = await resMuscles.json();
-
-      if (Array.isArray(dataExercises)) setExercises(dataExercises);
-      if (Array.isArray(dataMuscles)) setMusclesList(dataMuscles);
+      if (resExercises.ok && Array.isArray(resExercises.data)) {
+        setExercises(resExercises.data);
+      }
+      if (resMuscles.ok && Array.isArray(resMuscles.data)) {
+        setMusclesList(resMuscles.data);
+      }
     } catch (err) {
       console.error('Error fetching exercises:', err);
       showToast('Failed to load exercises', 'error');
@@ -89,23 +80,17 @@ export default function ExercisesScreen() {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/exercises`, {
+      const { ok, data } = await apiFetch('/exercises', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userToken}`,
-        },
         body: JSON.stringify({
           name: name.trim(),
           description: description.trim() || undefined,
           videoUrl: videoUrl.trim() || undefined,
           muscleIds: selectedMuscleIds,
         }),
-      });
+      }, userToken);
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (ok) {
         setName('');
         setDescription('');
         setVideoUrl('');
@@ -114,10 +99,9 @@ export default function ExercisesScreen() {
         showToast('Exercise created successfully! 🎉', 'success');
         fetchData();
       } else {
-        // Отримуємо повідомлення про дублікат чи іншу помилку з бекенду
-        const errorMsg = Array.isArray(data.message)
+        const errorMsg = Array.isArray(data?.message)
           ? data.message.join(', ')
-          : data.message || 'Failed to create exercise';
+          : data?.message || 'Failed to create exercise';
         
         showToast(errorMsg, 'error');
       }
@@ -138,14 +122,10 @@ export default function ExercisesScreen() {
   };
 
   const filteredExercises = exercises.filter((ex) => {
-    const matchesSearch = ex.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-
+    const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesMuscle = selectedMuscleFilter
       ? ex.muscles && ex.muscles.some((m) => m.id === selectedMuscleFilter)
       : true;
-
     return matchesSearch && matchesMuscle;
   });
 
@@ -214,7 +194,6 @@ export default function ExercisesScreen() {
         />
       </View>
 
-      {/* Рендеринг кастомного Toast-сповіщення */}
       {toast.visible && (
         <Animated.View
           style={[
@@ -265,14 +244,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+    boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.3)',
   },
   fabIcon: { color: '#FFF', fontSize: 32, fontWeight: '300', marginTop: -3 },
-
-  // Стилі Toast-сповіщень
   toastContainer: {
     position: 'absolute',
     bottom: 30,
@@ -282,10 +256,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.3)',
     elevation: 6,
     zIndex: 2000,
     maxWidth: '90%',
