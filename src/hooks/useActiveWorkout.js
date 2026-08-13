@@ -28,6 +28,8 @@ export function useActiveWorkout(navigation, showToast) {
   const [loading, setLoading] = useState(true);
   const [submittingSet, setSubmittingSet] = useState(false);
 
+  const [userHasProgram, setUserHasProgram] = useState(false)
+
   // Ініціалізація тренування при першому завантаженні екрана
   useEffect(() => {
     initWorkoutSession();
@@ -52,7 +54,15 @@ export function useActiveWorkout(navigation, showToast) {
         setSelectedExerciseId(exData[0].id); // Автоматично вибираємо першу вправу
       }
 
-      // 2. Запускаємо нову сесію тренування
+
+        /*
+          const exRes = await fetch(
+            `${API_URL}/exercises/foruser?weekDay=${weekDay}`,
+            { headers },
+          );
+         */
+
+        // 2. Запускаємо нову сесію тренування
       const wRes = await fetch(`${API_URL}/workouts/start`, {
         method: 'POST',
         headers,
