@@ -1,103 +1,127 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { WorkoutContext } from '../context/WorkoutContext';
+import { apiFetch } from '../services/api';
 
-const API_URL = 'http://localhost:3000';
-
-/**
- * Кастомний хук для управління станом та запитами активного тренування
- * @param {Object} navigation - об'єкт навігації React Navigation
- * @param {Function} showToast - функція для виведення сповіщень
- */
 export function useActiveWorkout(navigation, showToast) {
-  const { userToken } = useContext(AuthContext);
+  const { userToken, logout } = useContext(AuthContext);
+  const {
+    activeWorkout,
+    loggedSets,
+    setLoggedSets,
+    startWorkout: contextStartWorkout,
+    finishWorkout: contextFinishWorkout,
+    isLoading: contextLoading,
+  } = useContext(WorkoutContext);
 
-  // Основні стани сесії та вправ
-  const [workoutId, setWorkoutId] = useState(null);
+  const workoutId = activeWorkout?.id || null;
+
+  // Локальні стани форми
   const [exercises, setExercises] = useState([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState(null);
-  const [loggedSets, setLoggedSets] = useState([]);
 
-  // Поля введення даних для поточного підходу (сету)
   const [weight, setWeight] = useState('80');
   const [reps, setReps] = useState('8');
   const [rpe, setRpe] = useState('10');
   const [isFailure, setIsFailure] = useState(true);
 
-  // Додаткові стани для нотаток та індикаторів завантаження
   const [notes, setNotes] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loadingExercises, setLoadingExercises] = useState(false);
   const [submittingSet, setSubmittingSet] = useState(false);
 
-  const [userHasProgram, setUserHasProgram] = useState(false)
+  // ⏱️ Стан для секундоміра в секундах
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  // Ініціалізація тренування при першому завантаженні екрана
+  // 💡 Використовуємо useRef для showToast, щоб уникнути нескінченного циклу рендеру
+  const showToastRef = useRef(showToast);
   useEffect(() => {
-    initWorkoutSession();
-  }, []);
+    showToastRef.current = showToast;
+  }, [showToast]);
 
-  /**
-   * Завантажує список доступних вправ та створює нову сесію тренування на сервері
-   */
-  const initWorkoutSession = async () => {
+  // ⏱️ Автоматичний розрахунок часу від початку тренування
+  useEffect(() => {
+    if (!activeWorkout || (!activeWorkout.createdAt && !activeWorkout.startDate)) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const startIso = activeWorkout.createdAt || activeWorkout.startDate;
+    const startTime = new Date(startIso).getTime();
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = Math.floor((now - startTime) / 1000);
+      setElapsedSeconds(diff > 0 ? diff : 0);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeWorkout]);
+
+  // 🏋️ Завантаження бібліотеки вправ
+  const loadExercises = useCallback(async () => {
+    if (!userToken) return;
+    setLoadingExercises(true);
+
     try {
-      setLoading(true);
-      const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${userToken}`,
-      };
+      const exRes = await apiFetch('/exercises', {}, userToken);
 
-      // 1. Отримуємо бібліотеку вправ
-      const exRes = await fetch(`${API_URL}/exercises`, { headers });
-      const exData = await exRes.json();
-      if (Array.isArray(exData) && exData.length > 0) {
-        setExercises(exData);
-        setSelectedExerciseId(exData[0].id); // Автоматично вибираємо першу вправу
+      // 🚨 Обробка помилки 401: якщо токен невалідний
+      if (exRes.status === 401) {
+        if (showToastRef.current) {
+          showToastRef.current('Сесія закінчилася. Будь ласка, увійдіть знову.', 'error');
+        }
+        if (logout) logout();
+        return;
       }
 
-
-        /*
-          const exRes = await fetch(
-            `${API_URL}/exercises/foruser?weekDay=${weekDay}`,
-            { headers },
-          );
-         */
-
-        // 2. Запускаємо нову сесію тренування
-      const wRes = await fetch(`${API_URL}/workouts/start`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ type: 'HIT Session' }),
-      });
-      const wData = await wRes.json();
-      if (wData?.workout?.id) {
-        setWorkoutId(wData.workout.id);
+      if (exRes.ok && Array.isArray(exRes.data)) {
+        setExercises(exRes.data);
+        if (exRes.data.length > 0) {
+          setSelectedExerciseId(String(exRes.data[0].id));
+        }
+      } else {
+        if (showToastRef.current) showToastRef.current('Failed to load exercises', 'error');
       }
     } catch (err) {
-      console.error('Initialization error:', err);
-      showToast('Failed to initialize workout session', 'error');
+      console.error('Error fetching exercises:', err);
+      if (showToastRef.current) showToastRef.current('Failed to load exercises', 'error');
     } finally {
-      setLoading(false);
+      setLoadingExercises(false);
+    }
+  }, [userToken, logout]); // 👈 Відв'язали від showToast!
+
+  useEffect(() => {
+    loadExercises();
+  }, [loadExercises]);
+
+  // Запуск тренування за кліком
+  const handleStartWorkout = async () => {
+    const workout = await contextStartWorkout('HIT Session');
+    if (workout) {
+      if (showToastRef.current) showToastRef.current('New HIT Session started! 🔥', 'success');
+    } else {
+      if (showToastRef.current) showToastRef.current('Failed to start workout session', 'error');
     }
   };
 
-  /**
-   * Надсилає дані про виконаний сет на сервер та додає його до локального списку
-   */
+  // Запис сету
   const handleRecordSet = async () => {
-    // Валідація заповненості обов'язкових полів
-    if (!workoutId || !selectedExerciseId || !weight || !reps) {
-      showToast('Please fill in weight and reps!', 'error');
+    if (!workoutId) {
+      if (showToastRef.current) showToastRef.current('No active workout found!', 'error');
+      return;
+    }
+    if (!selectedExerciseId || !weight || !reps) {
+      if (showToastRef.current) showToastRef.current('Please fill in weight and reps!', 'error');
       return;
     }
 
     setSubmittingSet(true);
     try {
-      const response = await fetch(`${API_URL}/workouts/${workoutId}/sets`, {
+      const { ok, data, status } = await apiFetch(`/workouts/${workoutId}/sets`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userToken}`,
-        },
         body: JSON.stringify({
           exerciseId: Number(selectedExerciseId),
           weight: parseFloat(weight),
@@ -105,67 +129,56 @@ export function useActiveWorkout(navigation, showToast) {
           isFailure,
           rpe: parseInt(rpe, 10),
         }),
-      });
+      }, userToken);
 
-      const data = await response.json();
-      if (response.ok) {
-        // Знаходимо назву поточної вправи для відображення у списку
-        const currentEx = exercises.find((e) => e.id === Number(selectedExerciseId));
-        setLoggedSets((prev) => [
-          ...prev,
-          {
-            id: data.set?.id || Date.now(),
-            exerciseName: currentEx?.name || 'Exercise',
-            weight,
-            reps,
-            isFailure,
-            rpe,
-          },
-        ]);
-        showToast('Set recorded successfully 🔥', 'success');
+      if (status === 401) {
+        if (showToastRef.current) showToastRef.current('Сесія закінчилася', 'error');
+        if (logout) logout();
+        return;
+      }
+
+      if (ok) {
+        const currentEx = exercises.find((e) => String(e.id) === String(selectedExerciseId));
+        const newSet = {
+          id: data?.set?.id || data?.id || Date.now(),
+          exerciseName: currentEx?.name || 'Exercise',
+          weight,
+          reps,
+          isFailure,
+          rpe,
+        };
+        setLoggedSets((prev) => [...prev, newSet]);
+        if (showToastRef.current) showToastRef.current('Set recorded successfully 🔥', 'success');
       } else {
-        showToast(data.message || 'Failed to record set', 'error');
+        if (showToastRef.current) showToastRef.current(data?.message || 'Failed to record set', 'error');
       }
     } catch (err) {
       console.error('Error recording set:', err);
-      showToast('Network error while recording set', 'error');
+      if (showToastRef.current) showToastRef.current('Network error while recording set', 'error');
     } finally {
       setSubmittingSet(false);
     }
   };
 
-  /**
-   * Завершує активну сесію тренування, передаючи нотатки
-   */
+  // 🏁 Завершення тренування
   const handleFinishWorkout = async () => {
     if (!workoutId) return;
 
-    try {
-      const response = await fetch(`${API_URL}/workouts/${workoutId}/finish`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userToken}`,
-        },
-        body: JSON.stringify({ notes }),
-      });
-
-      if (response.ok) {
-        showToast('Workout successfully saved! 💪', 'success');
-        setTimeout(() => {
-          if (navigation) navigation.goBack(); // Повернення на попередній екран
-        }, 1200);
-      } else {
-        showToast('Failed to finish workout', 'error');
-      }
-    } catch (err) {
-      console.error('Error finishing workout:', err);
-      showToast('Network error while saving workout', 'error');
+    const success = await contextFinishWorkout(notes, elapsedSeconds);
+    if (success) {
+      if (showToastRef.current) showToastRef.current('Workout successfully saved! 💪', 'success');
+      setTimeout(() => {
+        if (navigation) navigation.goBack();
+      }, 1200);
+    } else {
+      if (showToastRef.current) showToastRef.current('Failed to finish workout', 'error');
     }
   };
 
   return {
+    activeWorkout,
     workoutId,
+    elapsedSeconds,
     exercises,
     selectedExerciseId,
     setSelectedExerciseId,
@@ -180,8 +193,9 @@ export function useActiveWorkout(navigation, showToast) {
     setIsFailure,
     notes,
     setNotes,
-    loading,
+    loading: loadingExercises || contextLoading,
     submittingSet,
+    handleStartWorkout,
     handleRecordSet,
     handleFinishWorkout,
   };

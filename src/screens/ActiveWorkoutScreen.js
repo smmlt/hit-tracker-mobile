@@ -15,15 +15,12 @@ import {
 import { useActiveWorkout } from '../hooks/useActiveWorkout';
 import { ExerciseSelector } from '../components/ExerciseSelector';
 import { LoggedSetsList } from '../components/LoggedSetsList';
+import { formatTimer } from '../utils/formatters'; // 👈 Імпортуємо форматер
 
 export default function ActiveWorkoutScreen({ navigation }) {
-  // Стан для кастомних Toast-сповіщень та їх анімації зникнення
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  /**
-   * Показує плавальне сповіщення (Toast) з анімацією появи та автоприховуванням
-   */
   const showToast = (message, type = 'success') => {
     setToast({ visible: true, message, type });
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
@@ -34,9 +31,10 @@ export default function ActiveWorkoutScreen({ navigation }) {
     }, 4000);
   };
 
-  // Отримуємо всю логіку з кастомного хука
   const {
+    activeWorkout,
     workoutId,
+    elapsedSeconds, // 👈 1. Отримуємо секунди з хука
     exercises,
     selectedExerciseId,
     setSelectedExerciseId,
@@ -53,30 +51,50 @@ export default function ActiveWorkoutScreen({ navigation }) {
     setNotes,
     loading,
     submittingSet,
+    handleStartWorkout,
     handleRecordSet,
     handleFinishWorkout,
   } = useActiveWorkout(navigation, showToast);
 
-  // Показуємо спінер завантаження під час ініціалізації сесії
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF5722" />
-        <Text style={styles.loadingText}>Initializing HIT session...</Text>
+        <Text style={styles.loadingText}>Loading workout data...</Text>
       </View>
+    );
+  }
+
+  if (!activeWorkout) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>No Active Workout</Text>
+          <Text style={styles.emptySub}>Ready to push your limits today?</Text>
+          <TouchableOpacity style={styles.startBtn} onPress={handleStartWorkout}>
+            <Text style={styles.startBtnText}>🚀 Start New HIT Session</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Шапка тренування */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Active HIT Workout ⚡</Text>
-          <Text style={styles.sessionBadge}>Session ID: #{workoutId}</Text>
+        {/* ШАПКА З ЖИВИМ ТАЙМЕРОМ */}
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.title}>Active HIT Workout ⚡</Text>
+            <Text style={styles.sessionBadge}>Session ID: #{workoutId}</Text>
+          </View>
+
+          {/* ⏱️ 2. ПЛАШКА ТАЙМЕРА */}
+          <View style={styles.timerBadge}>
+            <Text style={styles.timerText}>⏱️ {formatTimer(elapsedSeconds)}</Text>
+          </View>
         </View>
 
-        {/* Секція 1: Вибір вправи через окремий компонент */}
         <Text style={styles.sectionTitle}>1. Select Exercise</Text>
         <ExerciseSelector 
           exercises={exercises} 
@@ -84,7 +102,6 @@ export default function ActiveWorkoutScreen({ navigation }) {
           onSelect={setSelectedExerciseId} 
         />
 
-        {/* Секція 2: Введення метрик поточного підходу */}
         <Text style={styles.sectionTitle}>2. Set Metrics</Text>
         <View style={styles.inputCard}>
           <View style={styles.inputRow}>
@@ -102,7 +119,6 @@ export default function ActiveWorkoutScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Перемикач виконання до відмови */}
           <View style={styles.switchRow}>
             <View>
               <Text style={styles.switchLabel}>To absolute failure?</Text>
@@ -111,17 +127,14 @@ export default function ActiveWorkoutScreen({ navigation }) {
             <Switch value={isFailure} onValueChange={setIsFailure} trackColor={{ false: '#334155', true: '#FF5722' }} thumbColor="#FFF" />
           </View>
 
-          {/* Кнопка надсилання сету */}
           <TouchableOpacity style={styles.recordBtn} onPress={handleRecordSet} disabled={submittingSet}>
             {submittingSet ? <ActivityIndicator color="#FFF" /> : <Text style={styles.recordBtnText}>+ Log HIT Set</Text>}
           </TouchableOpacity>
         </View>
 
-        {/* Секція 3: Список вже записаних сетів */}
         <Text style={styles.sectionTitle}>Logged Sets ({loggedSets.length})</Text>
         <LoggedSetsList sets={loggedSets} />
 
-        {/* Секція 4: Нотатки та збереження тренування */}
         <Text style={[styles.sectionTitle, { marginTop: 20 }]}>3. Finalization</Text>
         <TextInput
           style={styles.notesInput}
@@ -137,7 +150,6 @@ export default function ActiveWorkoutScreen({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Рендеринг кастомного Toast-сповіщення */}
       {toast.visible && (
         <Animated.View style={[styles.toastContainer, { opacity: fadeAnim }, toast.type === 'error' ? styles.toastError : styles.toastSuccess]}>
           <Text style={styles.toastText}>{toast.message}</Text>
@@ -155,9 +167,19 @@ const styles = StyleSheet.create({
   container: { padding: 20, maxWidth: 800, alignSelf: 'center', width: '100%', paddingBottom: 60 },
   loadingContainer: { flex: 1, backgroundColor: '#0F172A', justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#94A3B8', marginTop: 12, fontSize: 14 },
-  header: { marginBottom: 20 },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 8 },
+  emptySub: { fontSize: 14, color: '#94A3B8', marginBottom: 24 },
+  startBtn: { backgroundColor: '#FF5722', paddingVertical: 16, paddingHorizontal: 32, borderRadius: 12 },
+  startBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  
+  // ⏱️ НОВІ СТИЛІ ДЛЯ ШАПКИ З ТАЙМЕРОМ
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   title: { fontSize: 22, fontWeight: 'bold', color: '#F8FAFC' },
   sessionBadge: { fontSize: 13, color: '#FF5722', fontWeight: '600', marginTop: 4 },
+  timerBadge: { backgroundColor: '#1E293B', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#FF5722' },
+  timerText: { color: '#F8FAFC', fontWeight: 'bold', fontSize: 16 },
+
   sectionTitle: { fontSize: 14, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 10 },
   inputCard: { backgroundColor: '#1E293B', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#334155', marginBottom: 24 },
   inputRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
@@ -172,7 +194,7 @@ const styles = StyleSheet.create({
   notesInput: { backgroundColor: '#1E293B', color: '#FFF', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#334155', minHeight: 70, textAlignVertical: 'top', marginBottom: 16 },
   finishBtn: { backgroundColor: '#FF5722', paddingVertical: 14, borderRadius: 10, alignItems: 'center', marginBottom: 30 },
   finishBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  toastContainer: { position: 'absolute', bottom: 30, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6, zIndex: 2000, maxWidth: '90%' },
+  toastContainer: { position: 'absolute', bottom: 30, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, elevation: 6, zIndex: 2000, maxWidth: '90%' },
   toastSuccess: { backgroundColor: '#10B981' },
   toastError: { backgroundColor: '#EF4444' },
   toastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', flex: 1, marginRight: 12 },
