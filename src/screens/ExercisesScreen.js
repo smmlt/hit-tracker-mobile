@@ -12,9 +12,7 @@ import {
 import { AuthContext } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
 
-import { ExerciseItem } from '../components/ExerciseItem';
-import { ExerciseFormModal } from '../components/ExerciseFormModal';
-import { ExerciseFilterBar } from '../components/ExerciseFilterBar';
+import { ExerciseFilterBar, ExerciseFormModal, ExerciseItem } from '../components/exercise';
 
 export default function ExercisesScreen() {
   const { userToken } = useContext(AuthContext);

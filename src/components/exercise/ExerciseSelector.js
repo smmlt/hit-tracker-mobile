@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 
-export function ExerciseSelector({ exercises, selectedExerciseId, onSelect }) {
+export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect }) {
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState(null);
 
   // Збираємо всі унікальні м'язи з отриманих вправ для створення кнопок фільтрації

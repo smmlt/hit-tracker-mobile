@@ -1,0 +1,1 @@
+export { ExerciseVideoPlayer } from './ExerciseVideoPlayer';

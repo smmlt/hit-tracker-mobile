@@ -13,8 +13,8 @@ import {
 } from 'react-native';
 
 import { useActiveWorkout } from '../hooks/useActiveWorkout';
-import { ExerciseSelector } from '../components/ExerciseSelector';
-import { LoggedSetsList } from '../components/LoggedSetsList';
+import { ExerciseSelector } from '../components/exercise';
+import { LoggedSetsList } from '../components/workout';
 import { formatTimer } from '../utils/formatters'; // 👈 Імпортуємо форматер
 
 export default function ActiveWorkoutScreen({ navigation }) {

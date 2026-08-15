@@ -7,8 +7,7 @@ import * as Linking from 'expo-linking';
 
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
-import { ActiveWorkoutBanner } from '../components/ActiveWorkoutBanner';
-import CustomTabBar from '../components/CustomTabBar'; 
+import { ActiveWorkoutBanner, AppTabBar } from '../components/navigation';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -33,7 +32,7 @@ function MainTabs() {
   return (
     <Tab.Navigator
       initialRouteName="Home"
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => <AppTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen 

@@ -3,15 +3,16 @@ import {
   View, 
   Text, 
   TouchableOpacity, 
-  Linking, 
+  Pressable,
   StyleSheet, 
   Modal, 
   SafeAreaView, 
   ScrollView 
 } from 'react-native';
 
-import { useTheme } from '../context/ThemeContext';
-import { HeartIcon, DropIcon } from '../assets/icons'; 
+import { useTheme } from '../../context/ThemeContext';
+import { HeartIcon, DropIcon } from '../../assets/icons';
+import { ExerciseVideoPlayer } from '../media';
 
 const DEFAULT_SAFETY_TIPS = [
   'Keep your spine in a neutral position (avoid excessive arching)',
@@ -20,7 +21,7 @@ const DEFAULT_SAFETY_TIPS = [
   'Perform movements smoothly without sudden jerks',
 ];
 
-export function ExerciseItem({ exercise, onToggleLike }) {
+export function ExerciseItem({ exercise, onPress, onToggleLike, onVideoError }) {
   const { theme } = useTheme();
   const [isModalVisible, setModalVisible] = useState(false);
 
@@ -69,8 +70,7 @@ export function ExerciseItem({ exercise, onToggleLike }) {
   return (
     <>
       {/* ================= КАРТОЧКА ВПРАВИ ================= */}
-      <TouchableOpacity 
-        activeOpacity={0.7} 
+      <Pressable
         style={({ pressed }) => [
           styles.cardWrapper, 
           { 
@@ -78,8 +78,8 @@ export function ExerciseItem({ exercise, onToggleLike }) {
             borderColor: theme.border 
           },
           pressed && { opacity: 0.75 }
-        ]} 
-        onPress={() => setModalVisible(true)}
+        ]}
+        onPress={() => onPress ? onPress(exercise) : setModalVisible(true)}
       >
         <View style={styles.cardInnerRow}>
           
@@ -128,7 +128,7 @@ export function ExerciseItem({ exercise, onToggleLike }) {
           </View>
 
         </View>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* ================= МОДАЛЬНЕ ВІКНО ================= */}
       <Modal
@@ -185,16 +185,7 @@ export function ExerciseItem({ exercise, onToggleLike }) {
               ))}
             </View>
 
-            {exercise.videoUrl && (
-              <TouchableOpacity
-                style={[styles.videoButton, { backgroundColor: theme.primary }]}
-                onPress={() => Linking.openURL(exercise.videoUrl)}
-              >
-                <Text style={styles.videoButtonText}>
-                  ▶ Watch Technique (YouTube)
-                </Text>
-              </TouchableOpacity>
-            )}
+            {exercise.videoUrl ? <ExerciseVideoPlayer onError={onVideoError} source={exercise.videoUrl} style={styles.videoPlayer} /> : null}
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -296,11 +287,5 @@ const styles = StyleSheet.create({
   },
   safetyTitle: { fontSize: 14, fontWeight: 'bold', marginBottom: 8 },
   safetyTipText: { fontSize: 13, marginBottom: 6 },
-  videoButton: { 
-    paddingVertical: 12, 
-    paddingHorizontal: 16, 
-    borderRadius: 10, 
-    alignItems: 'center' 
-  },
-  videoButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 14 },
+  videoPlayer: { marginTop: 4 },
 });

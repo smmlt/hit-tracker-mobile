@@ -15,6 +15,7 @@ export function CustomToast({
 
   return (
     <Animated.View
+      accessibilityRole="alert"
       style={[
         styles.toastContainer,
         isLight ? styles.toastLight : (type === 'error' ? styles.toastError : styles.toastSuccess),

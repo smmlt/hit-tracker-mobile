@@ -16,10 +16,8 @@ import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { apiFetch } from '../services/api';
 
-import SearchBar from '../components/SearchBar';
-import { ExerciseFilterBar } from '../components/ExerciseFilterBar';
-import { ExerciseSortDropdown } from '../components/ExerciseSortDropdown';
-import { ExerciseItem } from '../components/ExerciseItem'; 
+import { SearchField } from '../components/common';
+import { ExerciseFilterBar, ExerciseItem, ExerciseSortDropdown } from '../components/exercise';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -185,7 +183,7 @@ export default function HomeScreen() {
       </Text>
 
       <View style={styles.searchWrapper}>
-        <SearchBar
+        <SearchField
           value={searchQuery}
           onChangeText={setSearchQuery}
         />

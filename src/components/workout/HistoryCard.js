@@ -28,6 +28,7 @@ export function HistoryCard({ workout, index, isExpanded, onToggleExpand, onDele
         <TouchableOpacity
           style={styles.cardHeaderClickable}
           onPress={() => onToggleExpand(uniqueKey)}
+          accessibilityRole="button"
           activeOpacity={0.7}
         >
           <View style={styles.headerInfo}>

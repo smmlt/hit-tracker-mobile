@@ -5,7 +5,7 @@ export default function ErrorMessage({ message }) {
   if (!message) return null;
 
   return (
-    <View style={styles.container}>
+    <View accessibilityLiveRegion="polite" style={styles.container}>
       <Text style={styles.text}>{message}</Text>
     </View>
   );

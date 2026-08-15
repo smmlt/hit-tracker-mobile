@@ -1,8 +1,8 @@
 import React, { useState, useRef, useContext } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, TouchableWithoutFeedback } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
-import { LanguageContext } from '../localization/LanguageContext';
-import { ChevronDownIcon } from '../assets/icons';
+import { useTheme } from '../../context/ThemeContext';
+import { LanguageContext } from '../../localization/LanguageContext';
+import { ChevronDownIcon } from '../../assets/icons';
 
 export function ExerciseSortDropdown({ currentSort, onSelectSort }) {
   const { theme } = useTheme();

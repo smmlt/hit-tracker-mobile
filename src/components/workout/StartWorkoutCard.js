@@ -1,9 +1,9 @@
 import React from 'react';
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-export function StartWorkoutCard({ onPress }) {
+export function StartWorkoutCard({ onPress, disabled = false }) {
   return (
-    <TouchableOpacity style={styles.heroCard} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity disabled={disabled} style={[styles.heroCard, disabled && styles.disabled]} onPress={onPress} activeOpacity={0.8}>
       <Text style={styles.heroBadge}>READY TO WORKOUT?</Text>
       <Text style={styles.heroTitle}>Start Workout 🏋️‍♂️</Text>
       <Text style={styles.heroSubtitle}>
@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 28,
   },
+  disabled: { opacity: 0.55 },
   heroBadge: {
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 11,

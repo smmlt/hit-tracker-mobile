@@ -1,11 +1,21 @@
-import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useContext, useEffect, useRef } from 'react';
+import { Animated, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { WorkoutContext } from '../context/WorkoutContext';
+import { WorkoutContext } from '../../context/WorkoutContext';
 
 export function ActiveWorkoutBanner() {
   const navigation = useNavigation();
   const { activeWorkout } = useContext(WorkoutContext);
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(Animated.sequence([
+      Animated.timing(pulse, { toValue: 0.45, duration: 700, useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+    ]));
+    animation.start();
+    return () => animation.stop();
+  }, [pulse]);
 
   // Якщо немає активного тренування — плашка не відображається
   if (!activeWorkout) return null;
@@ -17,7 +27,7 @@ export function ActiveWorkoutBanner() {
       onPress={() => navigation.navigate('ActiveWorkout')}
     >
       <View style={styles.leftContainer}>
-        <View style={styles.pulseDot} />
+        <Animated.View style={[styles.pulseDot, { opacity: pulse, transform: [{ scale: pulse }] }]} />
         <View>
           <Text style={styles.title}>Active Workout in Progress</Text>
           <Text style={styles.subtitle}>

@@ -12,7 +12,7 @@ export function SetRow({ set, index }) {
       <View style={styles.setMainInfo}>
         <Text style={styles.setNumber}>#{index + 1}</Text>
         <View style={styles.setInfoContainer}>
-          <Text style={styles.exerciseName}>{exerciseTitle}</Text>
+          <Text numberOfLines={1} style={styles.exerciseName}>{exerciseTitle}</Text>
           <Text style={styles.setMetrics}>{metricsText}</Text>
         </View>
       </View>

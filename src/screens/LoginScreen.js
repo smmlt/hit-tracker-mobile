@@ -13,8 +13,8 @@ import {
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { isValidEmail } from '../utils/validation';
-import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/AuthComponents';
-import { CustomToast } from '../components/CustomToast';
+import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
+import { CustomToast } from '../components/feedback';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 

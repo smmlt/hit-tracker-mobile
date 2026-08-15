@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
-import { LanguageContext } from '../localization/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
+import { LanguageContext } from '../../localization/LanguageContext';
 // Замініть на ваш імпорт нової іконки
-import { GridIcon } from '../assets/icons'; 
+import { GridIcon } from '../../assets/icons'; 
 
 export function ExerciseFilterBar({
   musclesList = [],

@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 /**
  * Відображає історію записаних сетів або текст-заглушку, якщо їх ще немає
  */
-export function LoggedSetsList({ sets }) {
+export function LoggedSetsList({ sets = [] }) {
   // Якщо сесій ще немає — показуємо заглушку
   if (sets.length === 0) {
     return (

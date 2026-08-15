@@ -19,7 +19,7 @@ export function ExerciseFormModal({
   setDescription,
   videoUrl,
   setVideoUrl,
-  musclesList,
+  musclesList = [],
   selectedMuscleIds,
   onToggleMuscle,
   onSubmit,

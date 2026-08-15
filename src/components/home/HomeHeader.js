@@ -8,7 +8,7 @@ export function HomeHeader({ onLogout }) {
         <Text style={styles.greeting}>Welcome back! 💪</Text>
         <Text style={styles.title}>HIT Tracker</Text>
       </View>
-      <TouchableOpacity style={styles.logoutBtn} onPress={onLogout} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.logoutBtn} onPress={onLogout} activeOpacity={0.7}>
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
     </View>

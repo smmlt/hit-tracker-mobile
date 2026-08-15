@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { AppButton } from '../common';
 
 export function BackButton({ onPress }) {
   return (
@@ -10,7 +11,7 @@ export function BackButton({ onPress }) {
   );
 }
 
-export function CustomInput({ label, value, onChangeText, placeholder, secureTextEntry, isPassword, showPassword, onTogglePassword, keyboardType, autoCapitalize }) {
+export function CustomInput({ label, value, onChangeText, placeholder, secureTextEntry, isPassword, showPassword, onTogglePassword, keyboardType, autoCapitalize, ...inputProps }) {
   return (
     <View style={styles.inputGroup}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
@@ -24,6 +25,7 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize || 'none'}
+          {...inputProps}
         />
         {isPassword && (
           <TouchableOpacity onPress={onTogglePassword} style={styles.eyeIcon}>
@@ -36,11 +38,7 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
 }
 
 export function PrimaryButton({ title, onPress, isLoading }) {
-  return (
-    <TouchableOpacity style={styles.primaryButton} onPress={onPress} disabled={isLoading} activeOpacity={0.8}>
-      {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.primaryButtonText}>{title}</Text>}
-    </TouchableOpacity>
-  );
+  return <AppButton loading={isLoading} onPress={onPress} style={styles.primaryButton} title={title} />;
 }
 
 export function SocialButton({ title, onPress, iconName }) {
@@ -67,8 +65,7 @@ const styles = StyleSheet.create({
   inputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, backgroundColor: '#FFF', height: 50 },
   input: { flex: 1, paddingHorizontal: 16, fontSize: 15, color: '#000' },
   eyeIcon: { paddingHorizontal: 16 },
-  primaryButton: { backgroundColor: '#000', borderRadius: 12, height: 52, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 20 },
-  primaryButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  primaryButton: { marginTop: 12, marginBottom: 20 },
   socialButton: { flexDirection: 'row', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, height: 50, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF', marginBottom: 12 },
   socialIcon: { marginRight: 8 },
   socialButtonText: { fontSize: 15, fontWeight: '500', color: '#000' },
