@@ -2,10 +2,13 @@ import React, { useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as Linking from 'expo-linking';
 
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../localization/LanguageContext';
 import { ActiveWorkoutBanner } from '../components/ActiveWorkoutBanner';
+import CustomTabBar from '../components/CustomTabBar'; 
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -15,9 +18,52 @@ import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
 import HistoryScreen from '../screens/HistoryScreen';
-import ExercisesScreen from '../screens/ExercisesScreen';
+import ExercisesScreen from '../screens/ExercisesScreen'; 
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// ТИМЧАСОВІ ЗАГЛУШКИ ДЛЯ НОВИХ ЕКРАНІВ
+const AnalyticsPlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
+const ProfilePlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
+
+function MainTabs() {
+  const { t } = useContext(LanguageContext);
+
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Tab.Screen 
+        name="History" 
+        component={HistoryScreen} 
+        options={{ title: t('history') }} 
+      />
+      <Tab.Screen 
+        name="ActiveWorkout" 
+        component={ActiveWorkoutScreen} 
+        options={{ title: t('activeWorkout') }} 
+      />
+      <Tab.Screen 
+        name="Home" 
+        component={HomeScreen} 
+        options={{ title: t('home') }} 
+      />
+      <Tab.Screen 
+        name="Analytics" 
+        component={AnalyticsPlaceholder} 
+        options={{ title: t('analytics') }} 
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfilePlaceholder} 
+        options={{ title: t('profile') }} 
+      />
+    </Tab.Navigator>
+  );
+}
 
 const linking = {
   prefixes: [Linking.createURL('/'), 'http://localhost:8081', 'hittracker://'],
@@ -68,16 +114,14 @@ export default function AppNavigator() {
               />
             </>
           ) : (
-            <>
-              <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
-              <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} options={{ title: 'Active Workout' }} />
-              <Stack.Screen name="History" component={HistoryScreen} options={{ title: 'Workout History' }} />
-              <Stack.Screen name="Exercises" component={ExercisesScreen} options={{ title: 'Exercise Library' }} />
-            </>
+            <Stack.Screen 
+              name="MainApp" 
+              component={MainTabs} 
+              options={{ headerShown: false }} 
+            />
           )}
         </Stack.Navigator>
 
-        {/* Закріплений плаваючий банер, який з'являється тільки при авторизації */}
         {userToken !== null && <ActiveWorkoutBanner />}
       </View>
     </NavigationContainer>
