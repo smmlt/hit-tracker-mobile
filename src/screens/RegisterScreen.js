@@ -8,9 +8,10 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   TouchableOpacity, 
-  Linking, 
   Animated 
 } from 'react-native';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { AuthContext } from '../context/AuthContext';
 import { isValidEmail, getPasswordCriteria, isValidPassword } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
@@ -75,8 +76,14 @@ export default function RegisterScreen({ navigation, route }) {
       // Для вебу робимо перенаправлення у тій самій вкладці
       window.location.href = backendOAuthUrl;
     } else {
-      // Для iOS / Android використовуємо Linking
-      await Linking.openURL(backendOAuthUrl);
+      const result = await WebBrowser.openAuthSessionAsync(
+        backendOAuthUrl,
+        Linking.createURL('/'),
+      );
+
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        navigation.navigate('Login');
+      }
     }
   };
 

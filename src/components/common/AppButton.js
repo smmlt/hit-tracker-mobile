@@ -1,6 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { styles } from './AppButton.styles';
 
 export function AppButton({
   title,
@@ -35,10 +36,3 @@ export function AppButton({
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: { alignItems: 'center', borderRadius: 16, justifyContent: 'center', minHeight: 54, paddingHorizontal: 20 },
-  disabled: { opacity: 0.55 },
-  pressed: { opacity: 0.82 },
-  label: { color: '#FFFFFF', fontSize: 18, fontWeight: '400' },
-});

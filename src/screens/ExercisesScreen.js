@@ -23,7 +23,6 @@ export default function ExercisesScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState(null);
-  const [expandedExerciseId, setExpandedExerciseId] = useState(null);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [name, setName] = useState('');
@@ -141,8 +140,6 @@ export default function ExercisesScreen() {
         <Text style={styles.title}>Exercise Workshop 🛠️</Text>
 
         <ExerciseFilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
           musclesList={musclesList}
           selectedMuscleFilter={selectedMuscleFilter}
           onSelectMuscleFilter={setSelectedMuscleFilter}
@@ -157,12 +154,6 @@ export default function ExercisesScreen() {
             <ExerciseItem
               key={ex.id}
               exercise={ex}
-              isExpanded={expandedExerciseId === ex.id}
-              onToggleExpand={() =>
-                setExpandedExerciseId(
-                  expandedExerciseId === ex.id ? null : ex.id
-                )
-              }
             />
           ))}
         </ScrollView>

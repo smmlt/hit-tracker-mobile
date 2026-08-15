@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '../common';
+import { styles } from './AuthComponents.styles';
 
 export function BackButton({ onPress }) {
   return (
@@ -57,18 +58,3 @@ export function Divider({ text = 'or continue with' }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  backButton: { marginBottom: 16, marginTop: 8, width: 40, height: 40, justifyContent: 'center' },
-  inputGroup: { marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '500', color: '#000', marginBottom: 8 },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, backgroundColor: '#FFF', height: 50 },
-  input: { flex: 1, paddingHorizontal: 16, fontSize: 15, color: '#000' },
-  eyeIcon: { paddingHorizontal: 16 },
-  primaryButton: { marginTop: 12, marginBottom: 20 },
-  socialButton: { flexDirection: 'row', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, height: 50, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF', marginBottom: 12 },
-  socialIcon: { marginRight: 8 },
-  socialButtonText: { fontSize: 15, fontWeight: '500', color: '#000' },
-  dividerContainer: { alignItems: 'center', marginVertical: 12 },
-  dividerText: { color: '#6B7280', fontSize: 13 },
-});
