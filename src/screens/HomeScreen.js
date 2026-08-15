@@ -41,7 +41,7 @@ export default function HomeScreen() {
     if (showLoadingIndicator) setLoading(true);
     setError(null);
     try {
-      // Паралельно завантажуємо вправи (з прив'язаними м'язами) та список м'язів
+      // Паралельно завантажуємо вправи (з прив'язаними м'язами та лайками) та список м'язів
       const [resExercises, resMuscles] = await Promise.all([
         apiFetch('/exercises', {}, userToken),
         apiFetch('/exercises/muscles', {}, userToken),
@@ -80,6 +80,57 @@ export default function HomeScreen() {
     fetchData(false);
   };
 
+  // Функція для опрацювання лайка (запит на бекенд + оновлення локального стану)
+  const handleToggleLike = async (exerciseId) => {
+    try {
+      // Оптимістичне оновлення інтерфейсу одразу для плавності
+      setExercises((prevExercises) =>
+        prevExercises.map((ex) => {
+          if (ex.id === exerciseId) {
+            const isNowLiked = !ex.isLiked;
+            return {
+              ...ex,
+              isLiked: isNowLiked,
+              likesCount: isNowLiked 
+                ? (ex.likesCount || 0) + 1 
+                : Math.max(0, (ex.likesCount || 1) - 1),
+            };
+          }
+          return ex;
+        })
+      );
+
+      // Запит до бекенду (шлях залежить від твого контролера, напр. /exercises/:id/like)
+      const response = await apiFetch(`/exercises/${exerciseId}/like`, {
+        method: 'POST',
+      }, userToken);
+
+      if (response.status === 401) {
+        await logout();
+        return;
+      }
+
+      // Якщо бекенд повернув точні актуальні дані, синхронізуємо
+      if (response.ok && response.data) {
+        setExercises((prevExercises) =>
+          prevExercises.map((ex) => {
+            if (ex.id === exerciseId) {
+              return {
+                ...ex,
+                isLiked: response.data.isLiked,
+                likesCount: response.data.likesCount !== undefined ? response.data.likesCount : ex.likesCount,
+              };
+            }
+            return ex;
+          })
+        );
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err);
+      // У разі помилки можна повторно викликати fetchData або залишити як є
+    }
+  };
+
   // Логіка фільтрації та сортування вправ
   const getFilteredAndSortedExercises = () => {
     let data = [...exercises];
@@ -116,7 +167,8 @@ export default function HomeScreen() {
         break;
       case 'popular':
       default:
-        data.sort((a, b) => (b.id || 0) - (a.id || 0));
+        // Сортуємо за кількістю лайків від найбільшого до найменшого
+        data.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
         break;
     }
 
@@ -174,7 +226,10 @@ export default function HomeScreen() {
       <FlatList
         data={displayedExercises}
         renderItem={({ item }) => (
-          <ExerciseItem exercise={item} />
+          <ExerciseItem 
+            exercise={item} 
+            onToggleLike={handleToggleLike} 
+          />
         )}
         keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
         ListHeaderComponent={headerElement} 

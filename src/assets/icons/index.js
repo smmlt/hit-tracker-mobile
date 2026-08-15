@@ -6,6 +6,9 @@ import HomeIcon from './HomeIcon.svg';
 import PlayIcon from './PlayIcon.svg';
 import ProfileIcon from './ProfileIcon.svg';
 import SearchIcon from './SearchIcon.svg';
+import DropIcon from './DropIcon.svg'
+import HeartIcon from './HeartIcon.svg'
+
 
 export {
   ChartIcon,
@@ -16,4 +19,6 @@ export {
   PlayIcon,
   ProfileIcon,
   SearchIcon,
+  DropIcon,
+  HeartIcon,
 };
