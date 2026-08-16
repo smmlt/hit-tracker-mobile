@@ -1,23 +1,15 @@
 import React from 'react';
-import { Linking, Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
+
+const getYouTubeId = (url) => url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/)?.[1];
 
 export function ExerciseVideoPlayer({ source, onError, style }) {
-  const openVideo = async () => {
-    try {
-      await Linking.openURL(source);
-    } catch (error) {
-      onError?.(error);
-    }
-  };
-
-  return (
-    <Pressable accessibilityRole="link" onPress={openVideo} style={[styles.button, style]}>
-      <Text style={styles.label}>Open video</Text>
-    </Pressable>
-  );
+  const videoId = getYouTubeId(source);
+  if (!videoId) return null;
+  return <View style={[styles.container, style]}><YoutubePlayer height={220} onError={onError} play={false} videoId={videoId} /></View>;
 }
 
 const styles = StyleSheet.create({
-  button: { alignItems: 'center', backgroundColor: '#F00D22', borderRadius: 12, justifyContent: 'center', minHeight: 52 },
-  label: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  container: { aspectRatio: 16 / 9, borderRadius: 12, overflow: 'hidden', width: '100%' },
 });

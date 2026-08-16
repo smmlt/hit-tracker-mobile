@@ -18,13 +18,25 @@ import HomeScreen from '../screens/HomeScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import ExercisesScreen from '../screens/ExercisesScreen'; 
+import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const ProfileStackNavigator = createNativeStackNavigator();
 
 // ТИМЧАСОВІ ЗАГЛУШКИ ДЛЯ НОВИХ ЕКРАНІВ
 const AnalyticsPlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
-const ProfilePlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
+function ProfileStack() {
+  return (
+    <ProfileStackNavigator.Navigator screenOptions={{ headerShown: false }}>
+      <ProfileStackNavigator.Screen name="ProfileMain" component={ProfileScreen} />
+      <ProfileStackNavigator.Screen name="Settings" component={SettingsScreen} />
+      <ProfileStackNavigator.Screen name="EditProfile" component={EditProfileScreen} />
+    </ProfileStackNavigator.Navigator>
+  );
+}
 
 function MainTabs() {
   const { t } = useContext(LanguageContext);
@@ -57,7 +69,7 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="Profile" 
-        component={ProfilePlaceholder} 
+        component={ProfileStack}
         options={{ title: t('profile') }} 
       />
     </Tab.Navigator>
@@ -68,7 +80,7 @@ const linking = {
   prefixes: [Linking.createURL('/'), 'http://localhost:8081', 'hittracker://'],
   config: {
     screens: {
-      Login: 'login',
+      Login: ['login', 'auth/google/callback'],
       Register: 'register',
       ForgotPassword: 'forgot-password',
       ResetPassword: 'reset-password',

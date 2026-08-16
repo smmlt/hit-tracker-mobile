@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useEvent } from 'expo';
 import { StyleSheet, View } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { WebView } from 'react-native-webview';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 const getYouTubeId = (url) => {
   const match = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/);
@@ -28,14 +28,7 @@ export function ExerciseVideoPlayer({ source, onError, style }) {
   return (
     <View style={[styles.container, style]}>
       {videoId ? (
-        <WebView
-          allowsFullscreenVideo
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction
-          onError={(event) => onError?.(event.nativeEvent)}
-          source={{ uri: `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0` }}
-          style={styles.player}
-        />
+        <YoutubePlayer height={220} onError={onError} play={false} videoId={videoId} />
       ) : <NativeVideo onError={onError} source={source} />}
     </View>
   );

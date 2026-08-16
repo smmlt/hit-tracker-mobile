@@ -25,7 +25,7 @@ export default function RegisterScreen({ navigation, route }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { register, isLoading } = useContext(AuthContext);
+  const { handleOAuthRedirect, register, isLoading } = useContext(AuthContext);
 
   // Состояние и анимация для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
@@ -84,6 +84,7 @@ export default function RegisterScreen({ navigation, route }) {
       if (result.type === 'cancel' || result.type === 'dismiss') {
         navigation.navigate('Login');
       }
+      if (result.type === 'success') await handleOAuthRedirect(result.url);
     }
   };
 

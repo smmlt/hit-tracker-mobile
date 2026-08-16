@@ -11,6 +11,7 @@ import {
   Animated 
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { AuthContext } from '../context/AuthContext';
 import { isValidEmail } from '../utils/validation';
 import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
@@ -22,7 +23,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useContext(AuthContext);
+  const { handleOAuthRedirect, login, isLoading } = useContext(AuthContext);
 
   // Стан та анімація для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
@@ -74,7 +75,8 @@ export default function LoginScreen({ navigation }) {
     if (Platform.OS === 'web') {
       window.location.href = backendOAuthUrl;
     } else {
-      await WebBrowser.openAuthSessionAsync(backendOAuthUrl);
+      const result = await WebBrowser.openAuthSessionAsync(backendOAuthUrl, Linking.createURL('/auth/google/callback'));
+      if (result.type === 'success') await handleOAuthRedirect(result.url);
     }
   };
 

@@ -16,17 +16,39 @@ export const AuthProvider = ({ children }) => {
     setUserToken(token);
   };
 
+  const clearAuth = async () => {
+    await AsyncStorage.multiRemove(['userToken', 'userData']);
+    setUserToken(null);
+    setUserData(null);
+  };
+
+  const handleOAuthRedirect = async (url) => {
+    if (!url) return false;
+
+    const parsed = Linking.parse(url);
+    const hash = url.includes('#') ? new URLSearchParams(url.split('#')[1]) : null;
+    const error = parsed.queryParams?.error || hash?.get('error');
+    const token = parsed.queryParams?.accessToken || hash?.get('accessToken');
+
+    if (error === 'access_denied') {
+      await clearAuth();
+      return true;
+    }
+    if (token) {
+      await saveAuthToken(token);
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       try {
         // 1. Перевірка для Web (витягуємо токен з URL хешу #accessToken=...)
-        if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const tokenFromUrl = hashParams.get('accessToken');
-
-          if (tokenFromUrl) {
-            await saveAuthToken(tokenFromUrl);
-            window.location.hash = ''; // Прибираємо токен з адресного рядка
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const handled = await handleOAuthRedirect(window.location.href);
+          if (handled) {
+            window.history.replaceState({}, document.title, window.location.pathname);
             setIsLoading(false);
             return;
           }
@@ -52,12 +74,7 @@ export const AuthProvider = ({ children }) => {
     // 3. Обробник для мобільних пристроїв (Deep Linking: hittracker://...)
     const handleDeepLink = async (event) => {
       if (!event?.url) return;
-      const parsed = Linking.parse(event.url);
-      const token = parsed.queryParams?.accessToken;
-
-      if (token) {
-        await saveAuthToken(token);
-      }
+      await handleOAuthRedirect(event.url);
     };
 
     initAuth();
@@ -118,10 +135,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      await AsyncStorage.removeItem('userToken');
-      await AsyncStorage.removeItem('userData');
-      setUserToken(null);
-      setUserData(null);
+      await clearAuth();
     } catch (error) {
       console.error('Failed to clear storage during logout:', error);
     } finally {
@@ -138,6 +152,11 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        handleOAuthRedirect,
+        updateUserData: async (user) => {
+          await AsyncStorage.setItem('userData', JSON.stringify(user));
+          setUserData(user);
+        },
       }}
     >
       {children}
