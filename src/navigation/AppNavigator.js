@@ -26,7 +26,6 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
 
-// ТИМЧАСОВІ ЗАГЛУШКИ ДЛЯ НОВИХ ЕКРАНІВ
 const AnalyticsPlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
 function ProfileStack() {
   return (
