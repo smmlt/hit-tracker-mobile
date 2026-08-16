@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
@@ -11,18 +11,18 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const saveAuthToken = async (token) => {
+  const saveAuthToken = useCallback(async (token) => {
     await AsyncStorage.setItem('userToken', token);
     setUserToken(token);
-  };
+  }, []);
 
-  const clearAuth = async () => {
+  const clearAuth = useCallback(async () => {
     await AsyncStorage.multiRemove(['userToken', 'userData']);
     setUserToken(null);
     setUserData(null);
-  };
+  }, []);
 
-  const handleOAuthRedirect = async (url) => {
+  const handleOAuthRedirect = useCallback(async (url) => {
     if (!url) return false;
 
     const parsed = Linking.parse(url);
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
     return false;
-  };
+  }, [clearAuth, saveAuthToken]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     setIsLoading(true);
     try {
       const data = await authService.login(email, password);
@@ -109,9 +109,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [saveAuthToken]);
 
-  const register = async (email, password) => {
+  const register = useCallback(async (email, password) => {
     setIsLoading(true);
     try {
       const data = await authService.register(email, password);
@@ -130,9 +130,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [saveAuthToken]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setIsLoading(true);
     try {
       await clearAuth();
@@ -141,7 +141,12 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clearAuth]);
+
+  const updateUserData = useCallback(async (user) => {
+    await AsyncStorage.setItem('userData', JSON.stringify(user));
+    setUserData(user);
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -153,10 +158,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         handleOAuthRedirect,
-        updateUserData: async (user) => {
-          await AsyncStorage.setItem('userData', JSON.stringify(user));
-          setUserData(user);
-        },
+        updateUserData,
       }}
     >
       {children}

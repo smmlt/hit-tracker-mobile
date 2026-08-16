@@ -1,15 +1,15 @@
 import React, { useContext } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { palette } from '../constants/colors';
+import { useProfile } from '../hooks/useProfile';
 
 export default function ProfileScreen({ navigation }) {
-  const { userData } = useContext(AuthContext);
+  const { profile: userData } = useProfile(true);
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
-  const name = userData?.fullName || userData?.name || userData?.email?.split('@')[0] || t('user');
+  const name = userData?.username || userData?.email?.split('@')[0] || t('user');
   const email = userData?.email || '';
 
   return (
