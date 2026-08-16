@@ -22,7 +22,7 @@ export function SearchField({
 
   return (
     <View style={[styles.container, { backgroundColor: theme.inputBackground, borderColor }, style]}>
-      <SearchIcon width={20} height={20} color={theme.gray || '#838384'} />
+      <SearchIcon width={20} height={20} color={theme.inputIcon} />
       <TextInput
         accessibilityLabel={placeholder || t('searchPlaceholder')}
         autoCapitalize="none"

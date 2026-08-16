@@ -58,25 +58,25 @@ export function ExerciseItem({ exercise, onPress, onToggleLike, onVideoError }) 
         style={({ pressed }) => [
           styles.cardWrapper, 
           { 
-            backgroundColor: '#292929', 
+            backgroundColor: theme.workoutCardBackground,
             borderColor: theme.border 
           },
           pressed && { opacity: 0.75 }
         ]}
         onPress={() => onPress ? onPress(exercise) : setModalVisible(true)}
       >
-        <View style={styles.cardInnerRow}>
+          <View style={[styles.cardInnerRow, { backgroundColor: theme.workoutCardBackground }]}>
           
           <View style={styles.imagePlaceholder}>
             <Text style={styles.placeholderText}>PHOTO</Text>
           </View>
 
           <View style={styles.infoContainer}>
-            <Text style={[styles.title, { color: theme.textPrimary }]} numberOfLines={1}>
+            <Text style={[styles.title, { color: theme.workoutCardText }]} numberOfLines={1}>
               {exercise.name}
             </Text>
 
-            <Text style={[styles.muscles, { color: theme.textSecondary }]} numberOfLines={1}>
+            <Text style={[styles.muscles, { color: theme.workoutCardMutedText }]} numberOfLines={1}>
               {musclesText}
             </Text>
 
@@ -100,7 +100,7 @@ export function ExerciseItem({ exercise, onPress, onToggleLike, onVideoError }) 
                 {renderDifficultyDrops()}
               </View>
 
-              <Text style={[styles.likesCount, { color: theme.textPrimary }]}>
+              <Text style={[styles.likesCount, { color: theme.workoutCardText }]}>
                 {formatLikes(exercise.likesCount || 0)}
               </Text>
             </View>

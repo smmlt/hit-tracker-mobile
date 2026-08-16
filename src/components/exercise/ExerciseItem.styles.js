@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   cardWrapper: { borderRadius: 12, borderWidth: 1, marginBottom: 12, overflow: 'hidden' },
-  cardInnerRow: { alignItems: 'center', backgroundColor: '#292929', flexDirection: 'row', marginBottom: 4, padding: 12, width: '100%' },
+  cardInnerRow: { alignItems: 'center', flexDirection: 'row', marginBottom: 4, padding: 12, width: '100%' },
   imagePlaceholder: { alignItems: 'center', backgroundColor: '#7C3AED', borderRadius: 10, flexShrink: 0, height: 75, justifyContent: 'center', marginRight: 4, width: 75 },
   placeholderText: { color: '#FFFFFF', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
   infoContainer: { flex: 1, justifyContent: 'center', paddingLeft: 20 },

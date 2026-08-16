@@ -19,6 +19,9 @@ export const themes = {
     inputText: '#121111',
     inputPlaceholder: '#121111',
     inputIcon: '#D9D9D9',
+    workoutCardBackground: '#292929',
+    workoutCardText: '#F8FAFC',
+    workoutCardMutedText: '#94A3B8',
     
     filterChipBackground: 'rgba(52, 52, 52, 0.6)',
     filterChipText: '#FFFFFF',
@@ -45,6 +48,9 @@ export const themes = {
     inputText: '#FFFFFF',
     inputPlaceholder: '#FFFFFF',
     inputIcon: '#FFFFFF',
+    workoutCardBackground: '#808080',
+    workoutCardText: '#FFFFFF',
+    workoutCardMutedText: '#E2E8F0',
 
     filterChipBackground: '#E2E8F0',
     filterChipText: '#0F172A',
