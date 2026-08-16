@@ -2,12 +2,17 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   bar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     alignItems: 'flex-end',
     borderTopWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingHorizontal: 8,
     paddingTop: 8,
+    zIndex: 100,
   },
   item: {
     alignItems: 'center',

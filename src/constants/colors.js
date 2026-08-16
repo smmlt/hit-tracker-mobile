@@ -11,7 +11,7 @@ export const themes = {
     background: '#0a0909',
     cardBackground: '#1E293B',
 
-    tabBarBackground: 'rgba(18, 18, 18, 0.9)',
+    tabBarBackground: 'rgba(18, 18, 18, 0.8)',
     tabBarActive: '#F00D22',
     tabBarInactive: '#838384',
 
