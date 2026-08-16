@@ -80,7 +80,7 @@ const linking = {
   prefixes: [Linking.createURL('/'), 'http://localhost:8081', 'hittracker://'],
   config: {
     screens: {
-      Login: ['login', 'auth/google/callback'],
+      Login: { path: 'login', alias: ['auth/google/callback'] },
       Register: 'register',
       ForgotPassword: 'forgot-password',
       ResetPassword: 'reset-password',
