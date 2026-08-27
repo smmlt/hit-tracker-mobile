@@ -10,8 +10,8 @@ import {
   Animated 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BackButton, CustomInput, PrimaryButton } from '../components/AuthComponents';
-import { CustomToast } from '../components/CustomToast';
+import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
+import { CustomToast } from '../components/feedback';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 

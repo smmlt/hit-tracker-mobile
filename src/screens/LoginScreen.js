@@ -8,13 +8,14 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   TouchableOpacity, 
-  Linking,
   Animated 
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { AuthContext } from '../context/AuthContext';
 import { isValidEmail } from '../utils/validation';
-import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/AuthComponents';
-import { CustomToast } from '../components/CustomToast';
+import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
+import { CustomToast } from '../components/feedback';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -22,7 +23,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loginWithToken, isLoading } = useContext(AuthContext);
+  const { handleOAuthRedirect, login, isLoading } = useContext(AuthContext);
 
   // Стан та анімація для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
@@ -62,26 +63,7 @@ export default function LoginScreen({ navigation }) {
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
-  useEffect(() => {
-    const handleDeepLink = async (event) => {
-      if (event?.url) {
-        const queryParams = Linking.parse(event.url).queryParams;
-        if (queryParams?.accessToken) {
-          await loginWithToken(queryParams.accessToken);
-        }
-      }
-    };
-
-    let subscription;
-    if (Platform.OS !== 'web') {
-      subscription = Linking.addEventListener('url', handleDeepLink);
-    }
-
-    return () => {
-      if (subscription) subscription.remove();
-      clearTimers();
-    };
-  }, []);
+  useEffect(() => () => clearTimers(), []);
 
   const handleAppleLogin = () => {
     showToast('Sign in with Apple is currently in development', 'error');
@@ -93,7 +75,8 @@ export default function LoginScreen({ navigation }) {
     if (Platform.OS === 'web') {
       window.location.href = backendOAuthUrl;
     } else {
-      await Linking.openURL(backendOAuthUrl);
+      const result = await WebBrowser.openAuthSessionAsync(backendOAuthUrl, Linking.createURL('/auth/google/callback'));
+      if (result.type === 'success') await handleOAuthRedirect(result.url);
     }
   };
 
