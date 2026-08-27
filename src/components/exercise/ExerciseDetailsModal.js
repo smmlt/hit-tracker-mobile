@@ -25,6 +25,7 @@ export function ExerciseDetailsModal({ exercise, onClose, onVideoError, visible 
 
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={[styles.exerciseName, { color: theme.textPrimary }]}>{exercise.name}</Text>
+          {exercise.videoUrl ? <ExerciseVideoPlayer onError={onVideoError} source={exercise.videoUrl} style={styles.video} /> : null}
           {exercise.description ? <View style={styles.section}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>{t('description')}:</Text>
             <Text style={[styles.description, { color: theme.textPrimary }]}>{exercise.description}</Text>
@@ -41,7 +42,7 @@ export function ExerciseDetailsModal({ exercise, onClose, onVideoError, visible 
             <Text style={[styles.safetyTitle, { color: theme.secondary }]}>🛡️ {t('safetyGuidelines')}:</Text>
             {SAFETY_TIP_KEYS.map((key) => <Text key={key} style={[styles.safetyTip, { color: theme.textSecondary }]}>• {t(key)}</Text>)}
           </View>
-          {exercise.videoUrl ? <ExerciseVideoPlayer onError={onVideoError} source={exercise.videoUrl} style={styles.video} /> : null}
+          
         </ScrollView>
       </SafeAreaView>
     </Modal>
