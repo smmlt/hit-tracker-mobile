@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
@@ -11,22 +11,44 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const saveAuthToken = async (token) => {
+  const saveAuthToken = useCallback(async (token) => {
     await AsyncStorage.setItem('userToken', token);
     setUserToken(token);
-  };
+  }, []);
+
+  const clearAuth = useCallback(async () => {
+    await AsyncStorage.multiRemove(['userToken', 'userData']);
+    setUserToken(null);
+    setUserData(null);
+  }, []);
+
+  const handleOAuthRedirect = useCallback(async (url) => {
+    if (!url) return false;
+
+    const parsed = Linking.parse(url);
+    const hash = url.includes('#') ? new URLSearchParams(url.split('#')[1]) : null;
+    const error = parsed.queryParams?.error || hash?.get('error');
+    const token = parsed.queryParams?.accessToken || hash?.get('accessToken');
+
+    if (error === 'access_denied') {
+      await clearAuth();
+      return true;
+    }
+    if (token) {
+      await saveAuthToken(token);
+      return true;
+    }
+    return false;
+  }, [clearAuth, saveAuthToken]);
 
   useEffect(() => {
     const initAuth = async () => {
       try {
         // 1. Перевірка для Web (витягуємо токен з URL хешу #accessToken=...)
-        if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const tokenFromUrl = hashParams.get('accessToken');
-
-          if (tokenFromUrl) {
-            await saveAuthToken(tokenFromUrl);
-            window.location.hash = ''; // Прибираємо токен з адресного рядка
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const handled = await handleOAuthRedirect(window.location.href);
+          if (handled) {
+            window.history.replaceState({}, document.title, window.location.pathname);
             setIsLoading(false);
             return;
           }
@@ -52,12 +74,7 @@ export const AuthProvider = ({ children }) => {
     // 3. Обробник для мобільних пристроїв (Deep Linking: hittracker://...)
     const handleDeepLink = async (event) => {
       if (!event?.url) return;
-      const parsed = Linking.parse(event.url);
-      const token = parsed.queryParams?.accessToken;
-
-      if (token) {
-        await saveAuthToken(token);
-      }
+      await handleOAuthRedirect(event.url);
     };
 
     initAuth();
@@ -73,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     setIsLoading(true);
     try {
       const data = await authService.login(email, password);
@@ -92,9 +109,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [saveAuthToken]);
 
-  const register = async (email, password) => {
+  const register = useCallback(async (email, password) => {
     setIsLoading(true);
     try {
       const data = await authService.register(email, password);
@@ -113,21 +130,23 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [saveAuthToken]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setIsLoading(true);
     try {
-      await AsyncStorage.removeItem('userToken');
-      await AsyncStorage.removeItem('userData');
-      setUserToken(null);
-      setUserData(null);
+      await clearAuth();
     } catch (error) {
       console.error('Failed to clear storage during logout:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clearAuth]);
+
+  const updateUserData = useCallback(async (user) => {
+    await AsyncStorage.setItem('userData', JSON.stringify(user));
+    setUserData(user);
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -138,6 +157,8 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        handleOAuthRedirect,
+        updateUserData,
       }}
     >
       {children}

@@ -1,5 +1,6 @@
 // context/ThemeContext.js
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { themes } from '../constants/colors';
 
 const ThemeContext = createContext();
@@ -7,11 +8,18 @@ const ThemeContext = createContext();
 export function ThemeProvider({ children }) {
   const [themeName, setThemeName] = useState('dark');
 
+  useEffect(() => {
+    AsyncStorage.getItem('theme').then((savedTheme) => {
+      if (themes[savedTheme]) setThemeName(savedTheme);
+    });
+  }, []);
+
   const theme = themes[themeName] || themes.dark;
 
   const toggleTheme = (name) => {
     if (themes[name]) {
       setThemeName(name);
+      AsyncStorage.setItem('theme', name);
     }
   };
 

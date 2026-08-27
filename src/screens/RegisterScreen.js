@@ -8,13 +8,14 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   TouchableOpacity, 
-  Linking, 
   Animated 
 } from 'react-native';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { AuthContext } from '../context/AuthContext';
 import { isValidEmail, getPasswordCriteria, isValidPassword } from '../utils/validation';
-import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '../components/AuthComponents';
-import { CustomToast } from '../components/CustomToast';
+import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
+import { CustomToast } from '../components/feedback';
 
 // Отримуємо URL бекенду з .env або використовуємо localhost за замовчуванням
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
@@ -24,7 +25,7 @@ export default function RegisterScreen({ navigation, route }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { register, isLoading } = useContext(AuthContext);
+  const { handleOAuthRedirect, register, isLoading } = useContext(AuthContext);
 
   // Состояние и анимация для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
@@ -75,8 +76,15 @@ export default function RegisterScreen({ navigation, route }) {
       // Для вебу робимо перенаправлення у тій самій вкладці
       window.location.href = backendOAuthUrl;
     } else {
-      // Для iOS / Android використовуємо Linking
-      await Linking.openURL(backendOAuthUrl);
+      const result = await WebBrowser.openAuthSessionAsync(
+        backendOAuthUrl,
+        Linking.createURL('/'),
+      );
+
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        navigation.navigate('Login');
+      }
+      if (result.type === 'success') await handleOAuthRedirect(result.url);
     }
   };
 

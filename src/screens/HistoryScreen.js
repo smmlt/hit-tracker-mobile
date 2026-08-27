@@ -16,9 +16,8 @@ import {
 import { AuthContext } from '../context/AuthContext';
 import { useIsFocused } from '@react-navigation/native';
 import { workoutsService } from '../services/workoutsService';
-import { CustomToast } from '../components/CustomToast';
-import { ConfirmDialog } from '../components/ConfirmDialog';
-import { HistoryCard } from '../components/HistoryCard';
+import { ConfirmDialog, CustomToast } from '../components/feedback';
+import { HistoryCard } from '../components/workout';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
