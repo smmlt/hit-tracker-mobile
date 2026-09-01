@@ -76,7 +76,7 @@ function MainTabs() {
 }
 
 const linking = {
-  prefixes: [Linking.createURL('/'), 'http://localhost:8081', 'hittracker://'],
+  prefixes: [Linking.createURL('/'), 'http://localhost:5173'],
   config: {
     screens: {
       Login: { path: 'login', alias: ['auth/google/callback'] },

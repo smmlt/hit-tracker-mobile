@@ -16,8 +16,7 @@ import { AuthContext } from '../context/AuthContext';
 import { isValidEmail } from '../utils/validation';
 import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
 import { CustomToast } from '../components/feedback';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from '../constants/config';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -70,12 +69,12 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleGoogleLogin = async () => {
-    const backendOAuthUrl = `${API_URL}/auth/google`;
-    
     if (Platform.OS === 'web') {
-      window.location.href = backendOAuthUrl;
+      window.location.href = `${API_URL}/auth/google`;
     } else {
-      const result = await WebBrowser.openAuthSessionAsync(backendOAuthUrl, Linking.createURL('/auth/google/callback'));
+      const redirectUrl = Linking.createURL('auth/google/callback');
+      const backendOAuthUrl = `${API_URL}/auth/google?platform=mobile`;
+      const result = await WebBrowser.openAuthSessionAsync(backendOAuthUrl, redirectUrl);
       if (result.type === 'success') await handleOAuthRedirect(result.url);
     }
   };
