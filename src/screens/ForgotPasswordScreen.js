@@ -15,8 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { isValidEmail } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { apiRequest } from '../services/api';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -45,16 +44,10 @@ export default function ForgotPasswordScreen({ navigation }) {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+      await apiRequest('/auth/forgot-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send reset link');
-      }
+      }, null, 'Failed to send reset link');
 
       setIsSent(true);
     } catch (err) {

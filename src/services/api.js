@@ -43,3 +43,12 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
     data,
   };
 }
+
+export async function apiRequest(endpoint, options = {}, userToken = null, fallbackMessage = 'Request failed') {
+  const response = await apiFetch(endpoint, options, userToken);
+  if (response.ok) return response.data;
+
+  const error = new Error(response.data?.message || fallbackMessage);
+  error.status = response.status;
+  throw error;
+}
