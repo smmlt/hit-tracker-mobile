@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Platform, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Platform, View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -22,12 +22,22 @@ import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import AdminScreen from '../screens/AdminScreen';
+import TrainingScreen from '../screens/TrainingScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
+const TrainingStackNavigator = createNativeStackNavigator();
 
 const AnalyticsPlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
+function TrainingStack() {
+  return (
+    <TrainingStackNavigator.Navigator screenOptions={{ headerShown: false }}>
+      <TrainingStackNavigator.Screen name="TrainingHome" component={TrainingScreen} />
+      <TrainingStackNavigator.Screen name="WorkoutSession" component={ActiveWorkoutScreen} />
+    </TrainingStackNavigator.Navigator>
+  );
+}
 function ProfileStack() {
   return (
     <ProfileStackNavigator.Navigator screenOptions={{ headerShown: false }}>
@@ -54,8 +64,8 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="ActiveWorkout" 
-        component={ActiveWorkoutScreen} 
-        options={{ title: t('activeWorkout') }} 
+        component={TrainingStack}
+        options={{ title: t('training') || 'Training' }}
       />
       <Tab.Screen 
         name="Home" 
@@ -89,10 +99,18 @@ const linking = {
 };
 
 export default function AppNavigator() {
-  const { userToken } = useContext(AuthContext);
-  const isAdminRoute = Platform.OS === 'web'
+  const { isLoading, userToken } = useContext(AuthContext);
+  const [isAdminRoute] = React.useState(() => Platform.OS === 'web'
     && typeof window !== 'undefined'
-    && window.location.pathname.startsWith('/admin');
+    && window.location.pathname.startsWith('/admin'));
+
+  if (isLoading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#f97316" />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer linking={linking}>
@@ -151,5 +169,11 @@ export default function AppNavigator() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loading: {
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    flex: 1,
+    justifyContent: 'center',
   },
 });
