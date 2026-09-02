@@ -6,6 +6,7 @@ import { WorkoutContext } from '../context/WorkoutContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
+import { ConfirmDialog } from '../components/feedback';
 
 const dayNames = {
   en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
@@ -23,6 +24,8 @@ export default function ProgramDetailsScreen({ navigation, route }) {
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -52,6 +55,14 @@ export default function ProgramDetailsScreen({ navigation, route }) {
     setSelectedExercise(details || item.exercise);
   };
 
+  const removeFromPlan = async () => {
+    setRemoving(true);
+    const response = await apiFetch(`/workout-programs/schedule/${assignment.id}`, { method: 'DELETE' }, userToken);
+    setRemoving(false);
+    if (response.ok) navigation.goBack();
+    else setError(response.data?.message || t('scheduleLoadError'));
+  };
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
@@ -64,6 +75,9 @@ export default function ProgramDetailsScreen({ navigation, route }) {
         <ScrollView contentContainerStyle={styles.content}>
           {!!error && <Text style={{ color: theme.error }}>{error}</Text>}
           {program && <>
+            <Pressable disabled={removing} onPress={() => setRemoveOpen(true)} style={[styles.removeButton, { borderColor: theme.error }]}>
+              <Text style={[styles.removeText, { color: theme.error }]}>{removing ? '…' : t('removeFromPlan')}</Text>
+            </Pressable>
             <Text style={[styles.title, { color: theme.textPrimary }]}>{program.name}</Text>
             {!!program.description && <Text style={[styles.description, { color: theme.textSecondary }]}>{program.description}</Text>}
             <View style={styles.scheduleInfo}>
@@ -98,6 +112,15 @@ export default function ProgramDetailsScreen({ navigation, route }) {
         onClose={() => setSelectedExercise(null)}
         visible={!!selectedExercise}
       />
+      <ConfirmDialog
+        visible={removeOpen}
+        title={t('removePlanTitle')}
+        message={t('removePlanMessage')}
+        cancelLabel={t('cancel')}
+        confirmLabel={t('remove')}
+        onCancel={() => setRemoveOpen(false)}
+        onConfirm={removeFromPlan}
+      />
     </SafeAreaView>
   );
 }
@@ -111,6 +134,8 @@ const styles = StyleSheet.create({
   loader: { marginTop: 48 },
   content: { gap: 12, padding: 18, paddingBottom: 80 },
   title: { fontSize: 28, fontWeight: '900' },
+  removeButton: { alignItems: 'center', alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
+  removeText: { fontSize: 12, fontWeight: '900' },
   description: { fontSize: 14, lineHeight: 21 },
   date: { fontSize: 13, fontWeight: '800' },
   scheduleInfo: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
