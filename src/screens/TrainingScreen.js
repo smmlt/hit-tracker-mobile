@@ -172,7 +172,7 @@ export default function TrainingScreen({ navigation }) {
         >
           {nearbyDates.map((date) => {
             const key = dateKey(date);
-            const active = key === selectedDate;
+            const active = key === selectedDate || isInRange(key);
             return (
               <Pressable key={key} onPress={() => chooseDate(date)} style={[styles.dateCell, { borderColor: theme.border }, active && { backgroundColor: theme.primary, borderColor: theme.primary }]}>
                 <Text style={[styles.dayName, { color: active ? '#fff' : theme.textSecondary }]}>{weekDayByDateIndex[locale][date.getDay()]}</Text>
