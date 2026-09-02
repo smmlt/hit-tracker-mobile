@@ -1,18 +1,9 @@
-import { apiFetch } from './api';
-
-const request = async (endpoint, options, token) => {
-  const response = await apiFetch(endpoint, options, token);
-  if (response.ok) return response.data;
-
-  const error = new Error(response.data?.message || 'Profile request failed');
-  error.status = response.status;
-  throw error;
-};
+import { apiRequest } from './api';
 
 export const profileService = {
-  get: (token) => request('/users/me', {}, token),
-  update: (profile, token) => request('/users/me', {
+  get: (token) => apiRequest('/users/me', {}, token, 'Profile request failed'),
+  update: (profile, token) => apiRequest('/users/me', {
     method: 'PATCH',
     body: JSON.stringify(profile),
-  }, token),
+  }, token, 'Profile request failed'),
 };

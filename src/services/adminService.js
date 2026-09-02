@@ -1,23 +1,14 @@
-import { apiFetch } from './api';
-
-const request = async (endpoint, options, token) => {
-  const response = await apiFetch(endpoint, options, token);
-  if (response.ok) return response.data;
-
-  const error = new Error(response.data?.message || 'Admin request failed');
-  error.status = response.status;
-  throw error;
-};
+import { apiRequest } from './api';
 
 export const adminService = {
-  listUsers: ({ search, page }, token) => request(
+  listUsers: ({ search, page }, token) => apiRequest(
     `/admin/users?${new URLSearchParams({ ...(search ? { search } : {}), page: String(page) })}`,
     {},
-    token,
+    token, 'Admin request failed',
   ),
-  updateRole: (id, role, token) => request(`/admin/users/${id}/role`, {
+  updateRole: (id, role, token) => apiRequest(`/admin/users/${id}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),
-  }, token),
-  deleteUser: (id, token) => request(`/admin/users/${id}`, { method: 'DELETE' }, token),
+  }, token, 'Admin request failed'),
+  deleteUser: (id, token) => apiRequest(`/admin/users/${id}`, { method: 'DELETE' }, token, 'Admin request failed'),
 };
