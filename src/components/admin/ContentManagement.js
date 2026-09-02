@@ -16,6 +16,7 @@ export function ContentManagement({ userToken }) {
   const [programName, setProgramName] = useState('');
   const [programDescription, setProgramDescription] = useState('');
   const [programExercises, setProgramExercises] = useState([]);
+  const [editingProgramId, setEditingProgramId] = useState(null);
   const [exerciseName, setExerciseName] = useState('');
   const [exerciseDescription, setExerciseDescription] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
@@ -42,15 +43,36 @@ export function ContentManagement({ userToken }) {
 
   const createProgram = async () => {
     try {
-      await request('/workout-programs/official', {
-        method: 'POST',
+      await request(editingProgramId ? `/workout-programs/${editingProgramId}` : '/workout-programs/official', {
+        method: editingProgramId ? 'PATCH' : 'POST',
         body: JSON.stringify({ name: programName, description: programDescription || undefined, exercises: programExercises }),
       }, userToken);
       setProgramName('');
       setProgramDescription('');
       setProgramExercises([]);
-      setMessage('Program created');
+      setEditingProgramId(null);
+      setMessage(editingProgramId ? 'New program revision saved' : 'Program created');
       load();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const editProgram = async (program) => {
+    try {
+      const data = await request(`/workout-programs/${program.id}`, {}, userToken);
+      setProgramName(data.name);
+      setProgramDescription(data.description || '');
+      setProgramExercises(data.schedule.map((item) => ({
+        exerciseId: item.exercise.id,
+        sets: item.setsCount,
+        reps: item.targetReps || 1,
+        weight: item.plannedWeight || 0,
+        weekDay: item.weekDay,
+        week: item.week,
+      })));
+      setEditingProgramId(program.id);
+      setMessage(`Editing ${data.name}`);
     } catch (error) {
       setMessage(error.message);
     }
@@ -108,17 +130,24 @@ export function ContentManagement({ userToken }) {
             const exercise = exercises.find((candidate) => candidate.id === item.exerciseId);
             return <View key={`${item.exerciseId}-${index}`} style={styles.row}>
               <Text style={styles.rowText}>{exercise?.name}</Text>
+              <TextInput value={String(item.weekDay)} keyboardType="numeric" onChangeText={(value) => setProgramExercises((items) => items.map((entry, itemIndex) => itemIndex === index ? { ...entry, weekDay: Math.max(0, Math.min(6, Number(value) || 0)) } : entry))} style={styles.smallInput} />
+              <Text style={styles.smallLabel}>day</Text>
               <TextInput value={String(item.sets)} keyboardType="numeric" onChangeText={(value) => setProgramExercises((items) => items.map((entry, itemIndex) => itemIndex === index ? { ...entry, sets: Number(value) || 1 } : entry))} style={styles.smallInput} />
               <Text style={styles.smallLabel}>sets</Text>
+              <TextInput value={String(item.reps)} keyboardType="numeric" onChangeText={(value) => setProgramExercises((items) => items.map((entry, itemIndex) => itemIndex === index ? { ...entry, reps: Number(value) || 1 } : entry))} style={styles.smallInput} />
+              <Text style={styles.smallLabel}>reps</Text>
+              <TextInput value={String(item.weight)} keyboardType="numeric" onChangeText={(value) => setProgramExercises((items) => items.map((entry, itemIndex) => itemIndex === index ? { ...entry, weight: Number(value) || 0 } : entry))} style={styles.smallInput} />
+              <Text style={styles.smallLabel}>kg</Text>
               <Pressable onPress={() => setProgramExercises((items) => items.filter((_, itemIndex) => itemIndex !== index))}><Text style={styles.remove}>Remove</Text></Pressable>
             </View>;
           })}
-          <Pressable style={styles.primary} onPress={createProgram}><Text style={styles.primaryText}>Create program</Text></Pressable>
+          <Pressable style={styles.primary} onPress={createProgram}><Text style={styles.primaryText}>{editingProgramId ? 'Save new revision' : 'Create program'}</Text></Pressable>
           <Text style={styles.label}>Programs</Text>
           {programs.map((program) => <View key={program.id} style={styles.programCard}>
             <Text style={styles.programBadge}>{program.isPersonal ? `Personal program · @${program.ownerUsername || 'user'}` : 'Official program'}</Text>
             <Text style={styles.rowText}>{program.name}</Text>
             {!!program.description && <Text style={styles.muted}>{program.description}</Text>}
+            {!program.isPersonal && <Pressable onPress={() => editProgram(program)}><Text style={styles.remove}>Edit program</Text></Pressable>}
           </View>)}
         </>
       ) : (
