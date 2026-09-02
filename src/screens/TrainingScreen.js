@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -16,13 +16,16 @@ const weekDayByDateIndex = {
 
 const parseDate = (value) => new Date(`${value}T12:00:00`);
 const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const DATE_STRIP_DAYS = 15;
+const DATE_CELL_WIDTH = 54;
+const DATE_GAP = 8;
 const addDays = (date, count) => {
   const result = new Date(date);
   result.setDate(result.getDate() + count);
   return result;
 };
 
-function ProgramCard({ assignment, navigation, t, theme, userToken }) {
+function ProgramCard({ assignment, navigation, showScheduledDate, t, theme, userToken }) {
   const [preview, setPreview] = useState([]);
 
   useEffect(() => {
@@ -50,6 +53,7 @@ function ProgramCard({ assignment, navigation, t, theme, userToken }) {
           <Text style={[styles.programTitle, { color: theme.textPrimary }]}>{assignment.programName}</Text>
           <View style={[styles.status, styles[`status_${assignment.status}`]]}><Text style={styles.statusText}>{t(`scheduleStatus_${assignment.status}`)}</Text></View>
         </View>
+        {showScheduledDate && <Text style={[styles.scheduledDate, { color: theme.textSecondary }]}>{assignment.scheduledFor}</Text>}
         {!!assignment.programDescription && <Text style={[styles.description, { color: theme.textSecondary }]}>{assignment.programDescription}</Text>}
         <View style={styles.exercisePreview}>
           {visibleExercises.map((exercise) => (
@@ -78,6 +82,10 @@ export default function TrainingScreen({ navigation }) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [range, setRange] = useState({ start: null, end: null });
+  const [dateStripWidth, setDateStripWidth] = useState(0);
+  const dateStripRef = useRef(null);
+  const { start: rangeStart, end: rangeEnd } = range;
 
   const loadSchedule = useCallback(async () => {
     const from = dateKey(new Date(month.getFullYear(), month.getMonth() - 1, 1));
@@ -96,14 +104,42 @@ export default function TrainingScreen({ navigation }) {
   useEffect(() => { loadSchedule(); }, [loadSchedule]);
 
   const selected = parseDate(selectedDate);
-  const nearbyDates = useMemo(() => Array.from({ length: 9 }, (_, index) => addDays(selected, index - 4)), [selectedDate]);
-  const selectedAssignments = assignments.filter((item) => item.scheduledFor === selectedDate);
+  const nearbyDates = useMemo(() => Array.from(
+    { length: DATE_STRIP_DAYS },
+    (_, index) => addDays(selected, index - Math.floor(DATE_STRIP_DAYS / 2)),
+  ), [selectedDate]);
+  const selectedAssignments = assignments.filter((item) => (
+    rangeStart && rangeEnd
+      ? item.scheduledFor >= rangeStart && item.scheduledFor <= rangeEnd
+      : item.scheduledFor === selectedDate
+  ));
   const assignedDates = new Set(assignments.map((item) => item.scheduledFor));
+  const isInRange = (key) => rangeStart && key >= rangeStart && (!rangeEnd ? key === rangeStart : key <= rangeEnd);
+
+  useEffect(() => {
+    if (!dateStripWidth) return;
+    const selectedIndex = Math.floor(DATE_STRIP_DAYS / 2);
+    const offset = selectedIndex * (DATE_CELL_WIDTH + DATE_GAP) + DATE_CELL_WIDTH / 2 - dateStripWidth / 2;
+    dateStripRef.current?.scrollTo({ x: Math.max(0, offset), animated: false });
+  }, [dateStripWidth, selectedDate]);
 
   const chooseDate = (date) => {
     setSelectedDate(dateKey(date));
     setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
-    setCalendarOpen(false);
+    setRange({ start: null, end: null });
+  };
+
+  const chooseRangeDate = (date) => {
+    const key = dateKey(date);
+    setSelectedDate(key);
+    setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+
+    setRange((current) => {
+      if (!current.start || current.end) return { start: key, end: null };
+      return key < current.start
+        ? { start: key, end: current.start }
+        : { start: current.start, end: key };
+    });
   };
 
   const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -127,7 +163,13 @@ export default function TrainingScreen({ navigation }) {
           <Text style={[styles.selectedDate, { color: theme.textPrimary }]}>{selected.toLocaleDateString(localeTag, { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
         </Pressable>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateStrip}>
+        <ScrollView
+          horizontal
+          onLayout={(event) => setDateStripWidth(event.nativeEvent.layout.width)}
+          ref={dateStripRef}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.dateStrip}
+        >
           {nearbyDates.map((date) => {
             const key = dateKey(date);
             const active = key === selectedDate;
@@ -154,6 +196,7 @@ export default function TrainingScreen({ navigation }) {
             t={t}
             theme={theme}
             userToken={userToken}
+            showScheduledDate={!!rangeEnd}
           />
         ))}
 
@@ -175,18 +218,22 @@ export default function TrainingScreen({ navigation }) {
               <Text style={[styles.monthTitle, { color: theme.textPrimary }]}>{month.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' })}</Text>
               <Pressable onPress={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}><Text style={[styles.monthArrow, { color: theme.textPrimary }]}>›</Text></Pressable>
             </View>
+            <Text style={[styles.rangeHint, { color: theme.textSecondary }]}>{locale === 'uk' ? 'Оберіть початкову та кінцеву дату' : 'Select a start and end date'}</Text>
             <View style={styles.weekHeader}>{weekDays[locale].map((day) => <Text key={day} style={[styles.weekLabel, { color: theme.textSecondary }]}>{day}</Text>)}</View>
             <View style={styles.monthGrid}>{calendarDays.map((date) => {
               const key = dateKey(date);
-              const active = key === selectedDate;
+              const active = isInRange(key);
+              const rangeStartDay = key === rangeStart;
+              const rangeEndDay = key === rangeEnd || (rangeStart === key && !rangeEnd);
               const inMonth = date.getMonth() === month.getMonth();
-              return <Pressable key={key} onPress={() => chooseDate(date)} style={[styles.monthDay, active && { backgroundColor: theme.primary }]}>
-                <Text style={{ color: active ? '#fff' : inMonth ? theme.textPrimary : theme.textSecondary }}>{date.getDate()}</Text>
+              return <Pressable key={key} onPress={() => chooseRangeDate(date)} style={styles.monthDay}>
+                {active && <View style={[styles.rangeFill, { backgroundColor: theme.primary }, rangeStartDay && styles.rangeStart, rangeEndDay && styles.rangeEnd]} />}
+                <Text style={[styles.monthDayText, { color: active ? '#fff' : inMonth ? theme.textPrimary : theme.textSecondary }]}>{date.getDate()}</Text>
                 {assignedDates.has(key) && <View style={[styles.dot, { backgroundColor: active ? '#fff' : theme.secondary }]} />}
               </Pressable>;
             })}</View>
             <View style={styles.modalActions}>
-              <Pressable onPress={() => chooseDate(new Date())}><Text style={[styles.link, { color: theme.primary }]}>{t('today')}</Text></Pressable>
+              <Pressable onPress={() => chooseRangeDate(new Date())}><Text style={[styles.link, { color: theme.primary }]}>{t('today')}</Text></Pressable>
               <Pressable onPress={() => setCalendarOpen(false)}><Text style={[styles.link, { color: theme.textPrimary }]}>{t('close')}</Text></Pressable>
             </View>
           </View>
@@ -197,5 +244,5 @@ export default function TrainingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 }, content: { padding: 18, paddingBottom: 120 }, header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4 }, title: { fontSize: 30, fontWeight: '900' }, calendarButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 }, calendarIcon: { fontSize: 24 }, selectedDate: { fontSize: 16, fontWeight: '700', marginTop: 18, textTransform: 'capitalize' }, dateStrip: { gap: 8, paddingVertical: 16 }, dateCell: { alignItems: 'center', borderRadius: 14, borderWidth: 1, height: 74, justifyContent: 'center', width: 54 }, dayName: { fontSize: 11, fontWeight: '600' }, dayNumber: { fontSize: 20, fontWeight: '800', marginTop: 3 }, dot: { borderRadius: 3, height: 5, marginTop: 4, width: 5 }, sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, marginTop: 6 }, sectionTitle: { fontSize: 19, fontWeight: '800' }, programCard: { borderRadius: 16, borderWidth: 1, gap: 10, marginBottom: 12, padding: 16 }, programTop: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' }, programTitle: { flex: 1, fontSize: 17, fontWeight: '800' }, description: { fontSize: 13, lineHeight: 19 }, exercisePreview: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }, exerciseChip: { borderRadius: 999, borderWidth: 1, maxWidth: 150, paddingHorizontal: 9, paddingVertical: 5 }, exerciseChipText: { fontSize: 11, fontWeight: '700' }, secondaryAction: { alignItems: 'center', borderRadius: 10, borderWidth: 1, justifyContent: 'center', padding: 10 }, secondaryActionText: { fontSize: 12, fontWeight: '800' }, status: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, status_planned: { backgroundColor: '#1D4ED8' }, status_completed: { backgroundColor: '#15803D' }, status_missed: { backgroundColor: '#991B1B' }, statusText: { color: '#fff', fontSize: 10, fontWeight: '800' }, empty: { alignItems: 'center', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, gap: 8, padding: 28 }, emptyTitle: { fontSize: 17, fontWeight: '800', textAlign: 'center' }, link: { fontWeight: '800', padding: 6 }, overlay: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.72)', flex: 1, justifyContent: 'center', padding: 20 }, modal: { borderRadius: 20, maxWidth: 420, padding: 18, width: '100%' }, monthHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, monthArrow: { fontSize: 34, paddingHorizontal: 12 }, monthTitle: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' }, weekHeader: { flexDirection: 'row', marginTop: 10 }, weekLabel: { textAlign: 'center', width: '14.285%' }, monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }, monthDay: { alignItems: 'center', borderRadius: 10, height: 46, justifyContent: 'center', width: '14.285%' }, modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  safe: { flex: 1 }, content: { padding: 18, paddingBottom: 120 }, header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4 }, title: { fontSize: 30, fontWeight: '900' }, calendarButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 }, calendarIcon: { fontSize: 24 }, selectedDate: { fontSize: 16, fontWeight: '700', marginTop: 18, textTransform: 'capitalize' }, dateStrip: { gap: DATE_GAP, paddingVertical: 16 }, dateCell: { alignItems: 'center', borderRadius: 14, borderWidth: 1, height: 74, justifyContent: 'center', width: DATE_CELL_WIDTH }, dayName: { fontSize: 11, fontWeight: '600' }, dayNumber: { fontSize: 20, fontWeight: '800', marginTop: 3 }, dot: { borderRadius: 3, height: 5, marginTop: 4, width: 5 }, sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, marginTop: 6 }, sectionTitle: { fontSize: 19, fontWeight: '800' }, programCard: { borderRadius: 16, borderWidth: 1, gap: 10, marginBottom: 12, padding: 16 }, programTop: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' }, programTitle: { flex: 1, fontSize: 17, fontWeight: '800' }, scheduledDate: { fontSize: 12, fontWeight: '700' }, description: { fontSize: 13, lineHeight: 19 }, exercisePreview: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }, exerciseChip: { borderRadius: 999, borderWidth: 1, maxWidth: 150, paddingHorizontal: 9, paddingVertical: 5 }, exerciseChipText: { fontSize: 11, fontWeight: '700' }, secondaryAction: { alignItems: 'center', borderRadius: 10, borderWidth: 1, justifyContent: 'center', padding: 10 }, secondaryActionText: { fontSize: 12, fontWeight: '800' }, status: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, status_planned: { backgroundColor: '#1D4ED8' }, status_completed: { backgroundColor: '#15803D' }, status_missed: { backgroundColor: '#991B1B' }, statusText: { color: '#fff', fontSize: 10, fontWeight: '800' }, empty: { alignItems: 'center', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, gap: 8, padding: 28 }, emptyTitle: { fontSize: 17, fontWeight: '800', textAlign: 'center' }, link: { fontWeight: '800', padding: 6 }, overlay: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.72)', flex: 1, justifyContent: 'center', padding: 20 }, modal: { borderRadius: 20, maxWidth: 420, padding: 18, width: '100%' }, monthHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, monthArrow: { fontSize: 34, paddingHorizontal: 12 }, monthTitle: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' }, rangeHint: { fontSize: 12, marginTop: 6, textAlign: 'center' }, weekHeader: { flexDirection: 'row', marginTop: 10 }, weekLabel: { textAlign: 'center', width: '14.285%' }, monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }, monthDay: { alignItems: 'center', height: 46, justifyContent: 'center', position: 'relative', width: '14.285%' }, rangeFill: { bottom: 9, left: 0, position: 'absolute', right: 0, top: 9 }, rangeStart: { borderBottomLeftRadius: 10, borderTopLeftRadius: 10, left: 4 }, rangeEnd: { borderBottomRightRadius: 10, borderTopRightRadius: 10, right: 4 }, monthDayText: { fontWeight: '700', zIndex: 1 }, modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
 });
