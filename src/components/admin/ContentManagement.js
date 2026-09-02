@@ -8,8 +8,7 @@ const request = async (endpoint, options, token) => {
   return response.data;
 };
 
-export function ContentManagement({ userToken }) {
-  const [tab, setTab] = useState('programs');
+export function ContentManagement({ section, userToken }) {
   const [exercises, setExercises] = useState([]);
   const [muscles, setMuscles] = useState([]);
   const [programs, setPrograms] = useState([]);
@@ -109,15 +108,7 @@ export function ContentManagement({ userToken }) {
 
   return (
     <View style={styles.card}>
-      <View style={styles.tabs}>
-        {['programs', 'exercises'].map((item) => (
-          <Pressable key={item} onPress={() => setTab(item)} style={[styles.tab, tab === item && styles.tabActive]}>
-            <Text style={styles.tabText}>{item === 'programs' ? 'Programs' : 'Exercises'}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      {tab === 'programs' ? (
+      {section === 'programs' ? (
         <>
           <Text style={styles.title}>Create official program</Text>
           <TextInput value={programName} onChangeText={setProgramName} placeholder="Program name" placeholderTextColor="#94a3b8" style={styles.input} />
@@ -169,7 +160,6 @@ export function ContentManagement({ userToken }) {
 
 const styles = StyleSheet.create({
   card: { backgroundColor: '#1e293b', borderRadius: 16, gap: 12, maxWidth: 1000, padding: 20 },
-  tabs: { flexDirection: 'row', gap: 8 }, tab: { backgroundColor: '#334155', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }, tabActive: { backgroundColor: '#f97316' }, tabText: { color: '#fff', fontWeight: '700' },
   title: { color: '#f8fafc', fontSize: 20, fontWeight: '700' }, label: { color: '#cbd5e1', fontWeight: '600' }, muted: { color: '#94a3b8' },
   input: { backgroundColor: '#0f172a', borderRadius: 8, color: '#f8fafc', padding: 10 }, description: { minHeight: 70, textAlignVertical: 'top' },
   exerciseChoices: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 }, chip: { backgroundColor: '#334155', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7 }, chipActive: { backgroundColor: '#f97316' }, chipText: { color: '#e2e8f0', fontSize: 12 },

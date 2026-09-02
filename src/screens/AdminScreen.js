@@ -33,6 +33,8 @@ export default function AdminScreen() {
   const [search, setSearch] = useState('');
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [message, setMessage] = useState(null);
+  const [section, setSection] = useState('users');
+  const [deletingUserId, setDeletingUserId] = useState(null);
 
   const canOpenAdmin = contentRoles.includes(profile?.role);
   const canManageUsers = ['admin', 'super_admin'].includes(profile?.role);
@@ -41,6 +43,14 @@ export default function AdminScreen() {
     () => roles.filter((role) => isSuperAdmin || role !== 'super_admin'),
     [isSuperAdmin],
   );
+  const sections = useMemo(
+    () => (canManageUsers ? ['users', 'programs', 'exercises'] : ['programs', 'exercises']),
+    [canManageUsers],
+  );
+
+  useEffect(() => {
+    if (!sections.includes(section)) setSection(sections[0]);
+  }, [section, sections]);
 
   const loadUsers = useCallback(async (targetPage = 1) => {
     if (!canManageUsers) return;
@@ -76,6 +86,24 @@ export default function AdminScreen() {
     }
   };
 
+  const deleteUser = async (user) => {
+    if (deletingUserId !== user.id) {
+      setDeletingUserId(user.id);
+      return;
+    }
+
+    setMessage(null);
+    try {
+      await adminService.deleteUser(user.id, userToken);
+      setUsers((currentUsers) => currentUsers.filter((item) => item.id !== user.id));
+      setTotal((currentTotal) => Math.max(0, currentTotal - 1));
+      setDeletingUserId(null);
+      setMessage('User deleted');
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
   if (profileLoading) {
     return <View style={styles.center}><ActivityIndicator size="large" color="#fb923c" /></View>;
   }
@@ -96,13 +124,15 @@ export default function AdminScreen() {
       <Text style={styles.eyebrow}>HIT TRACKER</Text>
       <Text style={styles.title}>Admin panel</Text>
       <Text style={styles.muted}>Signed in as {roleLabels[profile.role]}</Text>
+      <View style={styles.sectionTabs}>
+        {sections.map((item) => (
+          <Pressable key={item} onPress={() => { setDeletingUserId(null); setSection(item); }} style={[styles.sectionTab, section === item && styles.sectionTabActive]}>
+            <Text style={[styles.sectionTabText, section === item && styles.sectionTabTextActive]}>{item[0].toUpperCase() + item.slice(1)}</Text>
+          </Pressable>
+        ))}
+      </View>
 
-      {!canManageUsers ? (
-        <View style={styles.notice}>
-          <Text style={styles.noticeTitle}>Moderator access is ready</Text>
-          <Text style={styles.noticeText}>User management is intentionally limited to admins. Content moderation controls will use the protected moderator API.</Text>
-        </View>
-      ) : (
+      {section === 'users' && canManageUsers ? (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View>
@@ -141,18 +171,23 @@ export default function AdminScreen() {
                 {protectedUser || isCurrentUser ? (
                   <Text style={styles.roleBadge}>{roleLabels[user.role]}</Text>
                 ) : (
-                  <View style={styles.roleOptions}>
-                    {availableRoles.map((role) => (
-                      <Pressable
-                        key={role}
-                        onPress={() => updateRole(user.id, role)}
-                        style={[styles.roleOption, user.role === role && styles.roleOptionActive]}
-                      >
-                        <Text style={[styles.roleOptionText, user.role === role && styles.roleOptionTextActive]}>
-                          {roleLabels[role]}
-                        </Text>
-                      </Pressable>
-                    ))}
+                  <View style={styles.userActions}>
+                    <View style={styles.roleOptions}>
+                      {availableRoles.map((role) => (
+                        <Pressable
+                          key={role}
+                          onPress={() => updateRole(user.id, role)}
+                          style={[styles.roleOption, user.role === role && styles.roleOptionActive]}
+                        >
+                          <Text style={[styles.roleOptionText, user.role === role && styles.roleOptionTextActive]}>
+                            {roleLabels[role]}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <Pressable onPress={() => deleteUser(user)} style={[styles.deleteButton, deletingUserId === user.id && styles.deleteButtonConfirm]}>
+                      <Text style={styles.deleteButtonText}>{deletingUserId === user.id ? 'Confirm delete' : 'Delete user'}</Text>
+                    </Pressable>
                   </View>
                 )}
               </View>
@@ -180,9 +215,8 @@ export default function AdminScreen() {
             </Pressable>
           </View>
         </View>
-      )}
+      ) : <ContentManagement section={section} userToken={userToken} />}
 
-      <ContentManagement userToken={userToken} />
     </ScrollView>
   );
 }
@@ -209,14 +243,20 @@ const styles = StyleSheet.create({
   username: { color: '#f8fafc', fontSize: 16, fontWeight: '700' },
   email: { color: '#94a3b8', fontSize: 13 },
   roleOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  userActions: { gap: 10 },
   roleOption: { backgroundColor: '#334155', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
   roleOptionActive: { backgroundColor: '#f97316' },
   roleOptionText: { color: '#cbd5e1', fontSize: 12, fontWeight: '600' },
   roleOptionTextActive: { color: '#fff' },
   roleBadge: { alignSelf: 'flex-start', color: '#e2e8f0', backgroundColor: '#334155', borderRadius: 999, overflow: 'hidden', paddingHorizontal: 10, paddingVertical: 6 },
+  deleteButton: { alignSelf: 'flex-start', backgroundColor: '#991b1b', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  deleteButtonConfirm: { backgroundColor: '#dc2626' },
+  deleteButtonText: { color: '#fff', fontSize: 12, fontWeight: '800' },
   message: { color: '#fed7aa', fontSize: 14 },
   pagination: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  notice: { backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: 16, borderWidth: 1, maxWidth: 700, padding: 20, gap: 6 },
-  noticeTitle: { color: '#f8fafc', fontSize: 18, fontWeight: '700' },
-  noticeText: { color: '#cbd5e1', fontSize: 14, lineHeight: 20 },
+  sectionTabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  sectionTab: { backgroundColor: '#334155', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 9 },
+  sectionTabActive: { backgroundColor: '#f97316' },
+  sectionTabText: { color: '#cbd5e1', fontWeight: '700' },
+  sectionTabTextActive: { color: '#fff' },
 });
