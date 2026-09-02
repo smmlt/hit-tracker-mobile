@@ -23,6 +23,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import AdminScreen from '../screens/AdminScreen';
 import TrainingScreen from '../screens/TrainingScreen';
+import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -34,6 +35,7 @@ function TrainingStack() {
   return (
     <TrainingStackNavigator.Navigator screenOptions={{ headerShown: false }}>
       <TrainingStackNavigator.Screen name="TrainingHome" component={TrainingScreen} />
+      <TrainingStackNavigator.Screen name="ProgramDetails" component={ProgramDetailsScreen} />
       <TrainingStackNavigator.Screen name="WorkoutSession" component={ActiveWorkoutScreen} />
     </TrainingStackNavigator.Navigator>
   );

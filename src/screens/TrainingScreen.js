@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
-import { WorkoutContext } from '../context/WorkoutContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
@@ -23,9 +22,53 @@ const addDays = (date, count) => {
   return result;
 };
 
+function ProgramCard({ assignment, navigation, t, theme, userToken }) {
+  const [preview, setPreview] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    apiFetch(`/workout-programs/${assignment.programId}`, {}, userToken).then((response) => {
+      if (!active || !response.ok) return;
+      const unique = response.data.schedule.filter((entry) => entry.exercise).reduce((items, entry) => (
+        items.some((exercise) => exercise.id === entry.exercise.id)
+          ? items
+          : [...items, entry.exercise]
+      ), []);
+      setPreview(unique);
+    });
+    return () => { active = false; };
+  }, [assignment.programId, userToken]);
+
+  const openDetails = () => navigation.navigate('ProgramDetails', { assignment });
+  const visibleExercises = preview.slice(0, 3);
+  const hiddenCount = Math.max(0, preview.length - visibleExercises.length);
+
+  return (
+    <View style={[styles.programCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+      <Pressable onPress={openDetails}>
+        <View style={styles.programTop}>
+          <Text style={[styles.programTitle, { color: theme.textPrimary }]}>{assignment.programName}</Text>
+          <View style={[styles.status, styles[`status_${assignment.status}`]]}><Text style={styles.statusText}>{t(`scheduleStatus_${assignment.status}`)}</Text></View>
+        </View>
+        {!!assignment.programDescription && <Text style={[styles.description, { color: theme.textSecondary }]}>{assignment.programDescription}</Text>}
+        <View style={styles.exercisePreview}>
+          {visibleExercises.map((exercise) => (
+            <View key={exercise.id} style={[styles.exerciseChip, { borderColor: theme.border }]}>
+              <Text numberOfLines={1} style={[styles.exerciseChipText, { color: theme.textSecondary }]}>{exercise.name}</Text>
+            </View>
+          ))}
+          {hiddenCount > 0 && <View style={[styles.exerciseChip, { borderColor: theme.primary }]}><Text style={[styles.exerciseChipText, { color: theme.primary }]}>+{hiddenCount}</Text></View>}
+        </View>
+      </Pressable>
+      <Pressable onPress={openDetails} style={[styles.secondaryAction, { borderColor: theme.primary }]}>
+        <Text style={[styles.secondaryActionText, { color: theme.primary }]}>{t('viewProgram')}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export default function TrainingScreen({ navigation }) {
   const { userToken } = useContext(AuthContext);
-  const { startWorkout } = useContext(WorkoutContext);
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
@@ -61,11 +104,6 @@ export default function TrainingScreen({ navigation }) {
     setSelectedDate(dateKey(date));
     setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
     setCalendarOpen(false);
-  };
-
-  const startScheduledWorkout = async (assignment) => {
-    const workout = await startWorkout(assignment.programName, assignment.id);
-    if (workout) navigation.navigate('WorkoutSession');
   };
 
   const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -109,16 +147,14 @@ export default function TrainingScreen({ navigation }) {
         </View>
 
         {loading ? <ActivityIndicator color={theme.primary} /> : selectedAssignments.map((assignment) => (
-          <View key={assignment.id} style={[styles.programCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-            <View style={styles.programTop}>
-              <Text style={[styles.programTitle, { color: theme.textPrimary }]}>{assignment.programName}</Text>
-              <View style={[styles.status, styles[`status_${assignment.status}`]]}><Text style={styles.statusText}>{t(`scheduleStatus_${assignment.status}`)}</Text></View>
-            </View>
-            {!!assignment.programDescription && <Text style={[styles.description, { color: theme.textSecondary }]}>{assignment.programDescription}</Text>}
-            <Pressable onPress={() => startScheduledWorkout(assignment)} style={[styles.startButton, { backgroundColor: theme.primary }]}>
-              <Text style={styles.startText}>{assignment.status === 'completed' ? t('trainAgain') : t('startWorkout')}</Text>
-            </Pressable>
-          </View>
+          <ProgramCard
+            assignment={assignment}
+            key={assignment.id}
+            navigation={navigation}
+            t={t}
+            theme={theme}
+            userToken={userToken}
+          />
         ))}
 
         {!loading && !selectedAssignments.length && (
@@ -161,5 +197,5 @@ export default function TrainingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 }, content: { padding: 18, paddingBottom: 120 }, header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4 }, title: { fontSize: 30, fontWeight: '900' }, calendarButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 }, calendarIcon: { fontSize: 24 }, selectedDate: { fontSize: 16, fontWeight: '700', marginTop: 18, textTransform: 'capitalize' }, dateStrip: { gap: 8, paddingVertical: 16 }, dateCell: { alignItems: 'center', borderRadius: 14, borderWidth: 1, height: 74, justifyContent: 'center', width: 54 }, dayName: { fontSize: 11, fontWeight: '600' }, dayNumber: { fontSize: 20, fontWeight: '800', marginTop: 3 }, dot: { borderRadius: 3, height: 5, marginTop: 4, width: 5 }, sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, marginTop: 6 }, sectionTitle: { fontSize: 19, fontWeight: '800' }, programCard: { borderRadius: 16, borderWidth: 1, gap: 10, marginBottom: 12, padding: 16 }, programTop: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' }, programTitle: { flex: 1, fontSize: 17, fontWeight: '800' }, description: { fontSize: 13, lineHeight: 19 }, status: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, status_planned: { backgroundColor: '#1D4ED8' }, status_completed: { backgroundColor: '#15803D' }, status_missed: { backgroundColor: '#991B1B' }, statusText: { color: '#fff', fontSize: 10, fontWeight: '800' }, startButton: { alignItems: 'center', borderRadius: 10, padding: 11 }, startText: { color: '#fff', fontWeight: '800' }, empty: { alignItems: 'center', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, gap: 8, padding: 28 }, emptyTitle: { fontSize: 17, fontWeight: '800', textAlign: 'center' }, link: { fontWeight: '800', padding: 6 }, overlay: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.72)', flex: 1, justifyContent: 'center', padding: 20 }, modal: { borderRadius: 20, maxWidth: 420, padding: 18, width: '100%' }, monthHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, monthArrow: { fontSize: 34, paddingHorizontal: 12 }, monthTitle: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' }, weekHeader: { flexDirection: 'row', marginTop: 10 }, weekLabel: { textAlign: 'center', width: '14.285%' }, monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }, monthDay: { alignItems: 'center', borderRadius: 10, height: 46, justifyContent: 'center', width: '14.285%' }, modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  safe: { flex: 1 }, content: { padding: 18, paddingBottom: 120 }, header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4 }, title: { fontSize: 30, fontWeight: '900' }, calendarButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 }, calendarIcon: { fontSize: 24 }, selectedDate: { fontSize: 16, fontWeight: '700', marginTop: 18, textTransform: 'capitalize' }, dateStrip: { gap: 8, paddingVertical: 16 }, dateCell: { alignItems: 'center', borderRadius: 14, borderWidth: 1, height: 74, justifyContent: 'center', width: 54 }, dayName: { fontSize: 11, fontWeight: '600' }, dayNumber: { fontSize: 20, fontWeight: '800', marginTop: 3 }, dot: { borderRadius: 3, height: 5, marginTop: 4, width: 5 }, sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, marginTop: 6 }, sectionTitle: { fontSize: 19, fontWeight: '800' }, programCard: { borderRadius: 16, borderWidth: 1, gap: 10, marginBottom: 12, padding: 16 }, programTop: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' }, programTitle: { flex: 1, fontSize: 17, fontWeight: '800' }, description: { fontSize: 13, lineHeight: 19 }, exercisePreview: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }, exerciseChip: { borderRadius: 999, borderWidth: 1, maxWidth: 150, paddingHorizontal: 9, paddingVertical: 5 }, exerciseChipText: { fontSize: 11, fontWeight: '700' }, secondaryAction: { alignItems: 'center', borderRadius: 10, borderWidth: 1, justifyContent: 'center', padding: 10 }, secondaryActionText: { fontSize: 12, fontWeight: '800' }, status: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, status_planned: { backgroundColor: '#1D4ED8' }, status_completed: { backgroundColor: '#15803D' }, status_missed: { backgroundColor: '#991B1B' }, statusText: { color: '#fff', fontSize: 10, fontWeight: '800' }, empty: { alignItems: 'center', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, gap: 8, padding: 28 }, emptyTitle: { fontSize: 17, fontWeight: '800', textAlign: 'center' }, link: { fontWeight: '800', padding: 6 }, overlay: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.72)', flex: 1, justifyContent: 'center', padding: 20 }, modal: { borderRadius: 20, maxWidth: 420, padding: 18, width: '100%' }, monthHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, monthArrow: { fontSize: 34, paddingHorizontal: 12 }, monthTitle: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' }, weekHeader: { flexDirection: 'row', marginTop: 10 }, weekLabel: { textAlign: 'center', width: '14.285%' }, monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }, monthDay: { alignItems: 'center', borderRadius: 10, height: 46, justifyContent: 'center', width: '14.285%' }, modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
 });
