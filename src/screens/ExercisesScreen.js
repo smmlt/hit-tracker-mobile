@@ -15,7 +15,8 @@ import { apiFetch } from '../services/api';
 import { ExerciseFilterBar, ExerciseFormModal, ExerciseItem } from '../components/exercise';
 
 export default function ExercisesScreen() {
-  const { userToken } = useContext(AuthContext);
+  const { userToken, userData } = useContext(AuthContext);
+  const canManageExercises = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
 
   const [exercises, setExercises] = useState([]);
   const [musclesList, setMusclesList] = useState([]);
@@ -158,29 +159,33 @@ export default function ExercisesScreen() {
           ))}
         </ScrollView>
 
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setIsModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.fabIcon}>+</Text>
-        </TouchableOpacity>
+        {canManageExercises && (
+          <>
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={() => setIsModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.fabIcon}>+</Text>
+            </TouchableOpacity>
 
-        <ExerciseFormModal
-          visible={isModalVisible}
-          onClose={() => setIsModalVisible(false)}
-          name={name}
-          setName={setName}
-          description={description}
-          setDescription={setDescription}
-          videoUrl={videoUrl}
-          setVideoUrl={setVideoUrl}
-          musclesList={musclesList}
-          selectedMuscleIds={selectedMuscleIds}
-          onToggleMuscle={toggleMuscleSelection}
-          onSubmit={handleCreateExercise}
-          submitting={submitting}
-        />
+            <ExerciseFormModal
+              visible={isModalVisible}
+              onClose={() => setIsModalVisible(false)}
+              name={name}
+              setName={setName}
+              description={description}
+              setDescription={setDescription}
+              videoUrl={videoUrl}
+              setVideoUrl={setVideoUrl}
+              musclesList={musclesList}
+              selectedMuscleIds={selectedMuscleIds}
+              onToggleMuscle={toggleMuscleSelection}
+              onSubmit={handleCreateExercise}
+              submitting={submitting}
+            />
+          </>
+        )}
       </View>
 
       {toast.visible && (

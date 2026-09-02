@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { Platform, View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -21,6 +21,7 @@ import ExercisesScreen from '../screens/ExercisesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import AdminScreen from '../screens/AdminScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -89,6 +90,9 @@ const linking = {
 
 export default function AppNavigator() {
   const { userToken } = useContext(AuthContext);
+  const isAdminRoute = Platform.OS === 'web'
+    && typeof window !== 'undefined'
+    && window.location.pathname.startsWith('/admin');
 
   return (
     <NavigationContainer linking={linking}>
@@ -123,6 +127,12 @@ export default function AppNavigator() {
                 options={{ headerShown: false }} 
               />
             </>
+          ) : isAdminRoute ? (
+            <Stack.Screen
+              name="Admin"
+              component={AdminScreen}
+              options={{ headerShown: false }}
+            />
           ) : (
             <Stack.Screen 
               name="MainApp" 
@@ -132,7 +142,7 @@ export default function AppNavigator() {
           )}
         </Stack.Navigator>
 
-        {userToken !== null && <ActiveWorkoutBanner />}
+        {userToken !== null && !isAdminRoute && <ActiveWorkoutBanner />}
       </View>
     </NavigationContainer>
   );
