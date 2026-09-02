@@ -11,6 +11,7 @@ import {
 import { useProfile } from '../hooks/useProfile';
 import { adminService } from '../services/adminService';
 import { AuthContext } from '../context/AuthContext';
+import { ContentManagement } from '../components/admin/ContentManagement';
 
 const contentRoles = ['moderator', 'admin', 'super_admin'];
 const roles = ['user', 'helper', 'moderator', 'admin', 'super_admin'];
@@ -180,6 +181,8 @@ export default function AdminScreen() {
           </View>
         </View>
       )}
+
+      <ContentManagement userToken={userToken} />
     </ScrollView>
   );
 }
