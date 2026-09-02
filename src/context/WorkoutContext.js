@@ -44,14 +44,14 @@ export const WorkoutProvider = ({ children }) => {
   /**
    * Запуск нового тренування
    */
-  const startWorkout = async (type = 'HIT Session') => {
+  const startWorkout = async (type = 'HIT Session', scheduleId = null) => {
     if (!userToken) return null;
 
     try {
       setIsLoading(true);
       const res = await apiFetch('/workouts/start', {
         method: 'POST',
-        body: JSON.stringify({ type }),
+        body: JSON.stringify({ type, ...(scheduleId ? { scheduleId } : {}) }),
       }, userToken);
 
       if (res.ok && res.data) {
