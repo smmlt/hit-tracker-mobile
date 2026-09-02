@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
@@ -80,6 +81,11 @@ export default function TrainingScreen({ navigation }) {
   const [month, setMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [assignments, setAssignments] = useState([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [programPickerOpen, setProgramPickerOpen] = useState(false);
+  const [programs, setPrograms] = useState([]);
+  const [programsLoading, setProgramsLoading] = useState(false);
+  const [repeatWeekly, setRepeatWeekly] = useState(true);
+  const [schedulingId, setSchedulingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [range, setRange] = useState({ start: null, end: null });
@@ -101,7 +107,35 @@ export default function TrainingScreen({ navigation }) {
     setLoading(false);
   }, [month, t, userToken]);
 
-  useEffect(() => { loadSchedule(); }, [loadSchedule]);
+  useFocusEffect(useCallback(() => { loadSchedule(); }, [loadSchedule]));
+
+  const openProgramPicker = async () => {
+    setProgramPickerOpen(true);
+    setProgramsLoading(true);
+    const response = await apiFetch('/workout-programs', {}, userToken);
+    if (response.ok) {
+      setPrograms(response.data || []);
+      setError(null);
+    } else {
+      setError(response.data?.message || t('programLoadError'));
+    }
+    setProgramsLoading(false);
+  };
+
+  const addProgramToPlan = async (program) => {
+    setSchedulingId(program.id);
+    const response = await apiFetch('/workout-programs/schedule', {
+      method: 'POST',
+      body: JSON.stringify({ programId: program.id, scheduledFor: selectedDate, repeat: repeatWeekly ? 'weekly' : 'none' }),
+    }, userToken);
+    setSchedulingId(null);
+    if (response.ok) {
+      setProgramPickerOpen(false);
+      loadSchedule();
+    } else {
+      setError(response.data?.message || t('scheduleLoadError'));
+    }
+  };
 
   const selected = parseDate(selectedDate);
   const nearbyDates = useMemo(() => Array.from(
@@ -161,6 +195,10 @@ export default function TrainingScreen({ navigation }) {
 
         <Pressable onPress={() => setCalendarOpen(true)}>
           <Text style={[styles.selectedDate, { color: theme.textPrimary }]}>{selected.toLocaleDateString(localeTag, { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+        </Pressable>
+
+        <Pressable onPress={openProgramPicker} style={[styles.addProgramButton, { borderColor: theme.primary }]}>
+          <Text style={[styles.addProgramText, { color: theme.primary }]}>{t('addProgram')}</Text>
         </Pressable>
 
         <ScrollView
@@ -239,10 +277,30 @@ export default function TrainingScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      <Modal visible={programPickerOpen} transparent animationType="fade" onRequestClose={() => setProgramPickerOpen(false)}>
+        <View style={styles.overlay}>
+          <View style={[styles.modal, { backgroundColor: theme.cardBackground }]}>
+            <Text style={[styles.monthTitle, { color: theme.textPrimary }]}>{t('chooseProgram')}</Text>
+            <Text style={[styles.rangeHint, { color: theme.textSecondary }]}>{t('addProgramHint')} {selectedDate}</Text>
+            <View style={styles.repeatPicker}>
+              <Pressable onPress={() => setRepeatWeekly(true)} style={[styles.repeatOption, { borderColor: theme.border }, repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={{ color: repeatWeekly ? '#fff' : theme.textPrimary }}>{t('everyWeek')}</Text></Pressable>
+              <Pressable onPress={() => setRepeatWeekly(false)} style={[styles.repeatOption, { borderColor: theme.border }, !repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={{ color: !repeatWeekly ? '#fff' : theme.textPrimary }}>{t('onlyThisDay')}</Text></Pressable>
+            </View>
+            {programsLoading ? <ActivityIndicator color={theme.primary} style={{ margin: 24 }} /> : <ScrollView style={styles.programPickerList}>{programs.map((program) => (
+              <Pressable disabled={schedulingId !== null} key={program.id} onPress={() => addProgramToPlan(program)} style={[styles.pickerProgram, { borderColor: theme.border }]}>
+                <Text style={[styles.programTitle, { color: theme.textPrimary }]}>{schedulingId === program.id ? '…' : program.name}</Text>
+                {!!program.description && <Text numberOfLines={2} style={[styles.description, { color: theme.textSecondary }]}>{program.description}</Text>}
+              </Pressable>
+            ))}</ScrollView>}
+            <View style={styles.modalActions}><View /><Pressable onPress={() => setProgramPickerOpen(false)}><Text style={[styles.link, { color: theme.textPrimary }]}>{t('close')}</Text></Pressable></View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 }, content: { padding: 18, paddingBottom: 120 }, header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4 }, title: { fontSize: 30, fontWeight: '900' }, calendarButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 }, calendarIcon: { fontSize: 24 }, selectedDate: { fontSize: 16, fontWeight: '700', marginTop: 18, textTransform: 'capitalize' }, dateStrip: { gap: DATE_GAP, paddingVertical: 16 }, dateCell: { alignItems: 'center', borderRadius: 14, borderWidth: 1, height: 74, justifyContent: 'center', width: DATE_CELL_WIDTH }, dayName: { fontSize: 11, fontWeight: '600' }, dayNumber: { fontSize: 20, fontWeight: '800', marginTop: 3 }, dot: { borderRadius: 3, height: 5, marginTop: 4, width: 5 }, sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, marginTop: 6 }, sectionTitle: { fontSize: 19, fontWeight: '800' }, programCard: { borderRadius: 16, borderWidth: 1, gap: 10, marginBottom: 12, padding: 16 }, programTop: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' }, programTitle: { flex: 1, fontSize: 17, fontWeight: '800' }, scheduledDate: { fontSize: 12, fontWeight: '700' }, description: { fontSize: 13, lineHeight: 19 }, exercisePreview: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }, exerciseChip: { borderRadius: 999, borderWidth: 1, maxWidth: 150, paddingHorizontal: 9, paddingVertical: 5 }, exerciseChipText: { fontSize: 11, fontWeight: '700' }, secondaryAction: { alignItems: 'center', borderRadius: 10, borderWidth: 1, justifyContent: 'center', padding: 10 }, secondaryActionText: { fontSize: 12, fontWeight: '800' }, status: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, status_planned: { backgroundColor: '#1D4ED8' }, status_completed: { backgroundColor: '#15803D' }, status_missed: { backgroundColor: '#991B1B' }, statusText: { color: '#fff', fontSize: 10, fontWeight: '800' }, empty: { alignItems: 'center', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, gap: 8, padding: 28 }, emptyTitle: { fontSize: 17, fontWeight: '800', textAlign: 'center' }, link: { fontWeight: '800', padding: 6 }, overlay: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.72)', flex: 1, justifyContent: 'center', padding: 20 }, modal: { borderRadius: 20, maxWidth: 420, padding: 18, width: '100%' }, monthHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, monthArrow: { fontSize: 34, paddingHorizontal: 12 }, monthTitle: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' }, rangeHint: { fontSize: 12, marginTop: 6, textAlign: 'center' }, weekHeader: { flexDirection: 'row', marginTop: 10 }, weekLabel: { textAlign: 'center', width: '14.285%' }, monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }, monthDay: { alignItems: 'center', height: 46, justifyContent: 'center', position: 'relative', width: '14.285%' }, rangeFill: { bottom: 9, left: 0, position: 'absolute', right: 0, top: 9 }, rangeStart: { borderBottomLeftRadius: 10, borderTopLeftRadius: 10, left: 4 }, rangeEnd: { borderBottomRightRadius: 10, borderTopRightRadius: 10, right: 4 }, monthDayText: { fontWeight: '700', zIndex: 1 }, modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  safe: { flex: 1 }, content: { padding: 18, paddingBottom: 120 }, header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4 }, title: { fontSize: 30, fontWeight: '900' }, calendarButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 }, calendarIcon: { fontSize: 24 }, selectedDate: { fontSize: 16, fontWeight: '700', marginTop: 18, textTransform: 'capitalize' }, addProgramButton: { alignItems: 'center', alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1, marginTop: 12, paddingHorizontal: 12, paddingVertical: 8 }, addProgramText: { fontSize: 12, fontWeight: '800' }, dateStrip: { gap: DATE_GAP, paddingVertical: 16 }, dateCell: { alignItems: 'center', borderRadius: 14, borderWidth: 1, height: 74, justifyContent: 'center', width: DATE_CELL_WIDTH }, dayName: { fontSize: 11, fontWeight: '600' }, dayNumber: { fontSize: 20, fontWeight: '800', marginTop: 3 }, dot: { borderRadius: 3, height: 5, marginTop: 4, width: 5 }, sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, marginTop: 6 }, sectionTitle: { fontSize: 19, fontWeight: '800' }, programCard: { borderRadius: 16, borderWidth: 1, gap: 10, marginBottom: 12, padding: 16 }, programTop: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' }, programTitle: { flex: 1, fontSize: 17, fontWeight: '800' }, scheduledDate: { fontSize: 12, fontWeight: '700' }, description: { fontSize: 13, lineHeight: 19 }, exercisePreview: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }, exerciseChip: { borderRadius: 999, borderWidth: 1, maxWidth: 150, paddingHorizontal: 9, paddingVertical: 5 }, exerciseChipText: { fontSize: 11, fontWeight: '700' }, secondaryAction: { alignItems: 'center', borderRadius: 10, borderWidth: 1, justifyContent: 'center', padding: 10 }, secondaryActionText: { fontSize: 12, fontWeight: '800' }, status: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, status_planned: { backgroundColor: '#1D4ED8' }, status_completed: { backgroundColor: '#15803D' }, status_missed: { backgroundColor: '#991B1B' }, statusText: { color: '#fff', fontSize: 10, fontWeight: '800' }, empty: { alignItems: 'center', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, gap: 8, padding: 28 }, emptyTitle: { fontSize: 17, fontWeight: '800', textAlign: 'center' }, link: { fontWeight: '800', padding: 6 }, overlay: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.72)', flex: 1, justifyContent: 'center', padding: 20 }, modal: { borderRadius: 20, maxWidth: 420, padding: 18, width: '100%' }, monthHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, monthArrow: { fontSize: 34, paddingHorizontal: 12 }, monthTitle: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' }, rangeHint: { fontSize: 12, marginTop: 6, textAlign: 'center' }, repeatPicker: { flexDirection: 'row', gap: 8, marginTop: 16 }, repeatOption: { borderRadius: 9, borderWidth: 1, flex: 1, padding: 10 }, programPickerList: { marginTop: 12, maxHeight: 300 }, pickerProgram: { borderRadius: 12, borderWidth: 1, gap: 5, marginBottom: 8, padding: 12 }, weekHeader: { flexDirection: 'row', marginTop: 10 }, weekLabel: { textAlign: 'center', width: '14.285%' }, monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }, monthDay: { alignItems: 'center', height: 46, justifyContent: 'center', position: 'relative', width: '14.285%' }, rangeFill: { bottom: 9, left: 0, position: 'absolute', right: 0, top: 9 }, rangeStart: { borderBottomLeftRadius: 10, borderTopLeftRadius: 10, left: 4 }, rangeEnd: { borderBottomRightRadius: 10, borderTopRightRadius: 10, right: 4 }, monthDayText: { fontWeight: '700', zIndex: 1 }, modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
 });
