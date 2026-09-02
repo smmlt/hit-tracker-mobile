@@ -19,4 +19,5 @@ export const adminService = {
     method: 'PATCH',
     body: JSON.stringify({ role }),
   }, token),
+  deleteUser: (id, token) => request(`/admin/users/${id}`, { method: 'DELETE' }, token),
 };
