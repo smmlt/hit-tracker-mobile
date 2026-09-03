@@ -32,6 +32,7 @@ export default function RegisterScreen({ navigation, route }) {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
+  const [errorMessage, setErrorMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -91,15 +92,22 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const handleRegister = async () => {
-    if (!fullName) return showToast(t('enterFullName'), 'error');
-    if (!isValidEmail(email)) return showToast(t('enterValidEmail'), 'error');
-    if (!isValidPassword(password)) return showToast(t('passwordRequirements'), 'error');
+    const validationError = !fullName ? t('enterFullName')
+      : !isValidEmail(email) ? t('enterValidEmail')
+      : !isValidPassword(password) ? t('passwordRequirements') : '';
+    if (validationError) {
+      setErrorMessage(validationError);
+      return showToast(validationError, 'error');
+    }
 
     try {
+      setErrorMessage('');
       await register(email, password, fullName);
-      navigation.navigate('VerifyEmail', { email });
+      navigation.replace('VerifyEmail', { email });
     } catch (err) {
-      showToast(err.message || 'Registration failed', 'error');
+      const message = err.message || t('registrationFailed');
+      setErrorMessage(message);
+      showToast(message, 'error');
     }
   };
 
@@ -153,6 +161,7 @@ export default function RegisterScreen({ navigation, route }) {
             </View>
 
             <PrimaryButton title={t('createAccount')} onPress={handleRegister} isLoading={isLoading} />
+            {!!errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
 
             <Divider />
 
@@ -199,6 +208,7 @@ const styles = StyleSheet.create({
   hintItem: { fontSize: 13, marginBottom: 4 },
   hintPending: { color: '#9CA3AF' },
   hintSuccess: { color: '#10B981', fontWeight: '600' },
+  errorMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
   bottomLinkContainer: { marginTop: 24, alignItems: 'center' },
   bottomText: { color: '#6B7280', fontSize: 14 },
   boldText: { color: '#000', fontWeight: '700' },

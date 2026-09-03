@@ -34,8 +34,7 @@ export default function LoginScreen({ navigation }) {
   const [toastType, setToastType] = useState('error');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const timerRef = useRef(null);
-  const intervalRef = useRef(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const showToast = (message, type = 'error') => {
     setToastMessage(message);
@@ -60,13 +59,6 @@ export default function LoginScreen({ navigation }) {
       useNativeDriver: true,
     }).start(() => setToastVisible(false));
   };
-
-  const clearTimers = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
-
-  useEffect(() => () => clearTimers(), []);
 
   useEffect(() => {
     if (!retryAfterSeconds) return undefined;
@@ -93,43 +85,29 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    clearTimers();
-
-    if (!email || !password) return showToast(t('fillAllFields'), 'error');
-    if (!isValidEmail(email)) return showToast(t('enterValidEmail'), 'error');
+    const validationError = !email || !password ? t('fillAllFields')
+      : !isValidEmail(email) ? t('enterValidEmail') : '';
+    if (validationError) {
+      setErrorMessage(validationError);
+      return showToast(validationError, 'error');
+    }
 
     try {
+      setErrorMessage('');
       await login(email, password);
     } catch (err) {
       const status = err.status || err.response?.status;
-      const message = (err.message || '').toLowerCase();
 
       if (status === 429) {
         setRetryAfterSeconds(err.retryAfterSeconds || 30 * 60);
         return;
       }
 
-      const isNotFound = status === 404 || message.includes('not found');
-
-      if (isNotFound) {
-        let secondsLeft = 3;
-        showToast(`User not found. Redirecting in ${secondsLeft}s...`, 'error');
-
-        intervalRef.current = setInterval(() => {
-          secondsLeft -= 1;
-          if (secondsLeft > 0) {
-            showToast(`User not found. Redirecting in ${secondsLeft}s...`, 'error');
-          } else {
-            clearInterval(intervalRef.current);
-          }
-        }, 1000);
-
-        timerRef.current = setTimeout(() => {
-          navigation.navigate('Register', { prefilledEmail: email });
-        }, 3000);
-      } else {
-        showToast(err.message || 'Login failed', 'error');
-      }
+      const message = status === 404 ? t('userNotFound')
+        : status === 401 ? t('invalidCredentials')
+        : err.message || t('loginFailed');
+      setErrorMessage(message);
+      showToast(message, 'error');
     }
   };
 
@@ -145,7 +123,7 @@ export default function LoginScreen({ navigation }) {
               label={t('email')}
               placeholder={t('emailPlaceholder')}
               value={email}
-              onChangeText={(text) => { setEmail(text); clearTimers(); }}
+              onChangeText={(text) => { setEmail(text); setErrorMessage(''); }}
               keyboardType="email-address"
             />
 
@@ -153,7 +131,7 @@ export default function LoginScreen({ navigation }) {
               label={t('password')}
               placeholder="********"
               value={password}
-              onChangeText={(text) => { setPassword(text); clearTimers(); }}
+              onChangeText={(text) => { setPassword(text); setErrorMessage(''); }}
               isPassword
               secureTextEntry={!showPassword}
               showPassword={showPassword}
@@ -175,6 +153,7 @@ export default function LoginScreen({ navigation }) {
                 {t('tooManyAttempts').replace('{seconds}', retryAfterSeconds)}
               </Text>
             )}
+            {!!errorMessage && <Text style={styles.rateLimitMessage}>{errorMessage}</Text>}
 
             <Divider />
 
