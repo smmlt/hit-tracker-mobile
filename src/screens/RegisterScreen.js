@@ -95,6 +95,7 @@ export default function RegisterScreen({ navigation, route }) {
 
     try {
       await register(email, password, fullName);
+      navigation.navigate('VerifyEmail', { email });
     } catch (err) {
       showToast(err.message || 'Registration failed', 'error');
     }

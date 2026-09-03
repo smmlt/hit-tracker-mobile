@@ -11,6 +11,11 @@ export const authService = {
       body: JSON.stringify({ email, password }),
     }, null, 'Registration failed'),
 
+  verifyRegistration: (email, code) => apiRequest('/auth/register/verify', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    }, null, 'Email verification failed'),
+
   exchangeOAuthCode: (code, codeVerifier) => apiRequest('/auth/oauth/exchange', {
     method: 'POST',
     body: JSON.stringify({ code, codeVerifier }),
