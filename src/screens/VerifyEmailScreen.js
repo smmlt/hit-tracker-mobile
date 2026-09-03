@@ -3,10 +3,15 @@ import { Animated, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, Sty
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../localization/LanguageContext';
 
 export default function VerifyEmailScreen({ navigation, route }) {
   const [code, setCode] = useState('');
+  const [attemptsRemaining, setAttemptsRemaining] = useState(null);
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
+  const [codeLocked, setCodeLocked] = useState(false);
   const { verifyRegistration, isLoading } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
   const email = route.params?.email || '';
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -24,15 +29,28 @@ export default function VerifyEmailScreen({ navigation, route }) {
     setTimeout(hideToast, 3500);
   };
 
+  React.useEffect(() => {
+    if (!retryAfterSeconds) return undefined;
+    const timer = setInterval(() => setRetryAfterSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [retryAfterSeconds]);
+
   const handleVerify = async () => {
     if (!/^\d{6}$/.test(code)) {
-      showToast('Enter the 6-digit code from your email.');
+      showToast(t('enterSixDigitCode'));
       return;
     }
 
     try {
       await verifyRegistration(email, code);
     } catch (error) {
+      if (error.status === 429) {
+        setCodeLocked(true);
+        setAttemptsRemaining(null);
+        setRetryAfterSeconds(error.details?.retryAfterSeconds || error.retryAfterSeconds || 30 * 60);
+        return;
+      }
+      setAttemptsRemaining(error.details?.attemptsRemaining ?? null);
       showToast(error.message || 'Email verification failed.');
     }
   };
@@ -45,10 +63,10 @@ export default function VerifyEmailScreen({ navigation, route }) {
           <View style={styles.formWrapper}>
             <Text style={styles.title}>Verify your email</Text>
             <Text style={styles.subtitle}>
-              We sent a 6-digit code to {email || 'your email'}. It expires in 15 minutes.
+              {t('verificationSent').replace('{email}', email || t('email'))}
             </Text>
             <CustomInput
-              label="Confirmation code"
+              label={t('confirmationCode')}
               placeholder="000000"
               value={code}
               onChangeText={(value) => setCode(value.replace(/\D/g, ''))}
@@ -57,9 +75,29 @@ export default function VerifyEmailScreen({ navigation, route }) {
               autoComplete="one-time-code"
               textContentType="oneTimeCode"
             />
-            <PrimaryButton title="Verify and create account" onPress={handleVerify} isLoading={isLoading} />
+            <PrimaryButton
+              title={codeLocked ? t('codeLocked') : t('verifyAndCreate')}
+              onPress={handleVerify}
+              isLoading={isLoading}
+              disabled={codeLocked}
+            />
+            {attemptsRemaining !== null && (
+              <Text style={styles.warning}>{t('incorrectCodeRemaining').replace('{count}', attemptsRemaining)}</Text>
+            )}
+            {codeLocked && (
+              <View style={styles.lockedBox}>
+                <Text style={styles.warning}>
+                  {t('tooManyCodes').replace('{seconds}', retryAfterSeconds)}
+                </Text>
+                {retryAfterSeconds === 0 && (
+                  <TouchableOpacity onPress={() => navigation.replace('Register', { prefilledEmail: email })}>
+                    <Text style={styles.requestCode}>{t('requestNewCode')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
             <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.bottomLinkContainer}>
-              <Text style={styles.bottomText}>Already have an account? <Text style={styles.boldText}>Sign in</Text></Text>
+              <Text style={styles.bottomText}>{t('alreadyHaveAccount')} <Text style={styles.boldText}>{t('signIn')}</Text></Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -76,6 +114,9 @@ const styles = StyleSheet.create({
   formWrapper: { width: '100%' },
   title: { color: '#000', fontSize: 28, fontWeight: '700', marginBottom: 4 },
   subtitle: { color: '#6B7280', fontSize: 16, lineHeight: 23, marginBottom: 28 },
+  warning: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
+  lockedBox: { alignItems: 'center' },
+  requestCode: { color: '#000', fontSize: 14, fontWeight: '700', marginTop: 12 },
   bottomLinkContainer: { alignItems: 'center', marginTop: 28 },
   bottomText: { color: '#6B7280', fontSize: 14 },
   boldText: { color: '#000', fontWeight: '700' },

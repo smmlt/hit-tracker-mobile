@@ -54,6 +54,7 @@ export async function apiRequest(endpoint, options = {}, userToken = null, fallb
 
   const error = new Error(response.data?.message || fallbackMessage);
   error.status = response.status;
+  error.details = response.data;
   if (response.retryAfter) {
     const retryAfter = Number(response.retryAfter);
     // Nest's throttler currently sends milliseconds; standard HTTP uses seconds.
