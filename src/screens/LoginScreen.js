@@ -18,6 +18,7 @@ import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components
 import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
 import { createPkcePair } from '../utils/oauthPkce';
+import { LanguageContext } from '../localization/LanguageContext';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -25,6 +26,7 @@ export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
   const { handleOAuthRedirect, login, isLoading } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
 
   // Стан та анімація для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
@@ -75,7 +77,7 @@ export default function LoginScreen({ navigation }) {
   }, [retryAfterSeconds]);
 
   const handleAppleLogin = () => {
-    showToast('Sign in with Apple is currently in development', 'error');
+    showToast(t('appleComingSoon'), 'error');
   };
 
   const handleGoogleLogin = async () => {
@@ -93,8 +95,8 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = async () => {
     clearTimers();
 
-    if (!email || !password) return showToast('Please fill in all fields', 'error');
-    if (!isValidEmail(email)) return showToast('Please enter a valid email', 'error');
+    if (!email || !password) return showToast(t('fillAllFields'), 'error');
+    if (!isValidEmail(email)) return showToast(t('enterValidEmail'), 'error');
 
     try {
       await login(email, password);
@@ -136,19 +138,19 @@ export default function LoginScreen({ navigation }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.formWrapper}>
-            <Text style={styles.title}>Sing In</Text>
-            <Text style={styles.subtitle}>Welcome back</Text>
+            <Text style={styles.title}>{t('signIn')}</Text>
+            <Text style={styles.subtitle}>{t('welcomeBack')}</Text>
 
             <CustomInput
-              label="Email"
-              placeholder="you@exemple.com"
+              label={t('email')}
+              placeholder={t('emailPlaceholder')}
               value={email}
               onChangeText={(text) => { setEmail(text); clearTimers(); }}
               keyboardType="email-address"
             />
 
             <CustomInput
-              label="Password"
+              label={t('password')}
               placeholder="********"
               value={password}
               onChangeText={(text) => { setPassword(text); clearTimers(); }}
@@ -159,29 +161,29 @@ export default function LoginScreen({ navigation }) {
             />
 
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotPass}>
-              <Text style={styles.forgotPassText}>Forgot password?</Text>
+              <Text style={styles.forgotPassText}>{t('forgotPassword')}</Text>
             </TouchableOpacity>
 
             <PrimaryButton
-              title={retryAfterSeconds ? `Try again in ${Math.ceil(retryAfterSeconds / 60)} min` : 'Sing In'}
+              title={retryAfterSeconds ? t('tryAgainIn').replace('{seconds}', retryAfterSeconds) : t('signIn')}
               onPress={handleLogin}
               isLoading={isLoading}
               disabled={retryAfterSeconds > 0}
             />
             {retryAfterSeconds > 0 && (
               <Text style={styles.rateLimitMessage}>
-                Too many attempts. Please try again in {retryAfterSeconds} seconds.
+                {t('tooManyAttempts').replace('{seconds}', retryAfterSeconds)}
               </Text>
             )}
 
             <Divider />
 
-            <SocialButton title="Continue with Apple" iconName="logo-apple" onPress={handleAppleLogin} />
-            <SocialButton title="Continue with Google" iconName="logo-google" onPress={handleGoogleLogin} />
+            <SocialButton title={t('continueWithApple')} iconName="logo-apple" onPress={handleAppleLogin} />
+            <SocialButton title={t('continueWithGoogle')} iconName="logo-google" onPress={handleGoogleLogin} />
 
             <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.bottomLinkContainer}>
               <Text style={styles.bottomText}>
-                Dont have an account? <Text style={styles.boldText}>Sing up</Text>
+                {t('noAccount')} <Text style={styles.boldText}>{t('signUp')}</Text>
               </Text>
             </TouchableOpacity>
           </View>

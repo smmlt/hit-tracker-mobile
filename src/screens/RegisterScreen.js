@@ -18,6 +18,7 @@ import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '.
 import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
 import { createPkcePair } from '../utils/oauthPkce';
+import { LanguageContext } from '../localization/LanguageContext';
 
 export default function RegisterScreen({ navigation, route }) {
   const [fullName, setFullName] = useState('');
@@ -25,6 +26,7 @@ export default function RegisterScreen({ navigation, route }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { handleOAuthRedirect, register, isLoading } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
 
   // Состояние и анимация для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
@@ -65,7 +67,7 @@ export default function RegisterScreen({ navigation, route }) {
   const criteria = getPasswordCriteria(password);
 
   const handleAppleLogin = () => {
-    showToast('Sign in with Apple is currently in development', 'error');
+    showToast(t('appleComingSoon'), 'error');
   };
 
   const handleGoogleLogin = async () => {
@@ -89,9 +91,9 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const handleRegister = async () => {
-    if (!fullName) return showToast('Please enter your full name', 'error');
-    if (!isValidEmail(email)) return showToast('Please enter a valid email', 'error');
-    if (!isValidPassword(password)) return showToast('Password does not meet requirements', 'error');
+    if (!fullName) return showToast(t('enterFullName'), 'error');
+    if (!isValidEmail(email)) return showToast(t('enterValidEmail'), 'error');
+    if (!isValidPassword(password)) return showToast(t('passwordRequirements'), 'error');
 
     try {
       await register(email, password, fullName);
@@ -108,27 +110,27 @@ export default function RegisterScreen({ navigation, route }) {
           <BackButton onPress={() => navigation.goBack()} />
 
           <View style={styles.formWrapper}>
-            <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>Start your journey</Text>
+            <Text style={styles.title}>{t('createAccount')}</Text>
+            <Text style={styles.subtitle}>{t('startYourJourney')}</Text>
 
             <CustomInput
-              label="Full name"
-              placeholder="Your name"
+              label={t('fullName')}
+              placeholder={t('yourName')}
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
             />
 
             <CustomInput
-              label="Email"
-              placeholder="you@exemple.com"
+              label={t('email')}
+              placeholder={t('emailPlaceholder')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
             />
 
             <CustomInput
-              label="Password"
+              label={t('password')}
               placeholder="********"
               value={password}
               onChangeText={setPassword}
@@ -140,26 +142,26 @@ export default function RegisterScreen({ navigation, route }) {
 
             <View style={styles.hintsContainer}>
               <Text style={[styles.hintItem, criteria.minLength ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.minLength ? '✓' : '•'} At least 8 characters
+                {criteria.minLength ? '✓' : '•'} {t('atLeastEight')}
               </Text>
               <Text style={[styles.hintItem, criteria.hasUpper ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.hasUpper ? '✓' : '•'} At least one uppercase letter
+                {criteria.hasUpper ? '✓' : '•'} {t('uppercaseLetter')}
               </Text>
               <Text style={[styles.hintItem, criteria.hasNumber ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.hasNumber ? '✓' : '•'} At least one number
+                {criteria.hasNumber ? '✓' : '•'} {t('number')}
               </Text>
             </View>
 
-            <PrimaryButton title="Create account" onPress={handleRegister} isLoading={isLoading} />
+            <PrimaryButton title={t('createAccount')} onPress={handleRegister} isLoading={isLoading} />
 
             <Divider />
 
-            <SocialButton title="Continue with Apple" iconName="logo-apple" onPress={handleAppleLogin} />
-            <SocialButton title="Continue with Google" iconName="logo-google" onPress={handleGoogleLogin} />
+            <SocialButton title={t('continueWithApple')} iconName="logo-apple" onPress={handleAppleLogin} />
+            <SocialButton title={t('continueWithGoogle')} iconName="logo-google" onPress={handleGoogleLogin} />
 
             <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.bottomLinkContainer}>
               <Text style={styles.bottomText}>
-                Already have an account? <Text style={styles.boldText}>Sign in</Text>
+                {t('alreadyHaveAccount')} <Text style={styles.boldText}>{t('signIn')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
