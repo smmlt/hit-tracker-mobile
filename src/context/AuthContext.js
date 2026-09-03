@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { authService } from '../services/authService';
 import { setUnauthorizedHandler } from '../services/unauthorized';
+import { loadAuthToken, removeAuthToken, saveAuthToken as persistAuthToken } from '../services/secureTokenStorage';
 
 export const AuthContext = createContext();
 
@@ -13,12 +14,12 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const saveAuthToken = useCallback(async (token) => {
-    await AsyncStorage.setItem('userToken', token);
+    await persistAuthToken(token);
     setUserToken(token);
   }, []);
 
   const clearAuth = useCallback(async () => {
-    await AsyncStorage.multiRemove(['userToken', 'userData']);
+    await Promise.all([removeAuthToken(), AsyncStorage.removeItem('userData')]);
     setUserToken(null);
     setUserData(null);
   }, []);
@@ -60,8 +61,8 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        // 2. Стандартна перевірка збережених даних з AsyncStorage
-        const storedToken = await AsyncStorage.getItem('userToken');
+        // 2. Native tokens are protected by Keychain/Keystore; web uses its browser storage.
+        const storedToken = await loadAuthToken();
         const storedUser = await AsyncStorage.getItem('userData');
 
         if (storedToken) {
