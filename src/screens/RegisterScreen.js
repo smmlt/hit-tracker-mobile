@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
 import { isValidEmail, getPasswordCriteria, isValidPassword } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
@@ -103,6 +104,7 @@ export default function RegisterScreen({ navigation, route }) {
     try {
       setErrorMessage('');
       await register(email, password, fullName);
+      await AsyncStorage.setItem('pendingRegistrationEmail', email);
       navigation.replace('VerifyEmail', { email });
     } catch (err) {
       const message = err.message || t('registrationFailed');

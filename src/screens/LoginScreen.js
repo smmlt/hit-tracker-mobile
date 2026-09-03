@@ -20,11 +20,12 @@ import { API_URL } from '../constants/config';
 import { createPkcePair } from '../utils/oauthPkce';
 import { LanguageContext } from '../localization/LanguageContext';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
+  const [redirectSeconds, setRedirectSeconds] = useState(0);
   const { handleOAuthRedirect, login, isLoading } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
 
@@ -61,12 +62,26 @@ export default function LoginScreen({ navigation }) {
   };
 
   useEffect(() => {
+    if (route?.params?.prefilledEmail) setEmail(route.params.prefilledEmail);
+    if (route?.params?.registered) showToast(t('accountCreated'), 'success');
+  }, [route?.params?.prefilledEmail, route?.params?.registered]);
+
+  useEffect(() => {
     if (!retryAfterSeconds) return undefined;
     const timer = setInterval(() => {
       setRetryAfterSeconds((seconds) => Math.max(0, seconds - 1));
     }, 1000);
     return () => clearInterval(timer);
   }, [retryAfterSeconds]);
+
+  useEffect(() => {
+    if (!redirectSeconds) return undefined;
+    const timer = setTimeout(() => {
+      if (redirectSeconds === 1) navigation.replace('Register', { prefilledEmail: email });
+      else setRedirectSeconds((seconds) => seconds - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [email, navigation, redirectSeconds]);
 
   const handleAppleLogin = () => {
     showToast(t('appleComingSoon'), 'error');
@@ -106,8 +121,15 @@ export default function LoginScreen({ navigation }) {
       const message = status === 404 ? t('userNotFound')
         : status === 401 ? t('invalidCredentials')
         : err.message || t('loginFailed');
-      setErrorMessage(message);
-      showToast(message, 'error');
+      if (status === 404) {
+        const redirectMessage = t('userNotFoundRedirect').replace('{seconds}', 5);
+        setRedirectSeconds(5);
+        setErrorMessage(redirectMessage);
+        showToast(redirectMessage, 'error');
+      } else {
+        setErrorMessage(message);
+        showToast(message, 'error');
+      }
     }
   };
 
@@ -123,7 +145,7 @@ export default function LoginScreen({ navigation }) {
               label={t('email')}
               placeholder={t('emailPlaceholder')}
               value={email}
-              onChangeText={(text) => { setEmail(text); setErrorMessage(''); }}
+              onChangeText={(text) => { setEmail(text); setErrorMessage(''); setRedirectSeconds(0); }}
               keyboardType="email-address"
             />
 
@@ -131,7 +153,7 @@ export default function LoginScreen({ navigation }) {
               label={t('password')}
               placeholder="********"
               value={password}
-              onChangeText={(text) => { setPassword(text); setErrorMessage(''); }}
+              onChangeText={(text) => { setPassword(text); setErrorMessage(''); setRedirectSeconds(0); }}
               isPassword
               secureTextEntry={!showPassword}
               showPassword={showPassword}
@@ -146,14 +168,14 @@ export default function LoginScreen({ navigation }) {
               title={retryAfterSeconds ? t('tryAgainIn').replace('{seconds}', retryAfterSeconds) : t('signIn')}
               onPress={handleLogin}
               isLoading={isLoading}
-              disabled={retryAfterSeconds > 0}
+              disabled={retryAfterSeconds > 0 || redirectSeconds > 0}
             />
             {retryAfterSeconds > 0 && (
               <Text style={styles.rateLimitMessage}>
                 {t('tooManyAttempts').replace('{seconds}', retryAfterSeconds)}
               </Text>
             )}
-            {!!errorMessage && <Text style={styles.rateLimitMessage}>{errorMessage}</Text>}
+            {!!errorMessage && <Text style={styles.rateLimitMessage}>{redirectSeconds ? t('userNotFoundRedirect').replace('{seconds}', redirectSeconds) : errorMessage}</Text>}
 
             <Divider />
 

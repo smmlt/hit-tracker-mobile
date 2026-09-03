@@ -4,6 +4,7 @@ import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function VerifyEmailScreen({ navigation, route }) {
   const [code, setCode] = useState('');
@@ -12,10 +13,15 @@ export default function VerifyEmailScreen({ navigation, route }) {
   const [codeLocked, setCodeLocked] = useState(false);
   const { verifyRegistration, isLoading } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
-  const email = route.params?.email || '';
+  const [storedEmail, setStoredEmail] = useState('');
+  const email = route.params?.email || storedEmail;
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    AsyncStorage.getItem('pendingRegistrationEmail').then((value) => setStoredEmail(value || ''));
+  }, []);
 
   const hideToast = () => {
     Animated.timing(fadeAnim, { toValue: 0, duration: 250, useNativeDriver: true })
@@ -40,9 +46,15 @@ export default function VerifyEmailScreen({ navigation, route }) {
       showToast(t('enterSixDigitCode'));
       return;
     }
+    if (!email) {
+      showToast(t('enterValidEmail'));
+      return;
+    }
 
     try {
       await verifyRegistration(email, code);
+      await AsyncStorage.removeItem('pendingRegistrationEmail');
+      navigation.replace('Login', { prefilledEmail: email, registered: true });
     } catch (error) {
       if (error.status === 429) {
         setCodeLocked(true);
@@ -61,7 +73,7 @@ export default function VerifyEmailScreen({ navigation, route }) {
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <BackButton onPress={() => navigation.goBack()} />
           <View style={styles.formWrapper}>
-            <Text style={styles.title}>Verify your email</Text>
+            <Text style={styles.title}>{t('verifyEmail')}</Text>
             <Text style={styles.subtitle}>
               {t('verificationSent').replace('{email}', email || t('email'))}
             </Text>

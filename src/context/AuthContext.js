@@ -144,20 +144,11 @@ export const AuthProvider = ({ children }) => {
   const verifyRegistration = useCallback(async (email, code) => {
     setIsLoading(true);
     try {
-      const data = await authService.verifyRegistration(email, code);
-      const accessToken = data.accessToken || data.token;
-      const user = data.user || null;
-
-      await saveAuthToken(accessToken);
-      if (user) {
-        await AsyncStorage.setItem('userData', JSON.stringify(user));
-      }
-      setUserData(user);
-      return data;
+      return await authService.verifyRegistration(email, code);
     } finally {
       setIsLoading(false);
     }
-  }, [saveAuthToken]);
+  }, []);
 
   const logout = useCallback(async () => {
     setIsLoading(true);
