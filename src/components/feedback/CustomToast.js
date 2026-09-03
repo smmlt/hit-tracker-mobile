@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, Animated, Platform, StyleSheet } from 'react-native';
 
 export function CustomToast({ 
   visible, 
@@ -12,6 +12,7 @@ export function CustomToast({
   if (!visible) return null;
 
   const isLight = variant === 'light';
+  const isWeb = Platform.OS === 'web';
 
   return (
     <Animated.View
@@ -20,7 +21,7 @@ export function CustomToast({
         styles.toastContainer,
         isLight ? styles.toastLight : (type === 'error' ? styles.toastError : styles.toastSuccess),
         isLight && (type === 'error' ? styles.borderError : styles.borderSuccess),
-        { opacity: fadeAnim },
+        isWeb ? styles.toastWeb : { opacity: fadeAnim },
       ]}
     >
       <Text
@@ -50,8 +51,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     zIndex: 2000,
     maxWidth: '90%',
-    width: '90%',
+  width: '90%',
   },
+  toastWeb: { bottom: 24, left: '5%', position: 'fixed', right: '5%', width: 'auto', zIndex: 9999 },
   
   // Стандартная темна тема (для основного інтерфейсу)
   toastSuccess: { backgroundColor: '#10B981', elevation: 6 },

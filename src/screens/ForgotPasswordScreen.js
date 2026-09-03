@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -16,9 +16,11 @@ import { isValidEmail } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { apiRequest } from '../services/api';
+import { LanguageContext } from '../localization/LanguageContext';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
+  const { t } = useContext(LanguageContext);
   const [isSent, setIsSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,8 +41,8 @@ export default function ForgotPasswordScreen({ navigation }) {
   };
 
   const handleSendLink = async () => {
-    if (!email) return showToast('Please enter your email address');
-    if (!isValidEmail(email)) return showToast('Please enter a valid email address');
+    if (!email) return showToast(t('enterValidEmail'));
+    if (!isValidEmail(email)) return showToast(t('enterValidEmail'));
 
     setIsLoading(true);
     try {
@@ -69,23 +71,23 @@ export default function ForgotPasswordScreen({ navigation }) {
             {!isSent ? (
               <>
                 <BackButton onPress={() => navigation.goBack()} />
-                <Text style={styles.title}>Forgot password?</Text>
-                <Text style={styles.subtitle}>Enter your email and we’ll send you a reset link.</Text>
+                <Text style={styles.title}>{t('resetPasswordTitle')}</Text>
+                <Text style={styles.subtitle}>{t('resetPasswordHint')}</Text>
 
                 <CustomInput
-                  label="Email"
-                  placeholder="you@example.com"
+                  label={t('email')}
+                  placeholder={t('emailPlaceholder')}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
                 />
 
                 <View style={styles.fullWidthButton}>
-                  <PrimaryButton title="Send link" onPress={handleSendLink} isLoading={isLoading} />
+                  <PrimaryButton title={t('sendLink')} onPress={handleSendLink} isLoading={isLoading} />
                 </View>
 
                 <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.linkContainer}>
-                  <Text style={styles.linkText}>Back to Sign In</Text>
+                  <Text style={styles.linkText}>{t('backToSignIn')}</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -94,18 +96,18 @@ export default function ForgotPasswordScreen({ navigation }) {
                   <Ionicons name="mail-unread-outline" size={48} color="#000" />
                 </View>
 
-                <Text style={[styles.title, { textAlign: 'center' }]}>Check your Email</Text>
+                <Text style={[styles.title, { textAlign: 'center' }]}>{t('checkYourEmail')}</Text>
                 <Text style={[styles.subtitle, { textAlign: 'center', marginBottom: 24 }]}>
-                  We’ve sent a password reset link to{'\n'}
+                  {t('resetLinkSent')}{'\n'}
                   <Text style={{ fontWeight: '600', color: '#000' }}>{email}</Text>
                 </Text>
 
                 <View style={styles.fullWidthButton}>
-                  <PrimaryButton title="Open Email App" onPress={handleOpenEmailApp} />
+                  <PrimaryButton title={t('openEmailApp')} onPress={handleOpenEmailApp} />
                 </View>
 
                 <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.linkContainer}>
-                  <Text style={styles.linkText}>Back to Sign In</Text>
+                  <Text style={styles.linkText}>{t('backToSignIn')}</Text>
                 </TouchableOpacity>
               </View>
             )}

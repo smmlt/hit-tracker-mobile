@@ -12,11 +12,14 @@ import {
 } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
 import { isValidEmail, getPasswordCriteria, isValidPassword } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
+import { createPkcePair } from '../utils/oauthPkce';
+import { LanguageContext } from '../localization/LanguageContext';
 
 export default function RegisterScreen({ navigation, route }) {
   const [fullName, setFullName] = useState('');
@@ -24,11 +27,13 @@ export default function RegisterScreen({ navigation, route }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { handleOAuthRedirect, register, isLoading } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
 
   // Состояние и анимация для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
+  const [errorMessage, setErrorMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -64,37 +69,47 @@ export default function RegisterScreen({ navigation, route }) {
   const criteria = getPasswordCriteria(password);
 
   const handleAppleLogin = () => {
-    showToast('Sign in with Apple is currently in development', 'error');
+    showToast(t('appleComingSoon'), 'error');
   };
 
   const handleGoogleLogin = async () => {
-    const backendOAuthUrl = `${API_URL}/auth/google`;
-
     if (Platform.OS === 'web') {
       // Для вебу робимо перенаправлення у тій самій вкладці
-      window.location.href = backendOAuthUrl;
+      window.location.href = `${API_URL}/auth/google`;
     } else {
+      const redirectUrl = Linking.createURL('auth/google/callback');
+      const { verifier, challenge } = await createPkcePair();
+      const backendOAuthUrl = `${API_URL}/auth/google?platform=mobile&code_challenge=${encodeURIComponent(challenge)}`;
       const result = await WebBrowser.openAuthSessionAsync(
         backendOAuthUrl,
-        Linking.createURL('/'),
+        redirectUrl,
       );
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
         navigation.navigate('Login');
       }
-      if (result.type === 'success') await handleOAuthRedirect(result.url);
+      if (result.type === 'success') await handleOAuthRedirect(result.url, verifier);
     }
   };
 
   const handleRegister = async () => {
-    if (!fullName) return showToast('Please enter your full name', 'error');
-    if (!isValidEmail(email)) return showToast('Please enter a valid email', 'error');
-    if (!isValidPassword(password)) return showToast('Password does not meet requirements', 'error');
+    const validationError = !fullName ? t('enterFullName')
+      : !isValidEmail(email) ? t('enterValidEmail')
+      : !isValidPassword(password) ? t('passwordRequirements') : '';
+    if (validationError) {
+      setErrorMessage(validationError);
+      return showToast(validationError, 'error');
+    }
 
     try {
+      setErrorMessage('');
       await register(email, password, fullName);
+      await AsyncStorage.setItem('pendingRegistrationEmail', email);
+      navigation.replace('VerifyEmail', { email });
     } catch (err) {
-      showToast(err.message || 'Registration failed', 'error');
+      const message = err.message || t('registrationFailed');
+      setErrorMessage(message);
+      showToast(message, 'error');
     }
   };
 
@@ -105,27 +120,27 @@ export default function RegisterScreen({ navigation, route }) {
           <BackButton onPress={() => navigation.goBack()} />
 
           <View style={styles.formWrapper}>
-            <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>Start your journey</Text>
+            <Text style={styles.title}>{t('createAccount')}</Text>
+            <Text style={styles.subtitle}>{t('startYourJourney')}</Text>
 
             <CustomInput
-              label="Full name"
-              placeholder="Your name"
+              label={t('fullName')}
+              placeholder={t('yourName')}
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
             />
 
             <CustomInput
-              label="Email"
-              placeholder="you@exemple.com"
+              label={t('email')}
+              placeholder={t('emailPlaceholder')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
             />
 
             <CustomInput
-              label="Password"
+              label={t('password')}
               placeholder="********"
               value={password}
               onChangeText={setPassword}
@@ -137,26 +152,27 @@ export default function RegisterScreen({ navigation, route }) {
 
             <View style={styles.hintsContainer}>
               <Text style={[styles.hintItem, criteria.minLength ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.minLength ? '✓' : '•'} At least 8 characters
+                {criteria.minLength ? '✓' : '•'} {t('atLeastEight')}
               </Text>
               <Text style={[styles.hintItem, criteria.hasUpper ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.hasUpper ? '✓' : '•'} At least one uppercase letter
+                {criteria.hasUpper ? '✓' : '•'} {t('uppercaseLetter')}
               </Text>
               <Text style={[styles.hintItem, criteria.hasNumber ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.hasNumber ? '✓' : '•'} At least one number
+                {criteria.hasNumber ? '✓' : '•'} {t('number')}
               </Text>
             </View>
 
-            <PrimaryButton title="Create account" onPress={handleRegister} isLoading={isLoading} />
+            <PrimaryButton title={t('createAccount')} onPress={handleRegister} isLoading={isLoading} />
+            {!!errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
 
             <Divider />
 
-            <SocialButton title="Continue with Apple" iconName="logo-apple" onPress={handleAppleLogin} />
-            <SocialButton title="Continue with Google" iconName="logo-google" onPress={handleGoogleLogin} />
+            <SocialButton title={t('continueWithApple')} iconName="logo-apple" onPress={handleAppleLogin} />
+            <SocialButton title={t('continueWithGoogle')} iconName="logo-google" onPress={handleGoogleLogin} />
 
             <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.bottomLinkContainer}>
               <Text style={styles.bottomText}>
-                Already have an account? <Text style={styles.boldText}>Sign in</Text>
+                {t('alreadyHaveAccount')} <Text style={styles.boldText}>{t('signIn')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -194,6 +210,7 @@ const styles = StyleSheet.create({
   hintItem: { fontSize: 13, marginBottom: 4 },
   hintPending: { color: '#9CA3AF' },
   hintSuccess: { color: '#10B981', fontWeight: '600' },
+  errorMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
   bottomLinkContainer: { marginTop: 24, alignItems: 'center' },
   bottomText: { color: '#6B7280', fontSize: 14 },
   boldText: { color: '#000', fontWeight: '700' },

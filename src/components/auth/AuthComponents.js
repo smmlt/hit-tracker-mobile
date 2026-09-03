@@ -38,8 +38,8 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
   );
 }
 
-export function PrimaryButton({ title, onPress, isLoading }) {
-  return <AppButton loading={isLoading} onPress={onPress} style={styles.primaryButton} title={title} />;
+export function PrimaryButton({ title, onPress, isLoading, disabled }) {
+  return <AppButton disabled={disabled} loading={isLoading} onPress={onPress} style={styles.primaryButton} title={title} />;
 }
 
 export function SocialButton({ title, onPress, iconName }) {
