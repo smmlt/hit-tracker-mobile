@@ -10,4 +10,9 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }, null, 'Registration failed'),
+
+  exchangeOAuthCode: (code, codeVerifier) => apiRequest('/auth/oauth/exchange', {
+    method: 'POST',
+    body: JSON.stringify({ code, codeVerifier }),
+  }, null, 'Google sign-in failed'),
 };

@@ -17,6 +17,7 @@ import { isValidEmail } from '../utils/validation';
 import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
+import { createPkcePair } from '../utils/oauthPkce';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -73,9 +74,10 @@ export default function LoginScreen({ navigation }) {
       window.location.href = `${API_URL}/auth/google`;
     } else {
       const redirectUrl = Linking.createURL('auth/google/callback');
-      const backendOAuthUrl = `${API_URL}/auth/google?platform=mobile`;
+      const { verifier, challenge } = await createPkcePair();
+      const backendOAuthUrl = `${API_URL}/auth/google?platform=mobile&code_challenge=${encodeURIComponent(challenge)}`;
       const result = await WebBrowser.openAuthSessionAsync(backendOAuthUrl, redirectUrl);
-      if (result.type === 'success') await handleOAuthRedirect(result.url);
+      if (result.type === 'success') await handleOAuthRedirect(result.url, verifier);
     }
   };
 

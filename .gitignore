@@ -7,6 +7,7 @@ node_modules/
 .expo/
 .expo-program-check/
 .expo-security-check/
+.expo-oauth-check/
 dist/
 web-build/
 expo-env.d.ts

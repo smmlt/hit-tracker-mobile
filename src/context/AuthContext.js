@@ -29,13 +29,14 @@ export const AuthProvider = ({ children }) => {
     return () => setUnauthorizedHandler(null);
   }, [clearAuth]);
 
-  const handleOAuthRedirect = useCallback(async (url) => {
+  const handleOAuthRedirect = useCallback(async (url, codeVerifier) => {
     if (!url) return false;
 
     const parsed = Linking.parse(url);
     const hash = url.includes('#') ? new URLSearchParams(url.split('#')[1]) : null;
     const error = parsed.queryParams?.error || hash?.get('error');
     const token = parsed.queryParams?.accessToken || hash?.get('accessToken');
+    const code = parsed.queryParams?.code;
 
     if (error === 'access_denied') {
       await clearAuth();
@@ -43,6 +44,15 @@ export const AuthProvider = ({ children }) => {
     }
     if (token) {
       await saveAuthToken(token);
+      return true;
+    }
+    if (code && codeVerifier) {
+      const data = await authService.exchangeOAuthCode(code, codeVerifier);
+      await saveAuthToken(data.accessToken || data.token);
+      if (data.user) {
+        await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+        setUserData(data.user);
+      }
       return true;
     }
     return false;
@@ -81,6 +91,8 @@ export const AuthProvider = ({ children }) => {
     // 3. Обробник для мобільних пристроїв (Deep Linking: hittracker://...)
     const handleDeepLink = async (event) => {
       if (!event?.url) return;
+      // PKCE verifier is only held by the screen that initiated mobile OAuth.
+      // A cold-start deep link without it is deliberately not accepted.
       await handleOAuthRedirect(event.url);
     };
 

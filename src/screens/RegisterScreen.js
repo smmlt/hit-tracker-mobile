@@ -17,6 +17,7 @@ import { isValidEmail, getPasswordCriteria, isValidPassword } from '../utils/val
 import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
+import { createPkcePair } from '../utils/oauthPkce';
 
 export default function RegisterScreen({ navigation, route }) {
   const [fullName, setFullName] = useState('');
@@ -68,21 +69,22 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const handleGoogleLogin = async () => {
-    const backendOAuthUrl = `${API_URL}/auth/google`;
-
     if (Platform.OS === 'web') {
       // Для вебу робимо перенаправлення у тій самій вкладці
-      window.location.href = backendOAuthUrl;
+      window.location.href = `${API_URL}/auth/google`;
     } else {
+      const redirectUrl = Linking.createURL('auth/google/callback');
+      const { verifier, challenge } = await createPkcePair();
+      const backendOAuthUrl = `${API_URL}/auth/google?platform=mobile&code_challenge=${encodeURIComponent(challenge)}`;
       const result = await WebBrowser.openAuthSessionAsync(
         backendOAuthUrl,
-        Linking.createURL('/'),
+        redirectUrl,
       );
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
         navigation.navigate('Login');
       }
-      if (result.type === 'success') await handleOAuthRedirect(result.url);
+      if (result.type === 'success') await handleOAuthRedirect(result.url, verifier);
     }
   };
 
