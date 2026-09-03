@@ -23,6 +23,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
   const { handleOAuthRedirect, login, isLoading } = useContext(AuthContext);
 
   // Стан та анімація для CustomToast
@@ -65,6 +66,14 @@ export default function LoginScreen({ navigation }) {
 
   useEffect(() => () => clearTimers(), []);
 
+  useEffect(() => {
+    if (!retryAfterSeconds) return undefined;
+    const timer = setInterval(() => {
+      setRetryAfterSeconds((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [retryAfterSeconds]);
+
   const handleAppleLogin = () => {
     showToast('Sign in with Apple is currently in development', 'error');
   };
@@ -92,6 +101,11 @@ export default function LoginScreen({ navigation }) {
     } catch (err) {
       const status = err.status || err.response?.status;
       const message = (err.message || '').toLowerCase();
+
+      if (status === 429) {
+        setRetryAfterSeconds(err.retryAfterSeconds || 30 * 60);
+        return;
+      }
 
       const isNotFound = status === 404 || message.includes('not found');
 
@@ -148,7 +162,17 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.forgotPassText}>Forgot password?</Text>
             </TouchableOpacity>
 
-            <PrimaryButton title="Sing In" onPress={handleLogin} isLoading={isLoading} />
+            <PrimaryButton
+              title={retryAfterSeconds ? `Try again in ${Math.ceil(retryAfterSeconds / 60)} min` : 'Sing In'}
+              onPress={handleLogin}
+              isLoading={isLoading}
+              disabled={retryAfterSeconds > 0}
+            />
+            {retryAfterSeconds > 0 && (
+              <Text style={styles.rateLimitMessage}>
+                Too many attempts. Please try again in {retryAfterSeconds} seconds.
+              </Text>
+            )}
 
             <Divider />
 
@@ -193,6 +217,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 28 },
   forgotPass: { alignSelf: 'flex-end', marginBottom: 20 },
   forgotPassText: { fontSize: 13, color: '#000', fontWeight: '500' },
+  rateLimitMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
   bottomLinkContainer: { marginTop: 32, alignItems: 'center' },
   bottomText: { color: '#6B7280', fontSize: 14 },
   boldText: { color: '#000', fontWeight: '700' },
