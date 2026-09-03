@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { TextInput, View } from 'react-native';
-import { SearchIcon } from '../../assets/icons';
+import SearchIcon from '../../assets/workshop/Search.svg';
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 import { styles } from './SearchField.styles';

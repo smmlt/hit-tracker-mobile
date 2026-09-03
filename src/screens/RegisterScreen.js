@@ -16,9 +16,7 @@ import { AuthContext } from '../context/AuthContext';
 import { isValidEmail, getPasswordCriteria, isValidPassword } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
 import { CustomToast } from '../components/feedback';
-
-// Отримуємо URL бекенду з .env або використовуємо localhost за замовчуванням
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from '../constants/config';
 
 export default function RegisterScreen({ navigation, route }) {
   const [fullName, setFullName] = useState('');

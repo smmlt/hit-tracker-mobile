@@ -1,4 +1,5 @@
 import { API_URL } from '../constants/config';
+import { notifyUnauthorized } from './unauthorized';
 
 /**
  * Універсальна обгортка над стандартним fetch для автоматичного додавання 
@@ -25,6 +26,8 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
     headers,
   });
 
+  if (response.status === 401 && userToken) notifyUnauthorized();
+
   // Якщо сервер повернув порожню відповідь або статус 204
   if (response.status === 204) {
     return { ok: true, data: null };
@@ -42,4 +45,13 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
     status: response.status,
     data,
   };
+}
+
+export async function apiRequest(endpoint, options = {}, userToken = null, fallbackMessage = 'Request failed') {
+  const response = await apiFetch(endpoint, options, userToken);
+  if (response.ok) return response.data;
+
+  const error = new Error(response.data?.message || fallbackMessage);
+  error.status = response.status;
+  throw error;
 }

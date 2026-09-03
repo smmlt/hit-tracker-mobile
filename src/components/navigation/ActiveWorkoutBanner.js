@@ -3,9 +3,10 @@ import { Animated, View, Text, TouchableOpacity, StyleSheet } from 'react-native
 import { useNavigation } from '@react-navigation/native';
 import { WorkoutContext } from '../../context/WorkoutContext';
 
-export function ActiveWorkoutBanner() {
-  const navigation = useNavigation();
-  const { activeWorkout } = useContext(WorkoutContext);
+export function ActiveWorkoutBanner({ navigation: tabNavigation }) {
+  const fallbackNavigation = useNavigation();
+  const navigation = tabNavigation || fallbackNavigation;
+  const { activeWorkout, preparedWorkout } = useContext(WorkoutContext);
   const pulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -18,24 +19,27 @@ export function ActiveWorkoutBanner() {
   }, [pulse]);
 
   // Якщо немає активного тренування — плашка не відображається
-  if (!activeWorkout) return null;
+  const workout = activeWorkout || preparedWorkout;
+  if (!workout) return null;
+  const isPrepared = !activeWorkout;
+  const isPaused = activeWorkout?.status === 'paused';
 
   return (
     <TouchableOpacity
       style={styles.banner}
       activeOpacity={0.85}
-      onPress={() => navigation.navigate('ActiveWorkout')}
+      onPress={() => navigation.navigate('ActiveWorkout', { screen: 'WorkoutSession' })}
     >
       <View style={styles.leftContainer}>
         <Animated.View style={[styles.pulseDot, { opacity: pulse, transform: [{ scale: pulse }] }]} />
         <View>
-          <Text style={styles.title}>Active Workout in Progress</Text>
+          <Text style={styles.title}>{isPrepared ? 'Workout ready to start' : isPaused ? 'Workout paused' : 'Active workout in progress'}</Text>
           <Text style={styles.subtitle}>
-            {activeWorkout.type || 'HIT Session'}
+            {workout.title || workout.type || 'HIT Session'}
           </Text>
         </View>
       </View>
-      <Text style={styles.resumeText}>Resume ➔</Text>
+      <Text style={styles.resumeText}>{isPrepared ? 'Open ➔' : 'Resume ➔'}</Text>
     </TouchableOpacity>
   );
 }

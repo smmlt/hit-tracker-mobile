@@ -6,7 +6,7 @@ const getYouTubeId = (url) => url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\
 
 export function ExerciseVideoPlayer({ source, onError, style }) {
   const videoId = getYouTubeId(source);
-  if (!videoId) return null;
+  if (!videoId) return <View style={[styles.container, style]}><video controls preload="metadata" src={source} onError={onError} style={{ width: '100%', height: '100%', background: '#101113' }} /></View>;
   return <View style={[styles.container, style]}><YoutubePlayer height={220} onError={onError} play={false} videoId={videoId} /></View>;
 }
 
