@@ -1,27 +1,23 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ExerciseDetailsModal } from '../components/exercise/ExerciseDetailsModal';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../context/AuthContext';
 import { WorkoutContext } from '../context/WorkoutContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
-import { apiFetch } from '../services/api';
+import { apiFetch, apiRequest } from '../services/api';
 import { ConfirmDialog } from '../components/feedback';
-
-const dayNames = {
-  en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-  uk: ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П’ятниця', 'Субота', 'Неділя'],
-};
+import { ProgramDetailsContent } from './LibraryProgramScreen';
+import { programExercises } from '../utils/library';
 
 export default function ProgramDetailsScreen({ navigation, route }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { assignment } = route.params;
   const { userToken } = useContext(AuthContext);
-  const { startWorkout } = useContext(WorkoutContext);
-  const { locale, t } = useContext(LanguageContext);
+  const { prepareWorkout, activeWorkout } = useContext(WorkoutContext);
+  const { t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const [program, setProgram] = useState(null);
-  const [exercises, setExercises] = useState([]);
-  const [selectedExercise, setSelectedExercise] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [removeOpen, setRemoveOpen] = useState(false);
@@ -29,30 +25,26 @@ export default function ProgramDetailsScreen({ navigation, route }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [programResponse, exercisesResponse] = await Promise.all([
-      apiFetch(`/workout-programs/${assignment.programId}`, {}, userToken),
-      apiFetch('/exercises', {}, userToken),
-    ]);
-    if (programResponse.ok) {
-      setProgram(programResponse.data);
-      setExercises(exercisesResponse.ok ? exercisesResponse.data : []);
+    try {
+      setProgram(await apiRequest(`/workout-programs/${assignment.programId}`, {}, userToken));
       setError(null);
-    } else {
-      setError(programResponse.data?.message || t('programLoadError'));
-    }
-    setLoading(false);
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, [assignment.programId, t, userToken]);
 
   useEffect(() => { load(); }, [load]);
 
-  const beginWorkout = async () => {
-    const workout = await startWorkout(program.name, assignment.id);
-    if (workout) navigation.navigate('WorkoutSession');
+  const beginWorkout = () => {
+    if (activeWorkout) { navigation.navigate('WorkoutSession'); return; }
+    prepareWorkout({
+      title: program.name,
+      scheduleId: assignment.id,
+      exercises: programExercises(program),
+    });
+    navigation.navigate('WorkoutSession');
   };
 
   const openExercise = (item) => {
-    const details = exercises.find((exercise) => exercise.id === item.exercise.id);
-    setSelectedExercise(details || item.exercise);
+    navigation.push('ExerciseDetails', { exerciseId: item.id });
   };
 
   const removeFromPlan = async () => {
@@ -72,14 +64,12 @@ export default function ProgramDetailsScreen({ navigation, route }) {
       </View>
 
       {loading ? <ActivityIndicator color={theme.primary} style={styles.loader} /> : (
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 24 }]}>
           {!!error && <Text style={{ color: theme.error }}>{error}</Text>}
           {program && <>
             <Pressable disabled={removing} onPress={() => setRemoveOpen(true)} style={[styles.removeButton, { borderColor: theme.error }]}>
               <Text style={[styles.removeText, { color: theme.error }]}>{removing ? '…' : t('removeFromPlan')}</Text>
             </Pressable>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>{program.name}</Text>
-            {!!program.description && <Text style={[styles.description, { color: theme.textSecondary }]}>{program.description}</Text>}
             <View style={styles.scheduleInfo}>
               <Text style={[styles.date, { color: theme.primary }]}>{t('scheduledFor')}: {assignment.scheduledFor}</Text>
               <View style={[styles.status, styles[`status_${assignment.status}`]]}>
@@ -87,18 +77,7 @@ export default function ProgramDetailsScreen({ navigation, route }) {
               </View>
             </View>
 
-            <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('exercises')}</Text>
-            {program.schedule.map((item, index) => (
-              <Pressable key={`${item.contentId}-${item.exercise?.id}-${index}`} onPress={() => openExercise(item)} style={[styles.exerciseCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-                <Text style={[styles.exerciseName, { color: theme.textPrimary }]}>{item.exercise?.name}</Text>
-                <Text style={[styles.meta, { color: theme.textSecondary }]}>
-                  {t('week')} {item.week} · {dayNames[locale][item.weekDay]}
-                </Text>
-                <Text style={[styles.meta, { color: theme.textSecondary }]}>
-                  {item.setsCount} {t('setsShort')} · {item.targetReps || '—'} {t('repsShort')} · {item.plannedWeight || 0} {t('kilogramsShort')}
-                </Text>
-              </Pressable>
-            ))}
+            <ProgramDetailsContent program={program} onExercise={openExercise} />
 
             <Pressable onPress={beginWorkout} style={[styles.startButton, { backgroundColor: theme.primary }]}>
               <Text style={styles.startText}>{assignment.status === 'completed' ? t('trainAgain') : t('startWorkout')}</Text>
@@ -107,11 +86,6 @@ export default function ProgramDetailsScreen({ navigation, route }) {
         </ScrollView>
       )}
 
-      <ExerciseDetailsModal
-        exercise={selectedExercise}
-        onClose={() => setSelectedExercise(null)}
-        visible={!!selectedExercise}
-      />
       <ConfirmDialog
         visible={removeOpen}
         title={t('removePlanTitle')}

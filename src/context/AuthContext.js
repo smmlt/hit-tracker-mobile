@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { authService } from '../services/authService';
+import { setUnauthorizedHandler } from '../services/unauthorized';
 
 export const AuthContext = createContext();
 
@@ -21,6 +22,11 @@ export const AuthProvider = ({ children }) => {
     setUserToken(null);
     setUserData(null);
   }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(clearAuth);
+    return () => setUnauthorizedHandler(null);
+  }, [clearAuth]);
 
   const handleOAuthRedirect = useCallback(async (url) => {
     if (!url) return false;

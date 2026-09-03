@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from './AuthContext';
 import { apiFetch } from '../services/api';
+import { apiRequest } from '../services/api';
+import { mergeWorkoutExercises, programExercises } from '../utils/library';
 
 export const WorkoutContext = createContext();
 
@@ -9,6 +11,7 @@ export const WorkoutProvider = ({ children }) => {
 
   const [activeWorkout, setActiveWorkout] = useState(null);
   const [loggedSets, setLoggedSets] = useState([]);
+  const [preparedWorkout, setPreparedWorkout] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   /**
@@ -88,6 +91,7 @@ export const WorkoutProvider = ({ children }) => {
       if (res.ok) {
         setActiveWorkout(null);
         setLoggedSets([]);
+        setPreparedWorkout(null);
         return true;
       }
     } catch (err) {
@@ -104,13 +108,36 @@ export const WorkoutProvider = ({ children }) => {
   const cancelWorkout = async () => {
     if (!activeWorkout) return;
     try {
-      await apiFetch(`/workouts/${activeWorkout.id}`, { method: 'DELETE' }, userToken);
+      await apiFetch(`/workouts/${activeWorkout.id}/cancel`, { method: 'POST' }, userToken);
     } catch (e) {
       console.error('Error canceling workout:', e);
     } finally {
       setActiveWorkout(null);
       setLoggedSets([]);
+      setPreparedWorkout(null);
     }
+  };
+
+  const togglePauseWorkout = async () => {
+    if (!activeWorkout) return null;
+    const res = await apiFetch(`/workouts/${activeWorkout.id}/pause`, { method: 'POST' }, userToken);
+    if (res.ok && res.data?.workout) {
+      setActiveWorkout(res.data.workout);
+      return res.data.workout;
+    }
+    return null;
+  };
+
+  const addWorkoutExercises = async (items, title = 'Workout') => {
+    let restored = null;
+    if (!preparedWorkout && activeWorkout?.programId) {
+      const program = await apiRequest(`/workout-programs/${activeWorkout.programId}`, {}, userToken);
+      restored = { title: program.name, exercises: programExercises(program) };
+    }
+    setPreparedWorkout((current) => {
+      const base = current || restored || { title: activeWorkout?.type || title, exercises: [] };
+      return { ...base, exercises: mergeWorkoutExercises(base.exercises || [], items) };
+    });
   };
 
   return (
@@ -120,10 +147,15 @@ export const WorkoutProvider = ({ children }) => {
         setActiveWorkout,
         loggedSets,
         setLoggedSets,
+        preparedWorkout,
+        prepareWorkout: setPreparedWorkout,
+        addWorkoutExercises,
+        clearPreparedWorkout: () => setPreparedWorkout(null),
         isLoading,
         startWorkout,
         finishWorkout,
         cancelWorkout,
+        togglePauseWorkout,
         checkActiveWorkout,
       }}
     >

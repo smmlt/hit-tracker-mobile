@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { useIsFocused } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { workoutsService } from '../services/workoutsService';
 import { ConfirmDialog, CustomToast } from '../components/feedback';
 import { HistoryCard } from '../components/workout';
@@ -24,6 +25,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function HistoryScreen() {
+  const tabBarHeight = useBottomTabBarHeight();
   const { userToken } = useContext(AuthContext);
   
   const [history, setHistory] = useState([]);
@@ -112,7 +114,7 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 20 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF5722" />
         }
