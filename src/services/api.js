@@ -44,6 +44,7 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
     ok: response.ok,
     status: response.status,
     data,
+    retryAfter: response.headers.get('Retry-After'),
   };
 }
 
@@ -53,5 +54,11 @@ export async function apiRequest(endpoint, options = {}, userToken = null, fallb
 
   const error = new Error(response.data?.message || fallbackMessage);
   error.status = response.status;
+  error.details = response.data;
+  if (response.retryAfter) {
+    const retryAfter = Number(response.retryAfter);
+    // Nest's throttler currently sends milliseconds; standard HTTP uses seconds.
+    error.retryAfterSeconds = Math.ceil(retryAfter > 1_000 ? retryAfter / 1_000 : retryAfter);
+  }
   throw error;
 }

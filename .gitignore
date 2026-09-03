@@ -6,6 +6,9 @@ node_modules/
 # Expo
 .expo/
 .expo-program-check/
+.expo-security-check/
+.expo-oauth-check/
+.expo-sdk57-check/
 dist/
 web-build/
 expo-env.d.ts

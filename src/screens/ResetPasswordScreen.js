@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -13,9 +13,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { apiRequest } from '../services/api';
+import { LanguageContext } from '../localization/LanguageContext';
 
 export default function ResetPasswordScreen({ navigation, route }) {
   const token = route?.params?.token;
+  const { t } = useContext(LanguageContext);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -42,11 +44,11 @@ export default function ResetPasswordScreen({ navigation, route }) {
 
   // Розрахунок вимог до пароля
   const requirements = [
-    { label: 'At least 8 characters', met: password.length >= 8 },
-    { label: 'One uppercase letter (A-Z)', met: /[A-Z]/.test(password) },
-    { label: 'One lowercase letter (a-z)', met: /[a-z]/.test(password) },
-    { label: 'One number (0-9)', met: /[0-9]/.test(password) },
-    { label: 'One special character (!@#$%...)', met: /[^A-Za-z0-9]/.test(password) },
+    { label: t('atLeastEight'), met: password.length >= 8 },
+    { label: t('uppercaseLetter'), met: /[A-Z]/.test(password) },
+    { label: t('lowercaseLetter'), met: /[a-z]/.test(password) },
+    { label: t('number'), met: /[0-9]/.test(password) },
+    { label: t('specialCharacter'), met: /[^A-Za-z0-9]/.test(password) },
   ];
 
   const getPasswordStrength = () => {
@@ -58,12 +60,12 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const strength = getPasswordStrength();
 
   const handleResetPassword = async () => {
-    if (!password || !confirmPassword) return showToast('Please fill in all fields');
-    if (password.length < 8) return showToast('Password must be at least 8 characters');
-    if (password !== confirmPassword) return showToast('Passwords do not match');
+    if (!password || !confirmPassword) return showToast(t('fillAllFields'));
+    if (password.length < 8) return showToast(t('passwordMinLength'));
+    if (password !== confirmPassword) return showToast(t('passwordsDoNotMatch'));
 
     const allRequirementsMet = requirements.every(r => r.met);
-    if (!allRequirementsMet) return showToast('Password does not meet all requirements');
+    if (!allRequirementsMet) return showToast(t('passwordAllRequirements'));
 
     setIsLoading(true);
     try {
@@ -88,11 +90,11 @@ export default function ResetPasswordScreen({ navigation, route }) {
             {!isSuccess ? (
               <>
                 <BackButton onPress={() => navigation.goBack()} />
-                <Text style={styles.title}>Create new password</Text>
-                <Text style={styles.subtitle}>Your new password must be different from previous used passwords.</Text>
+                <Text style={styles.title}>{t('createNewPassword')}</Text>
+                <Text style={styles.subtitle}>{t('newPasswordHint')}</Text>
 
                 <CustomInput
-                  label="New password"
+                  label={t('newPassword')}
                   placeholder="********"
                   value={password}
                   onChangeText={setPassword}
@@ -105,7 +107,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 {/* Індикатор сили пароля */}
                 <View style={styles.strengthContainer}>
                   <Text style={styles.strengthText}>
-                    {strength >= 5 ? 'Strong' : strength >= 3 ? 'Medium' : 'Weak'}
+                    {strength >= 5 ? t('strong') : strength >= 3 ? t('medium') : t('weak')}
                   </Text>
                   <View style={styles.barsRow}>
                     {[1, 2, 3, 4, 5, 6].map((index) => (
@@ -137,7 +139,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 </View>
 
                 <CustomInput
-                  label="Confirm password"
+                  label={t('confirmPassword')}
                   placeholder="********"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -148,7 +150,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 />
 
                 <View style={styles.fullWidthButton}>
-                  <PrimaryButton title="Reset password" onPress={handleResetPassword} isLoading={isLoading} />
+                  <PrimaryButton title={t('resetPassword')} onPress={handleResetPassword} isLoading={isLoading} />
                 </View>
               </>
             ) : (
@@ -157,14 +159,14 @@ export default function ResetPasswordScreen({ navigation, route }) {
                   <Ionicons name="checkmark" size={48} color="#000" />
                 </View>
 
-                <Text style={[styles.title, { textAlign: 'center' }]}>Password reset!</Text>
-                <Text style={[styles.title, { textAlign: 'center', marginTop: -4 }]}>You’re all set</Text>
+                <Text style={[styles.title, { textAlign: 'center' }]}>{t('passwordReset')}</Text>
+                <Text style={[styles.title, { textAlign: 'center', marginTop: -4 }]}>{t('allSet')}</Text>
                 <Text style={[styles.subtitle, { textAlign: 'center', marginTop: 8, marginBottom: 32 }]}>
-                  You can now sign in with your new password.
+                  {t('canSignInNow')}
                 </Text>
 
                 <View style={styles.fullWidthButton}>
-                  <PrimaryButton title="Go to Sign In" onPress={() => navigation.navigate('Login')} />
+                  <PrimaryButton title={t('goToSignIn')} onPress={() => navigation.navigate('Login')} />
                 </View>
               </View>
             )}

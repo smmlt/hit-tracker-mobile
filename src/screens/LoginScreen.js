@@ -17,12 +17,17 @@ import { isValidEmail } from '../utils/validation';
 import { CustomInput, PrimaryButton, SocialButton, Divider } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
+import { createPkcePair } from '../utils/oauthPkce';
+import { LanguageContext } from '../localization/LanguageContext';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
+  const [redirectSeconds, setRedirectSeconds] = useState(0);
   const { handleOAuthRedirect, login, isLoading } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
 
   // Стан та анімація для CustomToast
   const [toastVisible, setToastVisible] = useState(false);
@@ -30,8 +35,7 @@ export default function LoginScreen({ navigation }) {
   const [toastType, setToastType] = useState('error');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const timerRef = useRef(null);
-  const intervalRef = useRef(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const showToast = (message, type = 'error') => {
     setToastMessage(message);
@@ -57,15 +61,30 @@ export default function LoginScreen({ navigation }) {
     }).start(() => setToastVisible(false));
   };
 
-  const clearTimers = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
+  useEffect(() => {
+    if (route?.params?.prefilledEmail) setEmail(route.params.prefilledEmail);
+    if (route?.params?.registered) showToast(t('accountCreated'), 'success');
+  }, [route?.params?.prefilledEmail, route?.params?.registered]);
 
-  useEffect(() => () => clearTimers(), []);
+  useEffect(() => {
+    if (!retryAfterSeconds) return undefined;
+    const timer = setInterval(() => {
+      setRetryAfterSeconds((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [retryAfterSeconds]);
+
+  useEffect(() => {
+    if (!redirectSeconds) return undefined;
+    const timer = setTimeout(() => {
+      if (redirectSeconds === 1) navigation.replace('Register', { prefilledEmail: email });
+      else setRedirectSeconds((seconds) => seconds - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [email, navigation, redirectSeconds]);
 
   const handleAppleLogin = () => {
-    showToast('Sign in with Apple is currently in development', 'error');
+    showToast(t('appleComingSoon'), 'error');
   };
 
   const handleGoogleLogin = async () => {
@@ -73,44 +92,43 @@ export default function LoginScreen({ navigation }) {
       window.location.href = `${API_URL}/auth/google`;
     } else {
       const redirectUrl = Linking.createURL('auth/google/callback');
-      const backendOAuthUrl = `${API_URL}/auth/google?platform=mobile`;
+      const { verifier, challenge } = await createPkcePair();
+      const backendOAuthUrl = `${API_URL}/auth/google?platform=mobile&code_challenge=${encodeURIComponent(challenge)}`;
       const result = await WebBrowser.openAuthSessionAsync(backendOAuthUrl, redirectUrl);
-      if (result.type === 'success') await handleOAuthRedirect(result.url);
+      if (result.type === 'success') await handleOAuthRedirect(result.url, verifier);
     }
   };
 
   const handleLogin = async () => {
-    clearTimers();
-
-    if (!email || !password) return showToast('Please fill in all fields', 'error');
-    if (!isValidEmail(email)) return showToast('Please enter a valid email', 'error');
+    const validationError = !email || !password ? t('fillAllFields')
+      : !isValidEmail(email) ? t('enterValidEmail') : '';
+    if (validationError) {
+      setErrorMessage(validationError);
+      return showToast(validationError, 'error');
+    }
 
     try {
+      setErrorMessage('');
       await login(email, password);
     } catch (err) {
       const status = err.status || err.response?.status;
-      const message = (err.message || '').toLowerCase();
 
-      const isNotFound = status === 404 || message.includes('not found');
+      if (status === 429) {
+        setRetryAfterSeconds(err.retryAfterSeconds || 30 * 60);
+        return;
+      }
 
-      if (isNotFound) {
-        let secondsLeft = 3;
-        showToast(`User not found. Redirecting in ${secondsLeft}s...`, 'error');
-
-        intervalRef.current = setInterval(() => {
-          secondsLeft -= 1;
-          if (secondsLeft > 0) {
-            showToast(`User not found. Redirecting in ${secondsLeft}s...`, 'error');
-          } else {
-            clearInterval(intervalRef.current);
-          }
-        }, 1000);
-
-        timerRef.current = setTimeout(() => {
-          navigation.navigate('Register', { prefilledEmail: email });
-        }, 3000);
+      const message = status === 404 ? t('userNotFound')
+        : status === 401 ? t('invalidCredentials')
+        : err.message || t('loginFailed');
+      if (status === 404) {
+        const redirectMessage = t('userNotFoundRedirect').replace('{seconds}', 5);
+        setRedirectSeconds(5);
+        setErrorMessage(redirectMessage);
+        showToast(redirectMessage, 'error');
       } else {
-        showToast(err.message || 'Login failed', 'error');
+        setErrorMessage(message);
+        showToast(message, 'error');
       }
     }
   };
@@ -120,22 +138,22 @@ export default function LoginScreen({ navigation }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.formWrapper}>
-            <Text style={styles.title}>Sing In</Text>
-            <Text style={styles.subtitle}>Welcome back</Text>
+            <Text style={styles.title}>{t('signIn')}</Text>
+            <Text style={styles.subtitle}>{t('welcomeBack')}</Text>
 
             <CustomInput
-              label="Email"
-              placeholder="you@exemple.com"
+              label={t('email')}
+              placeholder={t('emailPlaceholder')}
               value={email}
-              onChangeText={(text) => { setEmail(text); clearTimers(); }}
+              onChangeText={(text) => { setEmail(text); setErrorMessage(''); setRedirectSeconds(0); }}
               keyboardType="email-address"
             />
 
             <CustomInput
-              label="Password"
+              label={t('password')}
               placeholder="********"
               value={password}
-              onChangeText={(text) => { setPassword(text); clearTimers(); }}
+              onChangeText={(text) => { setPassword(text); setErrorMessage(''); setRedirectSeconds(0); }}
               isPassword
               secureTextEntry={!showPassword}
               showPassword={showPassword}
@@ -143,19 +161,30 @@ export default function LoginScreen({ navigation }) {
             />
 
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotPass}>
-              <Text style={styles.forgotPassText}>Forgot password?</Text>
+              <Text style={styles.forgotPassText}>{t('forgotPassword')}</Text>
             </TouchableOpacity>
 
-            <PrimaryButton title="Sing In" onPress={handleLogin} isLoading={isLoading} />
+            <PrimaryButton
+              title={retryAfterSeconds ? t('tryAgainIn').replace('{seconds}', retryAfterSeconds) : t('signIn')}
+              onPress={handleLogin}
+              isLoading={isLoading}
+              disabled={retryAfterSeconds > 0 || redirectSeconds > 0}
+            />
+            {retryAfterSeconds > 0 && (
+              <Text style={styles.rateLimitMessage}>
+                {t('tooManyAttempts').replace('{seconds}', retryAfterSeconds)}
+              </Text>
+            )}
+            {!!errorMessage && <Text style={styles.rateLimitMessage}>{redirectSeconds ? t('userNotFoundRedirect').replace('{seconds}', redirectSeconds) : errorMessage}</Text>}
 
             <Divider />
 
-            <SocialButton title="Continue with Apple" iconName="logo-apple" onPress={handleAppleLogin} />
-            <SocialButton title="Continue with Google" iconName="logo-google" onPress={handleGoogleLogin} />
+            <SocialButton title={t('continueWithApple')} iconName="logo-apple" onPress={handleAppleLogin} />
+            <SocialButton title={t('continueWithGoogle')} iconName="logo-google" onPress={handleGoogleLogin} />
 
             <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.bottomLinkContainer}>
               <Text style={styles.bottomText}>
-                Dont have an account? <Text style={styles.boldText}>Sing up</Text>
+                {t('noAccount')} <Text style={styles.boldText}>{t('signUp')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -191,6 +220,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 28 },
   forgotPass: { alignSelf: 'flex-end', marginBottom: 20 },
   forgotPassText: { fontSize: 13, color: '#000', fontWeight: '500' },
+  rateLimitMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
   bottomLinkContainer: { marginTop: 32, alignItems: 'center' },
   bottomText: { color: '#6B7280', fontSize: 14 },
   boldText: { color: '#000', fontWeight: '700' },
