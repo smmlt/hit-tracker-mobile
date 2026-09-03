@@ -1,296 +1,274 @@
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, { useContext, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
   FlatList,
-  StatusBar,
-  ActivityIndicator,
+  Pressable,
   RefreshControl,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { AuthContext } from "../context/AuthContext";
+import { useLibrary } from "../context/LibraryContext";
+import { SearchField } from "../components/common";
+import { ExerciseFilterBar, ExerciseItem } from "../components/exercise";
+import { ProgramCard } from "../components/workshop/ProgramCard";
+import { ProgramEditor } from "../components/workshop/ProgramEditor";
+import { ScheduleProgramSheet } from "../components/workshop/ScheduleProgramSheet";
+import {
+  Button,
+  Feedback,
+  Sheet,
+  s,
+  useWords,
+} from "../components/workshop/ui";
+import Chevron from "../assets/icons/ChevronDownIcon.svg";
 
-import { AuthContext } from '../context/AuthContext';
-import { LanguageContext } from '../localization/LanguageContext';
-import { useTheme } from '../context/ThemeContext';
-import { apiFetch } from '../services/api';
-
-import { SearchField } from '../components/common';
-import { ExerciseFilterBar, ExerciseItem, ExerciseSortDropdown } from '../components/exercise';
-
-export default function HomeScreen() {
-  const navigation = useNavigation();
-  const { userToken, logout } = useContext(AuthContext);
-  const { t } = useContext(LanguageContext);
-  const { theme } = useTheme(); // Динамічна тема (dark / light)
-
-  const [exercises, setExercises] = useState([]);
-  const [musclesList, setMusclesList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMuscleFilter, setSelectedMuscleFilter] = useState(null);
-  const [sortOption, setSortOption] = useState('popular');
-
-  const fetchData = useCallback(async (showLoadingIndicator = true) => {
-    if (showLoadingIndicator) setLoading(true);
-    setError(null);
-    try {
-      // Паралельно завантажуємо вправи (з прив'язаними м'язами та лайками) та список м'язів
-      const [resExercises, resMuscles] = await Promise.all([
-        apiFetch('/exercises', {}, userToken),
-        apiFetch('/exercises/muscles', {}, userToken),
-      ]);
-
-      if (resExercises.status === 401 || resMuscles.status === 401) {
-        await logout(); 
-        return;
-      }
-
-      if (resExercises.ok && Array.isArray(resExercises.data)) {
-        setExercises(resExercises.data);
-      }
-      if (resMuscles.ok && Array.isArray(resMuscles.data)) {
-        setMusclesList(resMuscles.data);
-      }
-    } catch (err) {
-      console.error('Error fetching home data:', err);
-      if (err?.status === 401 || err?.message?.includes('401')) {
-        await logout();
-        return;
-      }
-      setError('Failed to load data');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [userToken, logout]);
-
-  useEffect(() => {
-    fetchData(true);
-  }, [fetchData]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchData(false);
-  };
-
-  // Функція для опрацювання лайка (запит на бекенд + оновлення локального стану)
-  const handleToggleLike = async (exerciseId) => {
-    try {
-      // Оптимістичне оновлення інтерфейсу одразу для плавності
-      setExercises((prevExercises) =>
-        prevExercises.map((ex) => {
-          if (ex.id === exerciseId) {
-            const isNowLiked = !ex.isLiked;
-            return {
-              ...ex,
-              isLiked: isNowLiked,
-              likesCount: isNowLiked 
-                ? (ex.likesCount || 0) + 1 
-                : Math.max(0, (ex.likesCount || 1) - 1),
-            };
-          }
-          return ex;
-        })
-      );
-
-      // Запит до бекенду (шлях залежить від твого контролера, напр. /exercises/:id/like)
-      const response = await apiFetch(`/exercises/${exerciseId}/like`, {
-        method: 'POST',
-      }, userToken);
-
-      if (response.status === 401) {
-        await logout();
-        return;
-      }
-
-      // Якщо бекенд повернув точні актуальні дані, синхронізуємо
-      if (response.ok && response.data) {
-        setExercises((prevExercises) =>
-          prevExercises.map((ex) => {
-            if (ex.id === exerciseId) {
-              return {
-                ...ex,
-                isLiked: response.data.isLiked,
-                likesCount: response.data.likesCount !== undefined ? response.data.likesCount : ex.likesCount,
-              };
-            }
-            return ex;
-          })
+export default function HomeScreen({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
+  const { userData } = useContext(AuthContext);
+  const library = useLibrary();
+  const w = useWords();
+  const [section, setSection] = useState("exercises");
+  const [query, setQuery] = useState("");
+  const [muscle, setMuscle] = useState(null);
+  const [sort, setSort] = useState("popular");
+  const [sortOpen, setSortOpen] = useState(false);
+  const [scope, setScope] = useState("all");
+  const [creator, setCreator] = useState(false);
+  const [schedule, setSchedule] = useState(null);
+  const [message, setMessage] = useState("");
+  useFocusEffect(
+    React.useCallback(() => {
+      library.refresh();
+    }, [library.refresh]),
+  );
+  const data = library[section]
+    .filter((item) => {
+      if (!item.name.toLowerCase().includes(query.trim().toLowerCase()))
+        return false;
+      if (section === "programs") {
+        if (
+          scope === "personal" &&
+          (!item.isPersonal || item.createdById !== userData?.id)
+        )
+          return false;
+        if (scope === "official" && item.isPersonal) return false;
+        return (
+          !muscle ||
+          item.schedule?.some((row) =>
+            library.exercises
+              .find((ex) => ex.id === row.exercise?.id)
+              ?.muscles?.some((m) => m.id === muscle),
+          )
         );
       }
-    } catch (err) {
-      console.error('Error toggling like:', err);
-      // У разі помилки можна повторно викликати fetchData або залишити як є
-    }
-  };
-
-  // Логіка фільтрації та сортування вправ
-  const getFilteredAndSortedExercises = () => {
-    let data = [...exercises];
-
-    // 1. Пошук за назвою вправи
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      data = data.filter((ex) => ex.name?.toLowerCase().includes(query));
-    }
-
-    // 2. Фільтрація за вибраним м'язом
-    if (selectedMuscleFilter) {
-      data = data.filter((ex) => {
-        const hasDrizzleRelation = Array.isArray(ex.exercisesTrainMuscles) && 
-          ex.exercisesTrainMuscles.some((etm) => etm?.muscleId === selectedMuscleFilter || etm?.muscle_id === selectedMuscleFilter);
-
-        const hasSnakeCaseRelation = Array.isArray(ex.exercises_train_muscles) && 
-          ex.exercises_train_muscles.some((etm) => etm?.muscleId === selectedMuscleFilter || etm?.muscle_id === selectedMuscleFilter);
-
-        const hasMusclesArray = Array.isArray(ex.muscles) && 
-          ex.muscles.some((m) => m?.id === selectedMuscleFilter || m === selectedMuscleFilter);
-
-        return hasDrizzleRelation || hasSnakeCaseRelation || hasMusclesArray;
-      });
-    }
-
-    // 3. Сортування списку
-    switch (sortOption) {
-      case 'alphabetical':
-        data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        break;
-      case 'newest':
-        data.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
-        break;
-      case 'popular':
-      default:
-        // Сортуємо за кількістю лайків від найбільшого до найменшого
-        data.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
-        break;
-    }
-
-    return data;
-  };
-
-  const displayedExercises = getFilteredAndSortedExercises();
-
-  // Шапка екрану (Пошук, фільтри, сортування)
-  const headerElement = (
-    <View style={styles.headerContainer}>
-      <Text style={[styles.mainTitle, { color: theme.textPrimary }]}>
-        {t('home') || 'Мастерська'}
-      </Text>
-
-      <View style={styles.searchWrapper}>
-        <SearchField
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+      return (
+        (scope !== "saved" || item.isBookmarked) &&
+        (!muscle || item.muscles?.some((m) => m.id === muscle))
+      );
+    })
+    .sort((a, b) =>
+      sort === "alphabetical"
+        ? a.name.localeCompare(b.name)
+        : sort === "newest"
+          ? b.id - a.id
+          : (b.likesCount || 0) - (a.likesCount || 0),
+    );
+  const header = (
+    <View>
+      <Text style={[s.heading, { marginBottom: 20 }]}>{w.workshop}</Text>
+      <View style={styles.segment}>
+        {["exercises", "programs"].map((key) => (
+          <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: section === key }}
+            key={key}
+            onPress={() => {
+              setSection(key);
+              setScope("all");
+            }}
+            style={[styles.segmentItem, section === key && s.selected]}
+          >
+            <Text
+              style={{
+                color: section === key ? "#101113" : "#838384",
+                fontSize: 16,
+              }}
+            >
+              {w[key]}
+            </Text>
+          </Pressable>
+        ))}
       </View>
-
-      <View style={styles.filterWrapper}>
-        <ExerciseFilterBar
-          musclesList={musclesList}
-          selectedMuscleFilter={selectedMuscleFilter}
-          onSelectMuscleFilter={setSelectedMuscleFilter}
-        />
+      <SearchField
+        value={query}
+        onChangeText={setQuery}
+        placeholder={w.search}
+        style={styles.search}
+        inputStyle={{ color: "#292929", fontSize: 16 }}
+      />
+      <ExerciseFilterBar
+        musclesList={library.muscles}
+        selectedMuscleFilter={muscle}
+        onSelectMuscleFilter={setMuscle}
+      />
+      <View style={[s.row, { marginVertical: 12 }]}>
+        {(section === "programs"
+          ? ["all", "official", "personal"]
+          : ["all", "saved"]
+        ).map((key) => (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: scope === key }}
+            key={key}
+            style={[s.chip, scope === key && s.selected]}
+            onPress={() => setScope(key)}
+          >
+            <Text style={s.muted}>{w[key]}</Text>
+          </Pressable>
+        ))}
+        {section === "programs" && (
+          <Button secondary onPress={() => setCreator(true)}>
+            + {w.create}
+          </Button>
+        )}
       </View>
-
-      <View style={styles.sortWrapper}>
-        <ExerciseSortDropdown
-          currentSort={sortOption}
-          onSelectSort={setSortOption}
-        />
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Sort library"
+        onPress={() => setSortOpen(true)}
+        style={styles.sort}
+      >
+        <Text style={[s.muted, { fontWeight: "700", flex: 1 }]}>{w[sort]}</Text>
+        <Chevron width={20} height={20} color="#C8C8C8" />
+      </Pressable>
+      {!!message && <Text style={s.muted}>{message}</Text>}
+      <Feedback
+        error={library.errors[section] || library.errors.muscles}
+        onRetry={library.refresh}
+      />
     </View>
   );
-
-  if (loading && !refreshing) {
-    return (
-      <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
-  }
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar 
-        barStyle={theme.background === '#FFFFFF' || theme.background === '#F1F5F9' ? 'dark-content' : 'light-content'} 
-        backgroundColor={theme.background} 
-      />
-
-      <FlatList
-        data={displayedExercises}
-        renderItem={({ item }) => (
-          <ExerciseItem 
-            exercise={item} 
-            onToggleLike={handleToggleLike} 
-          />
-        )}
-        keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
-        ListHeaderComponent={headerElement} 
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListFooterComponent={<View style={{ height: 100 }} />}
+    <SafeAreaView edges={["top", "left", "right"]} style={s.screen}>
+    <FlatList
+      showsVerticalScrollIndicator={false}
+        data={data}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 28 }]}
+        ListHeaderComponent={header}
+        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.primary}
+            refreshing={library.loading}
+            onRefresh={library.refresh}
+            tintColor="#F00D22"
           />
         }
         ListEmptyComponent={
-          !loading && (
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              {t('exercisesNotFound') || 'Вправ не знайдено'}
-            </Text>
+          <View style={{ padding: 24 }}>
+            <Text style={s.muted}>{library.loading ? w.loading : w.empty}</Text>
+          </View>
+        }
+        renderItem={({ item }) =>
+          section === "exercises" ? (
+            <ExerciseItem
+              exercise={item}
+              onPress={(exercise) =>
+                navigation.push("ExerciseDetails", { exerciseId: exercise.id })
+              }
+            />
+          ) : (
+            <ProgramCard
+              program={item}
+              showOwner={item.isPersonal}
+              onPress={() =>
+                navigation.push("LibraryProgram", { programId: item.id })
+              }
+              onAdd={() => setSchedule(item)}
+            />
           )
         }
       />
+      {sortOpen && (
+        <Sheet title={w.popular} onClose={() => setSortOpen(false)}>
+          {["popular", "alphabetical", "newest"].map((key) => (
+            <Button
+              key={key}
+              secondary={sort !== key}
+              onPress={() => {
+                setSort(key);
+                setSortOpen(false);
+              }}
+            >
+              {w[key]}
+            </Button>
+          ))}
+        </Sheet>
+      )}
+      {creator && (
+        <ProgramEditor
+          onClose={() => setCreator(false)}
+          onSaved={(result) =>
+            navigation.push("LibraryProgram", { programId: result.id })
+          }
+        />
+      )}
+      {schedule && (
+        <ScheduleProgramSheet
+          program={schedule}
+          onClose={() => setSchedule(null)}
+          onSaved={() => setMessage(w.scheduled)}
+        />
+      )}
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
-  container: {
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    paddingBottom: 28,
+    width: "100%",
+    maxWidth: 760,
+    alignSelf: "center",
+  },
+  segment: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#EFEFEF",
+    flexDirection: "row",
+    marginHorizontal: 12,
+    overflow: "hidden",
+  },
+  segmentItem: {
     flex: 1,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
   },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-    paddingTop: 8,
+  search: {
+    marginTop: 22,
+    marginBottom: 28,
+    height: 50,
+    borderColor: "#F00D22",
+    borderRadius: 12,
+    backgroundColor: "#EFEFEF",
   },
-  headerContainer: {
-    marginBottom: 8,
-  },
-  mainTitle: {
-    fontSize: 28,
-    fontFamily: 'Roboto',
-    fontWeight: '800',
-    marginTop: 12,
-    marginBottom: 16,
-  },
-  searchWrapper: {
-    marginBottom: 20,
-  },
-  filterWrapper: {
-    marginBottom: 20,
-  },
-  sortWrapper: {
-    marginBottom: 16, 
-    zIndex: 10,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 40,
-    fontSize: 16,
-    fontWeight: '500',
+  sort: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: 237,
+    minHeight: 30,
+    backgroundColor: "#292929",
+    borderColor: "#838384",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 8,
+    marginBottom: 12,
   },
 });

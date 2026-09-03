@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
@@ -73,6 +74,7 @@ function ProgramCard({ assignment, navigation, showScheduledDate, t, theme, user
 }
 
 export default function TrainingScreen({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { userToken } = useContext(AuthContext);
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
@@ -182,7 +184,7 @@ export default function TrainingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 24 }]}>
         <View style={styles.header}>
           <View>
             <Text style={[styles.eyebrow, { color: theme.primary }]}>{t('trainingPlan').toUpperCase()}</Text>

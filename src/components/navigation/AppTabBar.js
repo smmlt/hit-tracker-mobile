@@ -1,8 +1,10 @@
-import React from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useContext } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import { BottomTabBarHeightCallbackContext } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChartIcon, HistoryIcon, HomeIcon, PlayIcon, ProfileIcon } from '../../assets/icons';
 import { useTheme } from '../../context/ThemeContext';
+import { ActiveWorkoutBanner } from './ActiveWorkoutBanner';
 import { styles } from './AppTabBar.styles';
 
 const icons = { History: HistoryIcon, ActiveWorkout: PlayIcon, Home: HomeIcon, Analytics: ChartIcon, Profile: ProfileIcon };
@@ -10,9 +12,16 @@ const icons = { History: HistoryIcon, ActiveWorkout: PlayIcon, Home: HomeIcon, A
 export default function AppTabBar({ state, descriptors, navigation }) {
   const { theme } = useTheme();
   const { bottom } = useSafeAreaInsets();
+  const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
 
   return (
-    <View style={[styles.bar, { backgroundColor: theme.tabBarBackground, borderTopColor: theme.border, paddingBottom: Math.max(bottom, 8) }]}>
+    <View
+      testID="navigation-dock"
+      style={styles.dock}
+      onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
+    >
+      <ActiveWorkoutBanner navigation={navigation} />
+      <View testID="bottom-tab-bar" style={[styles.bar, { backgroundColor: theme.tabBarBackground, paddingBottom: Math.max(bottom, 8) }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const focused = state.index === index;
@@ -25,12 +34,14 @@ export default function AppTabBar({ state, descriptors, navigation }) {
 
         return (
           <Pressable key={route.key} accessibilityLabel={options.tabBarAccessibilityLabel || route.name} accessibilityRole="button" accessibilityState={{ selected: focused }} onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })} onPress={handlePress} style={({ pressed }) => [styles.item, pressed && styles.pressed]}>
-            <View style={[styles.bubble, styles.activeBubble, !focused && { transform: [{ scale: 48 / 62 }] }, { backgroundColor: theme.background, borderColor: focused ? theme.tabBarActive : theme.border, borderWidth: 1 }]}>
+            <View style={{ height: 30, justifyContent: 'center' }}>
               {options.tabBarIcon ? options.tabBarIcon({ focused, color, size: 24 }) : <Icon color={color} height={24} width={24} />}
             </View>
+            <Text style={{ color, fontFamily: 'Inter', fontSize: 10 }}>{options.title || route.name}</Text>
           </Pressable>
         );
       })}
+      </View>
     </View>
   );
 }

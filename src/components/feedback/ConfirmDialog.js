@@ -1,24 +1,26 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 export function ConfirmDialog({ visible, title, message, confirmLabel = 'Delete', cancelLabel = 'Cancel', onCancel, onConfirm }) {
   if (!visible) return null;
 
   return (
+    <Modal visible transparent animationType="fade" onRequestClose={onCancel}>
     <View style={styles.modalOverlay}>
       <View style={styles.dialogBox}>
         <Text accessibilityRole="header" style={styles.dialogTitle}>{title}</Text>
         <Text style={styles.dialogText}>{message}</Text>
         <View style={styles.dialogButtons}>
-          <TouchableOpacity style={[styles.dialogBtn, styles.cancelBtn]} onPress={onCancel}>
+          <TouchableOpacity accessibilityRole="button" style={[styles.dialogBtn, styles.cancelBtn]} onPress={onCancel}>
             <Text style={styles.cancelBtnText}>{cancelLabel}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.dialogBtn, styles.confirmBtn]} onPress={onConfirm}>
+          <TouchableOpacity accessibilityRole="button" style={[styles.dialogBtn, styles.confirmBtn]} onPress={onConfirm}>
             <Text style={styles.confirmBtnText}>{confirmLabel}</Text>
           </TouchableOpacity>
         </View>
       </View>
     </View>
+    </Modal>
   );
 }
 

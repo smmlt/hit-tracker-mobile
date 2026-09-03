@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'reac
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 // Замініть на ваш імпорт нової іконки
-import { GridIcon } from '../../assets/icons'; 
+import GridIcon from '../../assets/workshop/More.svg';
 import { createStyles } from './ExerciseFilterBar.styles';
 
 export function ExerciseFilterBar({
