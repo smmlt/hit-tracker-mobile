@@ -45,6 +45,7 @@ const words = {
     exerciseDetails: "Exercise details",
     programDetails: "Program details",
     programExercises: "Program exercises",
+    weekDay: "Day in the program (0 to 6)",
     singleWorkoutHint: "All exercises form one workout. Choose its day in your plan and enter your working weight during training.",
     addExercise: "Add exercise",
     addWorkout: "Add to current workout",
