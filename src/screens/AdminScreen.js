@@ -43,6 +43,7 @@ export default function AdminScreen() {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
+  const [onlineOnly, setOnlineOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -69,7 +70,7 @@ export default function AdminScreen() {
       setError("");
       try {
         const data = await adminService.listUsers(
-          { search, page: targetPage },
+          { search, page: targetPage, online: onlineOnly },
           userToken,
         );
         setUsers(data.items);
@@ -81,7 +82,7 @@ export default function AdminScreen() {
         setLoading(false);
       }
     },
-    [canUsers, search, userToken],
+    [canUsers, onlineOnly, search, userToken],
   );
   useEffect(() => {
     loadUsers();
@@ -195,6 +196,9 @@ export default function AdminScreen() {
                 onSubmitEditing={() => setSearch(query.trim())}
               />
               <Button onPress={() => setSearch(query.trim())}>Search</Button>
+              <Button secondary={!onlineOnly} onPress={() => setOnlineOnly((value) => !value)}>
+                Online
+              </Button>
             </View>
             <Feedback
               loading={loading}
@@ -241,6 +245,10 @@ export default function AdminScreen() {
                     <Text selectable style={s.muted}>
                       {user.email}
                     </Text>
+                    <View style={styles.presence}>
+                      <View style={[styles.dot, { backgroundColor: user.online ? "#43C26B" : "#838384" }]} />
+                      <Text style={s.muted}>{user.online ? "Online" : "Offline"}</Text>
+                    </View>
                     <View style={styles.cardBottom}>
                       <Text style={s.muted}>ID #{user.id}</Text>
                       <Button
@@ -415,6 +423,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
+  presence: { flexDirection: "row", alignItems: "center", gap: 6 },
   cardBottom: {
     borderTopWidth: 1,
     borderTopColor: "#37383B",

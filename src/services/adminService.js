@@ -1,8 +1,8 @@
 import { apiRequest } from './api';
 
 export const adminService = {
-  listUsers: ({ search, page }, token) => apiRequest(
-    `/admin/users?${new URLSearchParams({ ...(search ? { search } : {}), page: String(page) })}`,
+  listUsers: ({ search, page, online }, token) => apiRequest(
+    `/admin/users?${new URLSearchParams({ ...(search ? { search } : {}), ...(online ? { online: 'true' } : {}), page: String(page) })}`,
     {},
     token, 'Admin request failed',
   ),

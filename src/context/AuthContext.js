@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useState, useEffect } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { authService } from '../services/authService';
+import { apiFetch } from '../services/api';
 import { setUnauthorizedHandler } from '../services/unauthorized';
 import { loadAuthToken, removeAuthToken, saveAuthToken as persistAuthToken } from '../services/secureTokenStorage';
 
@@ -28,6 +29,20 @@ export const AuthProvider = ({ children }) => {
     setUnauthorizedHandler(clearAuth);
     return () => setUnauthorizedHandler(null);
   }, [clearAuth]);
+
+  useEffect(() => {
+    if (!userToken) return;
+    const touchPresence = () => apiFetch('/users/me/presence', { method: 'POST' }, userToken).catch(() => {});
+    touchPresence();
+    const interval = setInterval(touchPresence, 60_000);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') touchPresence();
+    });
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
+  }, [userToken]);
 
   const handleOAuthRedirect = useCallback(async (url, codeVerifier) => {
     if (!url) return false;
