@@ -19,7 +19,7 @@ import { CustomToast } from '../components/feedback';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,10 +29,8 @@ export default function LoginScreen({ navigation }) {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
+  const [redirectSeconds, setRedirectSeconds] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const timerRef = useRef(null);
-  const intervalRef = useRef(null);
 
   const showToast = (message, type = 'error') => {
     setToastMessage(message);
@@ -58,12 +56,24 @@ export default function LoginScreen({ navigation }) {
     }).start(() => setToastVisible(false));
   };
 
-  const clearTimers = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
+  useEffect(() => {
+    if (route?.params?.prefilledEmail) setEmail(route.params.prefilledEmail);
+    if (route?.params?.registered) showToast('Account created. You can sign in now.', 'success');
+  }, [route?.params?.prefilledEmail, route?.params?.registered]);
 
-  useEffect(() => () => clearTimers(), []);
+  useEffect(() => {
+    if (!redirectSeconds) return undefined;
+
+    const timer = setTimeout(() => {
+      if (redirectSeconds === 1) {
+        navigation.replace('Register', { prefilledEmail: email });
+      } else {
+        setRedirectSeconds((seconds) => seconds - 1);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [email, navigation, redirectSeconds]);
 
   const handleAppleLogin = () => {
     showToast('Sign in with Apple is currently in development', 'error');
@@ -81,8 +91,6 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    clearTimers();
-
     if (!email || !password) return showToast('Please fill in all fields', 'error');
     if (!isValidEmail(email)) return showToast('Please enter a valid email', 'error');
 
@@ -90,26 +98,11 @@ export default function LoginScreen({ navigation }) {
       await login(email, password);
     } catch (err) {
       const status = err.status || err.response?.status;
-      const message = (err.message || '').toLowerCase();
-
-      const isNotFound = status === 404 || message.includes('not found');
-
-      if (isNotFound) {
-        let secondsLeft = 3;
-        showToast(`User not found. Redirecting in ${secondsLeft}s...`, 'error');
-
-        intervalRef.current = setInterval(() => {
-          secondsLeft -= 1;
-          if (secondsLeft > 0) {
-            showToast(`User not found. Redirecting in ${secondsLeft}s...`, 'error');
-          } else {
-            clearInterval(intervalRef.current);
-          }
-        }, 1000);
-
-        timerRef.current = setTimeout(() => {
-          navigation.navigate('Register', { prefilledEmail: email });
-        }, 3000);
+      if (status === 404) {
+        setRedirectSeconds(5);
+        showToast('User with this email was not found. Redirecting to registration in 5 seconds...', 'error');
+      } else if (status === 401) {
+        showToast('Incorrect password', 'error');
       } else {
         showToast(err.message || 'Login failed', 'error');
       }
@@ -128,7 +121,7 @@ export default function LoginScreen({ navigation }) {
               label="Email"
               placeholder="you@exemple.com"
               value={email}
-              onChangeText={(text) => { setEmail(text); clearTimers(); }}
+              onChangeText={(text) => { setEmail(text); setRedirectSeconds(0); }}
               keyboardType="email-address"
             />
 
@@ -136,7 +129,7 @@ export default function LoginScreen({ navigation }) {
               label="Password"
               placeholder="********"
               value={password}
-              onChangeText={(text) => { setPassword(text); clearTimers(); }}
+              onChangeText={(text) => { setPassword(text); setRedirectSeconds(0); }}
               isPassword
               secureTextEntry={!showPassword}
               showPassword={showPassword}
@@ -149,12 +142,18 @@ export default function LoginScreen({ navigation }) {
 
             <PrimaryButton title="Sing In" onPress={handleLogin} isLoading={isLoading} />
 
+            {redirectSeconds > 0 && (
+              <Text style={styles.redirectMessage}>
+                User with this email was not found. Redirecting to registration in {redirectSeconds}s...
+              </Text>
+            )}
+
             <Divider />
 
             <SocialButton title="Continue with Apple" iconName="logo-apple" onPress={handleAppleLogin} />
             <SocialButton title="Continue with Google" iconName="logo-google" onPress={handleGoogleLogin} />
 
-            <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.bottomLinkContainer}>
+            <TouchableOpacity onPress={() => { setRedirectSeconds(0); navigation.navigate('Register'); }} style={styles.bottomLinkContainer}>
               <Text style={styles.bottomText}>
                 Dont have an account? <Text style={styles.boldText}>Sing up</Text>
               </Text>
@@ -192,6 +191,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 28 },
   forgotPass: { alignSelf: 'flex-end', marginBottom: 20 },
   forgotPassText: { fontSize: 13, color: '#000', fontWeight: '500' },
+  redirectMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
   bottomLinkContainer: { marginTop: 32, alignItems: 'center' },
   bottomText: { color: '#6B7280', fontSize: 14 },
   boldText: { color: '#000', fontWeight: '700' },

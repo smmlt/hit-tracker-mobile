@@ -94,7 +94,9 @@ export default function RegisterScreen({ navigation, route }) {
     if (!isValidPassword(password)) return showToast('Password does not meet requirements', 'error');
 
     try {
-      await register(email, password, fullName);
+      const normalizedEmail = email.trim();
+      await register(fullName.trim(), normalizedEmail, password);
+      navigation.replace('VerifyEmail', { email: normalizedEmail });
     } catch (err) {
       showToast(err.message || 'Registration failed', 'error');
     }

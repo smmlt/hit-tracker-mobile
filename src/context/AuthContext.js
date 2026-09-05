@@ -111,26 +111,25 @@ export const AuthProvider = ({ children }) => {
     }
   }, [saveAuthToken]);
 
-  const register = useCallback(async (email, password) => {
+  const register = useCallback(async (fullName, email, password) => {
     setIsLoading(true);
     try {
-      const data = await authService.register(email, password);
-      const accessToken = data.accessToken || data.token;
-      const user = data.user || null;
-
-      await saveAuthToken(accessToken);
-      if (user) {
-        await AsyncStorage.setItem('userData', JSON.stringify(user));
-      }
-      setUserData(user);
-
-      return data;
+      return await authService.register(fullName, email, password);
     } catch (error) {
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [saveAuthToken]);
+  }, []);
+
+  const verifyRegistration = useCallback(async (email, code) => {
+    setIsLoading(true);
+    try {
+      return await authService.verifyRegistration(email, code);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const logout = useCallback(async () => {
     setIsLoading(true);
@@ -156,6 +155,7 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         login,
         register,
+        verifyRegistration,
         logout,
         handleOAuthRedirect,
         updateUserData,

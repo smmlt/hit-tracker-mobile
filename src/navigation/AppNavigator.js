@@ -11,6 +11,7 @@ import { ActiveWorkoutBanner, AppTabBar } from '../components/navigation';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import VerifyEmailScreen from '../screens/VerifyEmailScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 
@@ -81,6 +82,7 @@ const linking = {
     screens: {
       Login: { path: 'login', alias: ['auth/google/callback'] },
       Register: 'register',
+      VerifyEmail: 'verify-email',
       ForgotPassword: 'forgot-password',
       ResetPassword: 'reset-password',
     },
@@ -111,6 +113,11 @@ export default function AppNavigator() {
                 name="Register" 
                 component={RegisterScreen} 
                 options={{ headerShown: false }} 
+              />
+              <Stack.Screen
+                name="VerifyEmail"
+                component={VerifyEmailScreen}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="ForgotPassword" 
