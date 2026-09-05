@@ -41,6 +41,18 @@ export default function VerifyEmailScreen({ navigation, route }) {
     return () => clearInterval(timer);
   }, [retryAfterSeconds]);
 
+  const verificationErrorMessage = (error) => {
+    switch (error.details?.code) {
+      case 'INVALID_VERIFICATION_CODE':
+        return t('invalidVerificationCode');
+      case 'VERIFICATION_CODE_EXPIRED':
+      case 'REGISTRATION_NOT_FOUND':
+        return t('verificationCodeExpired');
+      default:
+        return error.message || t('verificationFailed');
+    }
+  };
+
   const handleVerify = async () => {
     if (!/^\d{6}$/.test(code)) {
       showToast(t('enterSixDigitCode'));
@@ -63,7 +75,7 @@ export default function VerifyEmailScreen({ navigation, route }) {
         return;
       }
       setAttemptsRemaining(error.details?.attemptsRemaining ?? null);
-      showToast(error.message || 'Email verification failed.');
+      showToast(verificationErrorMessage(error));
     }
   };
 

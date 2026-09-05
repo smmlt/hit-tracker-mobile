@@ -6,9 +6,9 @@ export const authService = {
       body: JSON.stringify({ email, password }),
     }, null, 'Login failed'),
 
-  register: (email, password) => apiRequest('/auth/register', {
+  register: (email, password, fullName) => apiRequest('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, fullName }),
     }, null, 'Registration failed'),
 
   verifyRegistration: (email, code) => apiRequest('/auth/register/verify', {

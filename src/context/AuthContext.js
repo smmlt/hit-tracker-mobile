@@ -145,10 +145,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, [saveAuthToken]);
 
-  const register = useCallback(async (email, password) => {
+  const register = useCallback(async (email, password, fullName) => {
     setIsLoading(true);
     try {
-      return await authService.register(email, password);
+      return await authService.register(email, password, fullName);
     } catch (error) {
       throw error;
     } finally {

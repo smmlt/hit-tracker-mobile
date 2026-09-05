@@ -93,8 +93,9 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const handleRegister = async () => {
-    const validationError = !fullName ? t('enterFullName')
-      : !isValidEmail(email) ? t('enterValidEmail')
+    const normalizedEmail = email.trim().toLowerCase();
+    const validationError = !fullName.trim() ? t('enterFullName')
+      : !isValidEmail(normalizedEmail) ? t('enterValidEmail')
       : !isValidPassword(password) ? t('passwordRequirements') : '';
     if (validationError) {
       setErrorMessage(validationError);
@@ -103,9 +104,9 @@ export default function RegisterScreen({ navigation, route }) {
 
     try {
       setErrorMessage('');
-      await register(email, password, fullName);
-      await AsyncStorage.setItem('pendingRegistrationEmail', email);
-      navigation.replace('VerifyEmail', { email });
+      await register(normalizedEmail, password, fullName.trim());
+      AsyncStorage.setItem('pendingRegistrationEmail', normalizedEmail).catch(() => {});
+      navigation.replace('VerifyEmail', { email: normalizedEmail });
     } catch (err) {
       const message = err.message || t('registrationFailed');
       setErrorMessage(message);

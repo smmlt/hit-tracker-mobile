@@ -100,8 +100,9 @@ export default function LoginScreen({ navigation, route }) {
   };
 
   const handleLogin = async () => {
-    const validationError = !email || !password ? t('fillAllFields')
-      : !isValidEmail(email) ? t('enterValidEmail') : '';
+    const normalizedEmail = email.trim().toLowerCase();
+    const validationError = !normalizedEmail || !password ? t('fillAllFields')
+      : !isValidEmail(normalizedEmail) ? t('enterValidEmail') : '';
     if (validationError) {
       setErrorMessage(validationError);
       return showToast(validationError, 'error');
@@ -109,7 +110,8 @@ export default function LoginScreen({ navigation, route }) {
 
     try {
       setErrorMessage('');
-      await login(email, password);
+      setEmail(normalizedEmail);
+      await login(normalizedEmail, password);
     } catch (err) {
       const status = err.status || err.response?.status;
 
@@ -119,7 +121,7 @@ export default function LoginScreen({ navigation, route }) {
       }
 
       const message = status === 404 ? t('userNotFound')
-        : status === 401 ? t('invalidCredentials')
+        : status === 401 ? t('invalidPassword')
         : err.message || t('loginFailed');
       if (status === 404) {
         const redirectMessage = t('userNotFoundRedirect').replace('{seconds}', 5);
