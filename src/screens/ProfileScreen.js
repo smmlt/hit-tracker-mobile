@@ -9,7 +9,8 @@ export default function ProfileScreen({ navigation }) {
   const { profile: userData } = useProfile(true);
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
-  const name = userData?.username || userData?.email?.split('@')[0] || t('user');
+  const name = userData?.displayName || userData?.username || userData?.email?.split('@')[0] || t('user');
+  const username = userData?.username ? `@${userData.username}` : '';
   const email = userData?.email || '';
 
   return (
@@ -25,6 +26,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.content}>
         <View style={[styles.avatar, { backgroundColor: palette.gray }]} />
         <Text style={[styles.name, { color: theme.textPrimary }]}>{name}</Text>
+        {!!username && <Text style={[styles.username, { color: theme.textSecondary }]}>{username}</Text>}
         <Text style={[styles.email, { color: theme.textSecondary }]}>{email}</Text>
         <View style={[styles.goal, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
           <Text style={[styles.goalText, { color: theme.textPrimary }]}>▧  {t('currentGoal')}: {userData?.goal || t('hypertrophy')}</Text>
@@ -48,6 +50,7 @@ const styles = StyleSheet.create({
   content: { alignItems: 'center', paddingTop: 12 },
   avatar: { borderRadius: 74, height: 148, width: 148 },
   name: { fontSize: 18, fontWeight: '700', marginTop: 12 },
+  username: { fontSize: 13, marginTop: 2 },
   email: { fontSize: 13, marginTop: 1 },
   goal: { borderRadius: 6, borderWidth: 1, marginTop: 28, overflow: 'hidden', paddingHorizontal: 12, paddingTop: 10, width: 180 },
   goalText: { fontSize: 11, fontWeight: '700' },

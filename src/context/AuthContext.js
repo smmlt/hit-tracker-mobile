@@ -12,7 +12,8 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const saveAuthToken = useCallback(async (token) => {
     await persistAuthToken(token);
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }) => {
           const handled = await handleOAuthRedirect(window.location.href);
           if (handled) {
             window.history.replaceState({}, document.title, window.location.pathname);
-            setIsLoading(false);
+            setIsInitializing(false);
             return;
           }
         }
@@ -99,7 +100,7 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         console.error('Failed to load auth data from storage:', error);
       } finally {
-        setIsLoading(false);
+        setIsInitializing(false);
       }
     };
 
@@ -145,10 +146,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, [saveAuthToken]);
 
-  const register = useCallback(async (email, password, fullName) => {
+  const register = useCallback(async (email, password, displayName) => {
     setIsLoading(true);
     try {
-      return await authService.register(email, password, fullName);
+      return await authService.register(email, password, displayName);
     } catch (error) {
       throw error;
     } finally {
@@ -187,6 +188,7 @@ export const AuthProvider = ({ children }) => {
         userToken,
         userData,
         isLoading,
+        isInitializing,
         login,
         register,
         verifyRegistration,

@@ -22,7 +22,11 @@ export default function EditProfileScreen({ navigation }) {
   return <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]}>
     <View style={styles.header}><Pressable accessibilityLabel={t('back')} onPress={() => navigation.goBack()} style={styles.back}><Text style={[styles.backText, { color: theme.textPrimary }]}>‹</Text></Pressable><Text style={[styles.title, { color: theme.textPrimary }]}>{t('editProfile')}</Text></View>
     <View style={styles.content}>
-      <Field label={t('name')} value={form.username} onChangeText={setField('username')} theme={theme} />
+      <Field label={t('name')} value={form.displayName} onChangeText={setField('displayName')} theme={theme} />
+      <Pressable accessibilityRole="button" onPress={() => navigation.navigate('UsernameSettings')} style={[styles.usernameRow, { borderColor: theme.border }]}>
+        <View><Text style={[styles.label, { color: theme.textSecondary }]}>{t('username')}</Text><Text style={{ color: theme.textPrimary }}>{profile?.username ? `@${profile.username}` : t('usernameNotSet')}</Text></View>
+        <Text style={[styles.chevron, { color: theme.textSecondary }]}>›</Text>
+      </Pressable>
       <Field label={t('email')} value={form.email} onChangeText={setField('email')} theme={theme} keyboardType="email-address" />
       <Field label={t('age')} value={form.age} onChangeText={setField('age')} theme={theme} keyboardType="numeric" />
       <Field label={t('height')} value={form.height} onChangeText={setField('height')} theme={theme} keyboardType="numeric" />
@@ -36,5 +40,7 @@ export default function EditProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  usernameRow: { alignItems: 'center', borderRadius: 8, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, minHeight: 54, paddingHorizontal: 10 },
+  chevron: { fontSize: 26, fontWeight: '300' },
   screen: { flex: 1 }, header: { alignItems: 'center', flexDirection: 'row', minHeight: 56, paddingHorizontal: 14 }, back: { alignItems: 'center', height: 40, justifyContent: 'center', width: 32 }, backText: { fontSize: 32, fontWeight: '300' }, title: { fontSize: 14, fontWeight: '800', marginLeft: 10, textTransform: 'uppercase' }, content: { paddingHorizontal: 22, paddingTop: 12 }, field: { marginBottom: 10 }, label: { fontSize: 12, marginBottom: 5 }, input: { borderRadius: 8, borderWidth: 1, fontSize: 14, minHeight: 40, paddingHorizontal: 10 }, segment: { borderRadius: 8, borderWidth: 1, flexDirection: 'row', overflow: 'hidden' }, segmentItem: { alignItems: 'center', flex: 1, justifyContent: 'center', minHeight: 30 }, error: { fontSize: 12, marginTop: 12 }, save: { alignItems: 'center', borderRadius: 8, borderWidth: 1, justifyContent: 'center', marginTop: 50, minHeight: 48 }, disabled: { opacity: 0.5 },
 });

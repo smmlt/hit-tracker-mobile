@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const toForm = (profile = {}) => ({
-  username: profile.username || '',
+  displayName: profile.displayName || profile.username || '',
   email: profile.email || '',
   age: profile.age?.toString() || '',
   height: profile.height?.toString() || '',
@@ -19,7 +19,7 @@ export function useProfileForm(profile, onSave) {
 
   const setField = (field) => (value) => setForm((current) => ({ ...current, [field]: value }));
   const submit = () => onSave({
-    username: form.username.trim(),
+    displayName: form.displayName.trim(),
     email: form.email.trim(),
     age: numberOrUndefined(form.age),
     height: numberOrUndefined(form.height),

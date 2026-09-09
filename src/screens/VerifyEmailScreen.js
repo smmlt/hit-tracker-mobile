@@ -5,6 +5,7 @@ import { CustomToast } from '../components/feedback';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { completeVerification } from '../utils/authFlow';
 
 export default function VerifyEmailScreen({ navigation, route }) {
   const [code, setCode] = useState('');
@@ -18,6 +19,8 @@ export default function VerifyEmailScreen({ navigation, route }) {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const submittingRef = useRef(false);
+  const toastTimerRef = useRef();
 
   React.useEffect(() => {
     AsyncStorage.getItem('pendingRegistrationEmail').then((value) => setStoredEmail(value || ''));
@@ -32,8 +35,14 @@ export default function VerifyEmailScreen({ navigation, route }) {
     setToastMessage(message);
     setToastVisible(true);
     Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
-    setTimeout(hideToast, 3500);
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(hideToast, 3500);
   };
+
+  React.useEffect(() => () => {
+    clearTimeout(toastTimerRef.current);
+    fadeAnim.stopAnimation();
+  }, [fadeAnim]);
 
   React.useEffect(() => {
     if (!retryAfterSeconds) return undefined;
@@ -54,6 +63,7 @@ export default function VerifyEmailScreen({ navigation, route }) {
   };
 
   const handleVerify = async () => {
+    if (submittingRef.current) return;
     if (!/^\d{6}$/.test(code)) {
       showToast(t('enterSixDigitCode'));
       return;
@@ -64,9 +74,14 @@ export default function VerifyEmailScreen({ navigation, route }) {
     }
 
     try {
-      await verifyRegistration(email, code);
-      await AsyncStorage.removeItem('pendingRegistrationEmail');
-      navigation.replace('Login', { prefilledEmail: email, registered: true });
+      submittingRef.current = true;
+      await completeVerification({
+        code,
+        email,
+        verify: verifyRegistration,
+        clearPendingEmail: () => AsyncStorage.removeItem('pendingRegistrationEmail'),
+        navigate: (value) => navigation.replace('Login', { prefilledEmail: value, registered: true }),
+      });
     } catch (error) {
       if (error.status === 429) {
         setCodeLocked(true);
@@ -76,6 +91,8 @@ export default function VerifyEmailScreen({ navigation, route }) {
       }
       setAttemptsRemaining(error.details?.attemptsRemaining ?? null);
       showToast(verificationErrorMessage(error));
+    } finally {
+      submittingRef.current = false;
     }
   };
 

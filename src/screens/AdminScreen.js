@@ -220,7 +220,7 @@ export default function AdminScreen() {
                     <View style={s.header}>
                       <View style={styles.avatar}>
                         <Text style={styles.avatarText}>
-                          {(user.username || "?").slice(0, 2).toUpperCase()}
+                          {(user.displayName || user.username || "?").slice(0, 2).toUpperCase()}
                         </Text>
                       </View>
                       <View
@@ -239,11 +239,11 @@ export default function AdminScreen() {
                       </View>
                     </View>
                     <Text style={s.heading}>
-                      @{user.username}
+                      {user.displayName || `@${user.username}`}
                       {user.id === profile.id ? " · you" : ""}
                     </Text>
                     <Text selectable style={s.muted}>
-                      {user.email}
+                      {user.username ? `@${user.username} · ` : ""}{user.email}
                     </Text>
                     <View style={styles.presence}>
                       <View style={[styles.dot, { backgroundColor: user.online ? "#43C26B" : "#838384" }]} />
@@ -296,7 +296,7 @@ export default function AdminScreen() {
       </ScrollView>
       {selected && (
         <Sheet
-          title={`Manage @${selected.username}`}
+          title={`Manage ${selected.username ? `@${selected.username}` : selected.displayName || selected.email}`}
           onClose={() => !busy && setSelected(null)}
         >
           <Text style={s.muted}>{selected.email}</Text>
@@ -337,7 +337,7 @@ export default function AdminScreen() {
       )}
       <ConfirmDialog
         visible={confirmDelete}
-        title={`Delete @${selected?.username}?`}
+        title={`Delete ${selected?.username ? `@${selected.username}` : selected?.displayName || selected?.email}?`}
         message="This permanently deletes the account and its related personal data. This cannot be undone."
         cancelLabel="Cancel"
         confirmLabel={busy ? "Deleting…" : "Delete user"}

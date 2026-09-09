@@ -20,6 +20,7 @@ import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
 import { createPkcePair } from '../utils/oauthPkce';
 import { LanguageContext } from '../localization/LanguageContext';
+import { completeRegistration } from '../utils/authFlow';
 
 export default function RegisterScreen({ navigation, route }) {
   const [fullName, setFullName] = useState('');
@@ -35,6 +36,8 @@ export default function RegisterScreen({ navigation, route }) {
   const [toastType, setToastType] = useState('error');
   const [errorMessage, setErrorMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const submittingRef = useRef(false);
+  const toastTimerRef = useRef();
 
   useEffect(() => {
     if (route?.params?.prefilledEmail) {
@@ -53,7 +56,8 @@ export default function RegisterScreen({ navigation, route }) {
       useNativeDriver: true,
     }).start();
 
-    setTimeout(() => {
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
       hideToast();
     }, 3500);
   };
@@ -67,6 +71,11 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const criteria = getPasswordCriteria(password);
+
+  useEffect(() => () => {
+    clearTimeout(toastTimerRef.current);
+    fadeAnim.stopAnimation();
+  }, [fadeAnim]);
 
   const handleAppleLogin = () => {
     showToast(t('appleComingSoon'), 'error');
@@ -93,6 +102,7 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const handleRegister = async () => {
+    if (submittingRef.current) return;
     const normalizedEmail = email.trim().toLowerCase();
     const validationError = !fullName.trim() ? t('enterFullName')
       : !isValidEmail(normalizedEmail) ? t('enterValidEmail')
@@ -103,14 +113,22 @@ export default function RegisterScreen({ navigation, route }) {
     }
 
     try {
+      submittingRef.current = true;
       setErrorMessage('');
-      await register(normalizedEmail, password, fullName.trim());
-      AsyncStorage.setItem('pendingRegistrationEmail', normalizedEmail).catch(() => {});
-      navigation.replace('VerifyEmail', { email: normalizedEmail });
+      await completeRegistration({
+        displayName: fullName.trim(),
+        email: normalizedEmail,
+        password,
+        register,
+        persistEmail: (value) => AsyncStorage.setItem('pendingRegistrationEmail', value),
+        navigate: (value) => navigation.replace('VerifyEmail', { email: value }),
+      });
     } catch (err) {
       const message = err.message || t('registrationFailed');
       setErrorMessage(message);
       showToast(message, 'error');
+    } finally {
+      submittingRef.current = false;
     }
   };
 
