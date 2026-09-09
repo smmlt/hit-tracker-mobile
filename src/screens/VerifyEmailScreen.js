@@ -1,6 +1,6 @@
 import React, { useContext, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
+import { Animated, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { BackButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
@@ -9,6 +9,7 @@ import { completeVerification } from '../utils/authFlow';
 
 export default function VerifyEmailScreen({ navigation, route }) {
   const [code, setCode] = useState('');
+  const [codeState, setCodeState] = useState('idle');
   const [attemptsRemaining, setAttemptsRemaining] = useState(null);
   const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
   const [codeLocked, setCodeLocked] = useState(false);
@@ -19,8 +20,11 @@ export default function VerifyEmailScreen({ navigation, route }) {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const codeInputRef = useRef(null);
+  const [codeInputFocused, setCodeInputFocused] = useState(false);
   const submittingRef = useRef(false);
   const toastTimerRef = useRef();
+  const lastSubmittedCodeRef = useRef('');
 
   React.useEffect(() => {
     AsyncStorage.getItem('pendingRegistrationEmail').then((value) => setStoredEmail(value || ''));
@@ -65,6 +69,7 @@ export default function VerifyEmailScreen({ navigation, route }) {
   const handleVerify = async () => {
     if (submittingRef.current) return;
     if (!/^\d{6}$/.test(code)) {
+      setCodeState('error');
       showToast(t('enterSixDigitCode'));
       return;
     }
@@ -79,6 +84,10 @@ export default function VerifyEmailScreen({ navigation, route }) {
         code,
         email,
         verify: verifyRegistration,
+        onVerified: async () => {
+          setCodeState('success');
+          await new Promise((resolve) => setTimeout(resolve, 350));
+        },
         clearPendingEmail: () => AsyncStorage.removeItem('pendingRegistrationEmail'),
         navigate: (value) => navigation.replace('Login', { prefilledEmail: value, registered: true }),
       });
@@ -90,11 +99,22 @@ export default function VerifyEmailScreen({ navigation, route }) {
         return;
       }
       setAttemptsRemaining(error.details?.attemptsRemaining ?? null);
+      setCodeState('error');
       showToast(verificationErrorMessage(error));
     } finally {
       submittingRef.current = false;
     }
   };
+
+  React.useEffect(() => {
+    if (code.length < 6) {
+      lastSubmittedCodeRef.current = '';
+      return;
+    }
+    if (codeLocked || isLoading || lastSubmittedCodeRef.current === code) return;
+    lastSubmittedCodeRef.current = code;
+    handleVerify();
+  }, [code, codeLocked, isLoading]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -106,22 +126,45 @@ export default function VerifyEmailScreen({ navigation, route }) {
             <Text style={styles.subtitle}>
               {t('verificationSent').replace('{email}', email || t('email'))}
             </Text>
-            <CustomInput
-              label={t('confirmationCode')}
-              placeholder="000000"
-              value={code}
-              onChangeText={(value) => setCode(value.replace(/\D/g, ''))}
-              keyboardType="number-pad"
-              maxLength={6}
-              autoComplete="one-time-code"
-              textContentType="oneTimeCode"
-            />
-            <PrimaryButton
-              title={codeLocked ? t('codeLocked') : t('verifyAndCreate')}
-              onPress={handleVerify}
-              isLoading={isLoading}
-              disabled={codeLocked}
-            />
+            <TouchableOpacity
+              accessibilityLabel={t('confirmationCode')}
+              activeOpacity={1}
+              onPress={() => codeInputRef.current?.focus()}
+              style={styles.codeInputWrapper}
+            >
+              <View style={styles.codeCells} pointerEvents="none">
+                {Array.from({ length: 6 }, (_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.codeCell,
+                      codeInputFocused && index === Math.min(code.length, 5) && styles.codeCellFocused,
+                      codeState === 'error' && styles.codeCellError,
+                      codeState === 'success' && styles.codeCellSuccess,
+                    ]}
+                  >
+                    <Text style={styles.codeDigit}>{code[index] || ''}</Text>
+                  </View>
+                ))}
+              </View>
+              <TextInput
+                ref={codeInputRef}
+                value={code}
+                onBlur={() => setCodeInputFocused(false)}
+                onChangeText={(value) => {
+                  setCodeState('idle');
+                  setAttemptsRemaining(null);
+                  setCode(value.replace(/\D/g, '').slice(0, 6));
+                }}
+                onFocus={() => setCodeInputFocused(true)}
+                keyboardType="number-pad"
+                maxLength={6}
+                autoComplete="one-time-code"
+                textContentType="oneTimeCode"
+                style={styles.hiddenCodeInput}
+              />
+            </TouchableOpacity>
+            {isLoading && <Text style={styles.status}>{t('verifyingCode')}</Text>}
             {attemptsRemaining !== null && (
               <Text style={styles.warning}>{t('incorrectCodeRemaining').replace('{count}', attemptsRemaining)}</Text>
             )}
@@ -137,10 +180,13 @@ export default function VerifyEmailScreen({ navigation, route }) {
                 )}
               </View>
             )}
-            <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.bottomLinkContainer}>
-              <Text style={styles.bottomText}>{t('alreadyHaveAccount')} <Text style={styles.boldText}>{t('signIn')}</Text></Text>
-            </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            onPress={() => navigation.replace('Register', { prefilledEmail: email })}
+            style={styles.bottomLinkContainer}
+          >
+            <Text style={styles.bottomText}>{t('noEmailAccess')}</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
       <CustomToast visible={toastVisible} message={toastMessage} type="error" variant="light" fadeAnim={fadeAnim} onClose={hideToast} />
@@ -151,14 +197,22 @@ export default function VerifyEmailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { alignSelf: 'center', flexGrow: 1, justifyContent: 'center', maxWidth: 440, paddingHorizontal: 24, paddingVertical: 20, width: '100%' },
-  formWrapper: { width: '100%' },
+  container: { alignSelf: 'center', flexGrow: 1, maxWidth: 393, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 34, width: '100%' },
+  formWrapper: { marginTop: 88, width: '100%' },
   title: { color: '#000', fontSize: 28, fontWeight: '700', marginBottom: 4 },
-  subtitle: { color: '#6B7280', fontSize: 16, lineHeight: 23, marginBottom: 28 },
+  subtitle: { color: '#666363', fontSize: 18, lineHeight: 23, marginBottom: 44 },
+  codeInputWrapper: { height: 71, position: 'relative', width: '100%' },
+  codeCells: { flexDirection: 'row', gap: 7, justifyContent: 'space-between', width: '100%' },
+  codeCell: { alignItems: 'center', borderColor: '#7F7A7A', borderRadius: 10, borderWidth: 2, flex: 1, height: 71, justifyContent: 'center', maxWidth: 57 },
+  codeCellFocused: { borderColor: '#1D1B20' },
+  codeCellError: { backgroundColor: '#FEF2F2', borderColor: '#DC2626' },
+  codeCellSuccess: { backgroundColor: '#ECFDF5', borderColor: '#059669' },
+  codeDigit: { color: '#111827', fontSize: 28, fontWeight: '600' },
+  hiddenCodeInput: { ...StyleSheet.absoluteFillObject, color: 'transparent', opacity: 0.01 },
+  status: { color: '#7F7A7A', fontSize: 15, fontWeight: '700', marginTop: 24, textAlign: 'center' },
   warning: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
   lockedBox: { alignItems: 'center' },
   requestCode: { color: '#000', fontSize: 14, fontWeight: '700', marginTop: 12 },
-  bottomLinkContainer: { alignItems: 'center', marginTop: 28 },
-  bottomText: { color: '#6B7280', fontSize: 14 },
-  boldText: { color: '#000', fontWeight: '700' },
+  bottomLinkContainer: { alignItems: 'center', marginTop: 'auto', paddingTop: 48 },
+  bottomText: { color: '#000', fontSize: 15, fontWeight: '700' },
 });

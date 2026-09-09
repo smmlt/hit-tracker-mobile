@@ -64,11 +64,13 @@ test('AUTH-VERIFY-001 successful verification clears pending state and opens log
     code: '123456',
     email: 'bohdan@example.com',
     verify: async (...args) => events.push(['verify', ...args]),
+    onVerified: async () => events.push(['success']),
     clearPendingEmail: async () => events.push(['clear']),
     navigate: (email) => events.push(['navigate', email]),
   });
   assert.deepEqual(events, [
     ['verify', 'bohdan@example.com', '123456'],
+    ['success'],
     ['clear'],
     ['navigate', 'bohdan@example.com'],
   ]);

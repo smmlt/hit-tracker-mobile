@@ -21,10 +21,12 @@ export async function completeVerification({
   code,
   email,
   verify,
+  onVerified,
   clearPendingEmail,
   navigate,
 }) {
   await verify(email, code);
+  await onVerified?.();
   await clearPendingEmail().catch(() => {});
   navigate(email);
 }
