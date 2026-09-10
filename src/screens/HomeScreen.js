@@ -11,13 +11,13 @@ import { ExerciseFilterBar, ExerciseItem } from "../components/exercise";
 import { ProgramCard } from "../components/workshop/ProgramCard";
 import { ProgramEditor } from "../components/workshop/ProgramEditor";
 import { ScheduleProgramSheet } from "../components/workshop/ScheduleProgramSheet";
+import FilterIcon from "../assets/icons/FilterIcon.svg";
 import {
   Button,
   Feedback,
   Sheet,
   useWords,
 } from "../components/workshop/ui";
-import Chevron from "../assets/icons/ChevronDownIcon.svg";
 
 import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -100,48 +100,52 @@ export default function HomeScreen({ navigation }) {
           </Pressable>
         ))}
       </View>
-      <SearchField
-        value={query}
-        onChangeText={setQuery}
-        placeholder={w.search}
-        style={styles.search}
-        inputStyle={styles.searchInput}
-      />
+      <View style={styles.searchRow}>
+        <SearchField
+          value={query}
+          onChangeText={setQuery}
+          placeholder={w.search}
+          style={styles.search}
+          inputStyle={styles.searchInput}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('sortLibrary')}
+          onPress={() => setSortOpen(true)}
+          style={styles.filterButton}
+        >
+          <FilterIcon width={24} height={24} color={theme.textSecondary} />
+        </Pressable>
+      </View>
+      {section === "programs" && (
+        <View style={styles.scopeRow}>
+          {["all", "official", "personal"].map((key) => (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected: scope === key }}
+              key={key}
+              style={[styles.scopeChip, scope === key && styles.scopeChipSelected]}
+              onPress={() => setScope(key)}
+            >
+              <Text style={[styles.scopeLabel, scope === key && styles.scopeLabelSelected]}>{w[key]}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      <Text style={styles.filtersLabel}>{w.muscleGroups}</Text>
       <ExerciseFilterBar
         musclesList={library.muscles}
         selectedMuscleFilter={muscle}
         onSelectMuscleFilter={setMuscle}
+        savedSelected={section === "exercises" && scope === "saved"}
+        savedLabel={w.saved}
+        onSelectSaved={section === "exercises" ? () => setScope(scope === "saved" ? "all" : "saved") : undefined}
       />
-      <View style={styles.row}>
-        {(section === "programs"
-          ? ["all", "official", "personal"]
-          : ["all", "saved"]
-        ).map((key) => (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: scope === key }}
-            key={key}
-            style={[styles.chip, scope === key && styles.selected]}
-            onPress={() => setScope(key)}
-          >
-            <Text style={[styles.muted, scope === key && styles.segmentLabelActive]}>{w[key]}</Text>
-          </Pressable>
-        ))}
-        {section === "programs" && (
-          <Button secondary onPress={() => setCreator(true)}>
-            + {w.create}
-          </Button>
-        )}
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('sortLibrary')}
-        onPress={() => setSortOpen(true)}
-        style={styles.sort}
-      >
-        <Text style={[styles.muted, { fontWeight: "700", flex: 1 }]}>{w[sort]}</Text>
-        <Chevron width={20} height={20} color={theme.textSecondary} />
-      </Pressable>
+      {section === "programs" && (
+        <Pressable accessibilityRole="button" onPress={() => setCreator(true)} style={styles.createProgram}>
+          <Text style={styles.createProgramText}>+ {w.createProgram}</Text>
+        </Pressable>
+      )}
       {!!message && <Text style={styles.muted}>{message}</Text>}
       <Feedback
         error={library.errors[section] || library.errors.muscles}
@@ -191,7 +195,7 @@ export default function HomeScreen({ navigation }) {
         }
       />
       {sortOpen && (
-        <Sheet title={w.popular} onClose={() => setSortOpen(false)}>
+        <Sheet title={w.sort} onClose={() => setSortOpen(false)}>
           {["popular", "alphabetical", "newest"].map((key) => (
             <Button
               key={key}

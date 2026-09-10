@@ -4,6 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 // Замініть на ваш імпорт нової іконки
 import GridIcon from '../../assets/workshop/More.svg';
+import StarFilled from '../../assets/workshop/StarFilled.svg';
 import { createStyles } from './ExerciseFilterBar.styles';
 
 import { palette } from '../../constants/colors';
@@ -11,6 +12,9 @@ export function ExerciseFilterBar({
   musclesList = [],
   selectedMuscleFilter,
   onSelectMuscleFilter,
+  savedSelected = false,
+  savedLabel,
+  onSelectSaved,
 }) {
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
@@ -20,7 +24,7 @@ export function ExerciseFilterBar({
 
   const getMuscleDisplayName = (muscle) => muscle?.displayName || muscle?.commonName || t('allMuscles');
 
-  const renderChip = (id, name, isActive, closeModal = false) => (
+  const renderChip = (id, name, isActive, closeModal = false, onPress) => (
     <TouchableOpacity
       key={id ?? 'all'}
       style={[
@@ -28,11 +32,13 @@ export function ExerciseFilterBar({
         isActive ? styles.chipActive : styles.chipInactive,
       ]}
       onPress={() => {
-        onSelectMuscleFilter(isActive ? null : id);
+        if (onPress) onPress();
+        else onSelectMuscleFilter(isActive ? null : id);
         if (closeModal) setModalVisible(false);
       }}
       activeOpacity={0.8}
     >
+      {id === 'saved' && <StarFilled height={16} width={16} />}
       <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]} numberOfLines={1}>
         {name}
       </Text>
@@ -48,6 +54,7 @@ export function ExerciseFilterBar({
           style={styles.chipsCarousel}
           contentContainerStyle={styles.chipsContent}
         >
+          {!!onSelectSaved && renderChip('saved', savedLabel, savedSelected, false, onSelectSaved)}
           {renderChip(
             null, 
             t('allMuscles') || 'Всі', 
