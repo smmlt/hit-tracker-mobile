@@ -40,6 +40,20 @@ yarn-error.*
 !.env.example
 !.env*.example
 
+# Local Docker Compose overrides
+docker-compose.override.yml
+docker-compose.override.yaml
+compose.override.yml
+compose.override.yaml
+
+# Secrets and certificates
+*.crt
+*.cer
+*.pfx
+*.keystore
+secrets/
+private/
+
 # typescript
 *.tsbuildinfo
 
