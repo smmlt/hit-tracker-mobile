@@ -3,15 +3,19 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { AuthContext } from "./AuthContext";
 import { apiRequest } from "../services/api";
+import { LanguageContext } from "../localization/LanguageContext";
+import { translateCatalogName } from "../localization/catalog";
 
 export const LibraryContext = createContext();
 export function LibraryProvider({ children }) {
   const { userToken } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
   const [exercises, setExercises] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [muscles, setMuscles] = useState([]);
@@ -92,9 +96,51 @@ export function LibraryProvider({ children }) {
       pending.current.delete(key);
     }
   };
+  const localizedMuscles = useMemo(
+    () => muscles.map((muscle) => ({
+      ...muscle,
+      displayName: translateCatalogName(t, 'muscle', muscle.commonName),
+    })),
+    [muscles, t],
+  );
+  const localizedExercises = useMemo(
+    () => exercises.map((exercise) => ({
+      ...exercise,
+      displayName: translateCatalogName(t, 'exercise', exercise.name),
+      muscles: (exercise.muscles || []).map((muscle) => ({
+        ...muscle,
+        displayName: translateCatalogName(t, 'muscle', muscle.commonName || muscle.name),
+      })),
+    })),
+    [exercises, t],
+  );
+  const localizedPrograms = useMemo(
+    () => programs.map((program) => ({
+      ...program,
+      displayName: program.isPersonal
+        ? program.name
+        : translateCatalogName(t, 'program', program.name),
+      schedule: (program.schedule || []).map((row) => ({
+        ...row,
+        exercise: row.exercise ? {
+          ...row.exercise,
+          displayName: translateCatalogName(t, 'exercise', row.exercise.name),
+        } : row.exercise,
+      })),
+    })),
+    [programs, t],
+  );
   return (
     <LibraryContext.Provider
-      value={{ exercises, programs, muscles, errors, loading, refresh, react }}
+      value={{
+        exercises: localizedExercises,
+        programs: localizedPrograms,
+        muscles: localizedMuscles,
+        errors,
+        loading,
+        refresh,
+        react,
+      }}
     >
       {children}
     </LibraryContext.Provider>

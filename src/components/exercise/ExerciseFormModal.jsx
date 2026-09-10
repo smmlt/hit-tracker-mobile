@@ -1,15 +1,10 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Modal,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
+import { createStyles } from './ExerciseFormModal.styles.js';
 
+import { palette } from '../../constants/colors';
+import { LanguageContext } from '../../localization/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 export function ExerciseFormModal({
   visible,
   onClose,
@@ -25,6 +20,9 @@ export function ExerciseFormModal({
   onSubmit,
   submitting,
 }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  const { t } = useContext(LanguageContext);
   return (
     <Modal
       visible={visible}
@@ -34,20 +32,20 @@ export function ExerciseFormModal({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>New Exercise 🏋️</Text>
+          <Text style={styles.modalTitle}>{t('newExercise')} 🏋️</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Exercise Name"
-            placeholderTextColor="#64748B"
+            placeholder={t('exerciseName')}
+            placeholderTextColor={theme.inputPlaceholder}
             value={name}
             onChangeText={setName}
           />
 
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Description & form tips..."
-            placeholderTextColor="#64748B"
+            placeholder={t('exerciseFormTips')}
+            placeholderTextColor={theme.inputPlaceholder}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -56,13 +54,13 @@ export function ExerciseFormModal({
 
           <TextInput
             style={styles.input}
-            placeholder="YouTube Link (optional)"
-            placeholderTextColor="#64748B"
+            placeholder={t('youtubeOptional')}
+            placeholderTextColor={theme.inputPlaceholder}
             value={videoUrl}
             onChangeText={setVideoUrl}
           />
 
-          <Text style={styles.label}>Select Target Muscles:</Text>
+          <Text style={styles.label}>{t('selectTargetMuscles')}:</Text>
           <ScrollView style={styles.muscleList} nestedScrollEnabled>
             <View style={styles.muscleSelectorContainer}>
               {musclesList.map((m) => {
@@ -82,7 +80,7 @@ export function ExerciseFormModal({
                         isSelected && styles.selectableChipTextActive,
                       ]}
                     >
-                      {m.commonName}
+                      {m.displayName || m.commonName}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -95,7 +93,7 @@ export function ExerciseFormModal({
               style={[styles.modalButton, styles.cancelButton]}
               onPress={onClose}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -104,9 +102,9 @@ export function ExerciseFormModal({
               disabled={submitting}
             >
               {submitting ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={theme.onPrimary} />
               ) : (
-                <Text style={styles.submitButtonText}>Create</Text>
+                <Text style={styles.submitButtonText}>{t('create')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -115,47 +113,3 @@ export function ExerciseFormModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#1E293B',
-    borderRadius: 16,
-    padding: 20,
-  },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 15 },
-  input: {
-    backgroundColor: '#0F172A',
-    color: '#F8FAFC',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-  },
-  textArea: {
-    height: 70,
-    textAlignVertical: 'top',
-  },
-  label: { color: '#94A3B8', fontSize: 13, marginBottom: 6 },
-  muscleList: { maxHeight: 120, marginBottom: 15 },
-  muscleSelectorContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  selectableChip: {
-    backgroundColor: '#0F172A',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  selectableChipActive: { backgroundColor: '#FF5722' },
-  selectableChipText: { color: '#94A3B8', fontSize: 12 },
-  selectableChipTextActive: { color: '#FFF', fontWeight: 'bold' },
-  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 10 },
-  modalButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
-  cancelButton: { backgroundColor: '#334155' },
-  cancelButtonText: { color: '#CBD5E1' },
-  submitButton: { backgroundColor: '#FF5722' },
-  submitButtonText: { color: '#FFF', fontWeight: 'bold' },
-});

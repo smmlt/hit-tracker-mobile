@@ -3,11 +3,12 @@ import { Text, View } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { useLibrary } from "../../context/LibraryContext";
 import { apiRequest } from "../../services/api";
-import { Button, Feedback, Field, Sheet, s, useWords } from "./ui";
+import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "./ui";
 
 const localDate = (date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 export function ScheduleProgramSheet({ program, onClose, onSaved }) {
+  const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
   const library = useLibrary();
   const w = useWords();
@@ -51,7 +52,7 @@ export function ScheduleProgramSheet({ program, onClose, onSaved }) {
   };
   return (
     <Sheet title={w.schedule} onClose={() => !saving && onClose()}>
-      <Text style={s.heading}>{program.name}</Text>
+      <Text style={s.heading}>{program.displayName || program.name}</Text>
       <Text style={s.muted}>{w.singleWorkoutHint}</Text>
       <Field
         label={w.startDate}

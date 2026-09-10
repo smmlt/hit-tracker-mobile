@@ -1,16 +1,6 @@
 import React, { useContext, useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TouchableOpacity, 
-  Linking,
-  Animated 
-} from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Animated } from 'react-native';
+import { createStyles } from './ForgotPasswordScreen.styles.js';
 import { Ionicons } from '@expo/vector-icons';
 import { isValidEmail } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
@@ -18,7 +8,11 @@ import { CustomToast } from '../components/feedback';
 import { apiRequest } from '../services/api';
 import { LanguageContext } from '../localization/LanguageContext';
 
+import { palette } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 export default function ForgotPasswordScreen({ navigation }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [email, setEmail] = useState('');
   const { t } = useContext(LanguageContext);
   const [isSent, setIsSent] = useState(false);
@@ -53,7 +47,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
       setIsSent(true);
     } catch (err) {
-      showToast(err.message || 'Something went wrong');
+      showToast(err.message || t('somethingWentWrong'));
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +59,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.fill}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.formWrapper}>
             {!isSent ? (
@@ -93,13 +87,13 @@ export default function ForgotPasswordScreen({ navigation }) {
             ) : (
               <View style={styles.centerContent}>
                 <View style={styles.iconCircle}>
-                  <Ionicons name="mail-unread-outline" size={48} color="#000" />
+                  <Ionicons name="mail-unread-outline" size={48} color={theme.textPrimary} />
                 </View>
 
                 <Text style={[styles.title, { textAlign: 'center' }]}>{t('checkYourEmail')}</Text>
                 <Text style={[styles.subtitle, { textAlign: 'center', marginBottom: 24 }]}>
                   {t('resetLinkSent')}{'\n'}
-                  <Text style={{ fontWeight: '600', color: '#000' }}>{email}</Text>
+                  <Text style={styles.emailValue}>{email}</Text>
                 </Text>
 
                 <View style={styles.fullWidthButton}>
@@ -126,16 +120,3 @@ export default function ForgotPasswordScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20, maxWidth: 440, width: '100%', alignSelf: 'center' },
-  formWrapper: { width: '100%' },
-  centerContent: { alignItems: 'center', width: '100%' },
-  iconCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#6B7280', marginBottom: 24, lineHeight: 22 },
-  linkContainer: { marginTop: 20, alignItems: 'center' },
-  linkText: { color: '#000', fontWeight: '700', fontSize: 14 },
-  fullWidthButton: { width: '100%', marginTop: 16 },
-});

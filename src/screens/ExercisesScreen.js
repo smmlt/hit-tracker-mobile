@@ -1,21 +1,19 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  ActivityIndicator,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
+import { createStyles } from './ExercisesScreen.styles.js';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
 
 import { ExerciseFilterBar, ExerciseFormModal, ExerciseItem } from '../components/exercise';
 
+import { palette } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 export default function ExercisesScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { userToken, userData } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
   const canManageExercises = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
 
   const [exercises, setExercises] = useState([]);
@@ -60,7 +58,7 @@ export default function ExercisesScreen() {
       }
     } catch (err) {
       console.error('Error fetching exercises:', err);
-      showToast('Failed to load exercises', 'error');
+      showToast(t('exerciseLoadFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -72,7 +70,7 @@ export default function ExercisesScreen() {
 
   const handleCreateExercise = async () => {
     if (!name.trim()) {
-      showToast('Please enter an exercise name', 'error');
+      showToast(t('exerciseNameRequired'), 'error');
       return;
     }
 
@@ -94,18 +92,18 @@ export default function ExercisesScreen() {
         setVideoUrl('');
         setSelectedMuscleIds([]);
         setIsModalVisible(false);
-        showToast('Exercise created successfully! 🎉', 'success');
+        showToast(t('exerciseCreated'), 'success');
         fetchData();
       } else {
         const errorMsg = Array.isArray(data?.message)
           ? data.message.join(', ')
-          : data?.message || 'Failed to create exercise';
+          : data?.message || t('exerciseCreateFailed');
         
         showToast(errorMsg, 'error');
       }
     } catch (err) {
       console.error('Error creating exercise:', err);
-      showToast('Network error. Please try again.', 'error');
+      showToast(t('networkTryAgain'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -130,7 +128,7 @@ export default function ExercisesScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#FF5722" />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -138,7 +136,7 @@ export default function ExercisesScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.mainContainer}>
-        <Text style={styles.title}>Exercise Workshop 🛠️</Text>
+        <Text style={styles.title}>{t('exerciseWorkshop')} 🛠️</Text>
 
         <ExerciseFilterBar
           musclesList={musclesList}
@@ -148,7 +146,7 @@ export default function ExercisesScreen() {
 
         <ScrollView style={styles.listContainer}>
           <Text style={styles.sectionTitle}>
-            Exercises Found ({filteredExercises.length})
+            {t('exercisesFoundCount', { count: filteredExercises.length })}
           </Text>
 
           {filteredExercises.map((ex) => (
@@ -208,56 +206,3 @@ export default function ExercisesScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0F172A' },
-  mainContainer: { flex: 1, padding: 20 },
-  centerContainer: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 15 },
-  listContainer: { flex: 1 },
-  sectionTitle: {
-    fontSize: 13,
-    color: '#94A3B8',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    marginBottom: 12,
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 25,
-    backgroundColor: '#FF5722',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.3)',
-  },
-  fabIcon: { color: '#FFF', fontSize: 32, fontWeight: '300', marginTop: -3 },
-  toastContainer: {
-    position: 'absolute',
-    bottom: 30,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.3)',
-    elevation: 6,
-    zIndex: 2000,
-    maxWidth: '90%',
-  },
-  toastSuccess: { backgroundColor: '#10B981' },
-  toastError: { backgroundColor: '#EF4444' },
-  toastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', flex: 1, marginRight: 12 },
-  toastClose: { padding: 4 },
-  toastCloseText: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },
-});

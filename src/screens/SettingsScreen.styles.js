@@ -1,0 +1,26 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  header: { alignItems: 'center', flexDirection: 'row', minHeight: 56 },
+  back: { alignItems: 'center', height: 44, justifyContent: 'center', width: 36 },
+  title: { fontFamily: 'Inter-Bold', fontSize: 16, marginLeft: 8, textTransform: 'uppercase' },
+  content: { alignSelf: 'center', maxWidth: 393, paddingBottom: 40, paddingHorizontal: 20, width: '100%' },
+  label: { fontFamily: 'Inter-SemiBold', fontSize: 13, marginBottom: 5, marginTop: 10 },
+  sectionTitle: { fontFamily: 'Inter-Bold', fontSize: 16, marginBottom: 4, marginTop: 18 },
+  row: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', minHeight: 34, paddingHorizontal: 12 },
+  rowText: { fontFamily: 'Inter', fontSize: 16 },
+  languageField: { alignItems: 'center', borderRadius: 10, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 44, paddingHorizontal: 12 },
+  languageText: { fontFamily: 'Inter', fontSize: 16 },
+  segment: { borderRadius: 12, borderWidth: 1, flexDirection: 'row', minHeight: 42, overflow: 'hidden', width: '100%' },
+  segmentItem: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: 8, justifyContent: 'center', minHeight: 40, paddingHorizontal: 12 },
+  segmentText: { fontFamily: 'Inter', fontSize: 16 },
+  reminderCard: { alignItems: 'center', borderRadius: 10, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, padding: 12 },
+  reminderBody: { flex: 1, gap: 4 },
+  reminderLabel: { fontFamily: 'Inter', fontSize: 12, textTransform: 'uppercase' },
+  reminderValue: { fontFamily: 'Inter', fontSize: 16 },
+  save: { alignItems: 'center', borderRadius: 12, borderWidth: 1, justifyContent: 'center', marginTop: 58, minHeight: 44 },
+  saveText: { fontFamily: 'Inter', fontSize: 16 },
+  logout: { alignItems: 'center', justifyContent: 'center', marginTop: 14, minHeight: 44 },
+  logoutText: { fontFamily: 'Inter', fontSize: 14, fontWeight: '700' },
+});

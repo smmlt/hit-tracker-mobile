@@ -1,6 +1,8 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  iconSlot: { height: 30, justifyContent: 'center' },
+  label: { fontFamily: 'Inter', fontSize: 10 },
   dock: {
     position: 'absolute',
     bottom: 0,

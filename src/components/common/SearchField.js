@@ -4,6 +4,7 @@ import SearchIcon from '../../assets/workshop/Search.svg';
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 import { styles } from './SearchField.styles';
+import { palette } from '../../constants/colors';
 
 export function SearchField({
   value,
@@ -18,7 +19,7 @@ export function SearchField({
 }) {
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
-  const borderColor = error ? theme.primary : 'transparent';
+  const borderColor = error ? theme.primary : palette.transparent;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.inputBackground, borderColor }, style]}>
@@ -37,7 +38,7 @@ export function SearchField({
         placeholder={placeholder || t('searchPlaceholder')}
         placeholderTextColor={theme.inputPlaceholder}
         style={[styles.input, { color: theme.inputText }, inputStyle]}
-        underlineColorAndroid="transparent"
+        underlineColorAndroid={palette.transparent}
         value={value}
         {...inputProps}
       />

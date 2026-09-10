@@ -1,15 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TouchableOpacity, 
-  Animated 
-} from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Animated } from 'react-native';
+import { createStyles } from './LoginScreen.styles.js';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { AuthContext } from '../context/AuthContext';
@@ -19,8 +10,12 @@ import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
 import { createPkcePair } from '../utils/oauthPkce';
 import { LanguageContext } from '../localization/LanguageContext';
+import { createUnknownUserCountdown, isUnknownUserError } from '../utils/authFlow';
+import { useTheme } from '../context/ThemeContext';
 
 export default function LoginScreen({ navigation, route }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,6 +29,11 @@ export default function LoginScreen({ navigation, route }) {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const countdownRef = useRef();
+  const emailRef = useRef(email);
+  const loginAttemptRef = useRef(0);
+  const submittingRef = useRef(false);
+  const toastTimerRef = useRef();
 
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -48,7 +48,8 @@ export default function LoginScreen({ navigation, route }) {
       useNativeDriver: true,
     }).start();
 
-    setTimeout(() => {
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
       hideToast();
     }, 3500);
   };
@@ -67,21 +68,49 @@ export default function LoginScreen({ navigation, route }) {
   }, [route?.params?.prefilledEmail, route?.params?.registered]);
 
   useEffect(() => {
+    emailRef.current = email;
+  }, [email]);
+
+  useEffect(() => {
+    countdownRef.current = createUnknownUserCountdown({
+      onTick: (seconds) => {
+        const message = t('userNotFoundRedirect').replace('{seconds}', seconds);
+        clearTimeout(toastTimerRef.current);
+        setRedirectSeconds(seconds);
+        setErrorMessage(message);
+        setToastMessage(message);
+        setToastType('error');
+        setToastVisible(true);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }).start();
+      },
+      onComplete: () => {
+        fadeAnim.stopAnimation();
+        fadeAnim.setValue(0);
+        setToastVisible(false);
+        navigation.replace('Register', {
+          prefilledEmail: emailRef.current.trim().toLowerCase(),
+        });
+      },
+    });
+    return () => {
+      loginAttemptRef.current += 1;
+      countdownRef.current?.cancel();
+      clearTimeout(toastTimerRef.current);
+      fadeAnim.stopAnimation();
+    };
+  }, [fadeAnim, navigation, t]);
+
+  useEffect(() => {
     if (!retryAfterSeconds) return undefined;
     const timer = setInterval(() => {
       setRetryAfterSeconds((seconds) => Math.max(0, seconds - 1));
     }, 1000);
     return () => clearInterval(timer);
   }, [retryAfterSeconds]);
-
-  useEffect(() => {
-    if (!redirectSeconds) return undefined;
-    const timer = setTimeout(() => {
-      if (redirectSeconds === 1) navigation.replace('Register', { prefilledEmail: email });
-      else setRedirectSeconds((seconds) => seconds - 1);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [email, navigation, redirectSeconds]);
 
   const handleAppleLogin = () => {
     showToast(t('appleComingSoon'), 'error');
@@ -100,17 +129,27 @@ export default function LoginScreen({ navigation, route }) {
   };
 
   const handleLogin = async () => {
-    const validationError = !email || !password ? t('fillAllFields')
-      : !isValidEmail(email) ? t('enterValidEmail') : '';
+    if (submittingRef.current) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    const validationError = !normalizedEmail || !password ? t('fillAllFields')
+      : !isValidEmail(normalizedEmail) ? t('enterValidEmail') : '';
     if (validationError) {
       setErrorMessage(validationError);
       return showToast(validationError, 'error');
     }
 
+    const attempt = ++loginAttemptRef.current;
+    submittingRef.current = true;
     try {
+      countdownRef.current?.cancel();
+      setRedirectSeconds(0);
       setErrorMessage('');
-      await login(email, password);
+      setEmail(normalizedEmail);
+      await login(normalizedEmail, password);
+      if (attempt !== loginAttemptRef.current) return;
+      countdownRef.current?.cancel();
     } catch (err) {
+      if (attempt !== loginAttemptRef.current) return;
       const status = err.status || err.response?.status;
 
       if (status === 429) {
@@ -118,24 +157,36 @@ export default function LoginScreen({ navigation, route }) {
         return;
       }
 
-      const message = status === 404 ? t('userNotFound')
-        : status === 401 ? t('invalidCredentials')
+      const message = isUnknownUserError(err) ? t('userNotFound')
+        : err.details?.code === 'INVALID_CREDENTIALS' ? t('invalidPassword')
+        : err.details?.code === 'EMAIL_NOT_VERIFIED' ? t('emailNotVerified')
+        : err.details?.code === 'GOOGLE_SIGN_IN_REQUIRED' ? t('googleSignInRequired')
         : err.message || t('loginFailed');
-      if (status === 404) {
-        const redirectMessage = t('userNotFoundRedirect').replace('{seconds}', 5);
-        setRedirectSeconds(5);
-        setErrorMessage(redirectMessage);
-        showToast(redirectMessage, 'error');
+      if (isUnknownUserError(err)) {
+        countdownRef.current?.start();
       } else {
         setErrorMessage(message);
         showToast(message, 'error');
       }
+    } finally {
+      submittingRef.current = false;
     }
+  };
+
+  const cancelPendingLogin = () => {
+    loginAttemptRef.current += 1;
+    countdownRef.current?.cancel();
+    setRedirectSeconds(0);
+    setErrorMessage('');
+    clearTimeout(toastTimerRef.current);
+    fadeAnim.stopAnimation();
+    fadeAnim.setValue(0);
+    setToastVisible(false);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.fill}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.formWrapper}>
             <Text style={styles.title}>{t('signIn')}</Text>
@@ -145,7 +196,7 @@ export default function LoginScreen({ navigation, route }) {
               label={t('email')}
               placeholder={t('emailPlaceholder')}
               value={email}
-              onChangeText={(text) => { setEmail(text); setErrorMessage(''); setRedirectSeconds(0); }}
+              onChangeText={(text) => { cancelPendingLogin(); setEmail(text); }}
               keyboardType="email-address"
             />
 
@@ -153,7 +204,7 @@ export default function LoginScreen({ navigation, route }) {
               label={t('password')}
               placeholder="********"
               value={password}
-              onChangeText={(text) => { setPassword(text); setErrorMessage(''); setRedirectSeconds(0); }}
+              onChangeText={(text) => { cancelPendingLogin(); setPassword(text); }}
               isPassword
               secureTextEntry={!showPassword}
               showPassword={showPassword}
@@ -203,25 +254,3 @@ export default function LoginScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: 24, 
-    paddingVertical: 20, 
-    maxWidth: 440, 
-    width: '100%', 
-    alignSelf: 'center' 
-  },
-  formWrapper: { width: '100%' },
-  title: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 28 },
-  forgotPass: { alignSelf: 'flex-end', marginBottom: 20 },
-  forgotPassText: { fontSize: 13, color: '#000', fontWeight: '500' },
-  rateLimitMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
-  bottomLinkContainer: { marginTop: 32, alignItems: 'center' },
-  bottomText: { color: '#6B7280', fontSize: 14 },
-  boldText: { color: '#000', fontWeight: '700' },
-});

@@ -1,18 +1,12 @@
 import React, { useContext } from "react";
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { createStyles } from './ui.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LanguageContext } from "../../localization/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 import Back from "../../assets/workshop/Back.svg";
 
+import { palette } from '../../constants/colors';
 const words = {
   en: {
     workshop: "WORKSHOP",
@@ -31,6 +25,7 @@ const words = {
     createExercise: "Create exercise",
     edit: "Edit",
     save: "Save",
+    like: "Like",
     cancel: "Cancel",
     close: "Close",
     back: "Back",
@@ -100,6 +95,7 @@ const words = {
     createExercise: "Створити вправу",
     edit: "Редагувати",
     save: "Зберегти",
+    like: "Вподобати",
     cancel: "Скасувати",
     close: "Закрити",
     back: "Назад",
@@ -153,6 +149,7 @@ const words = {
 };
 export const useWords = () =>
   words[useContext(LanguageContext).locale] || words.en;
+export const useWorkshopStyles = () => createStyles(useTheme().theme);
 export function Button({
   children,
   onPress,
@@ -161,32 +158,35 @@ export function Button({
   style,
   ...props
 }) {
+  const styles = useWorkshopStyles();
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
-        s.button,
-        secondary && s.secondary,
+        styles.button,
+        secondary && styles.secondary,
         style,
         (disabled || pressed) && { opacity: 0.5 },
       ]}
       {...props}
     >
-      <Text style={s.buttonText}>{children}</Text>
+      <Text style={styles.buttonText}>{children}</Text>
     </Pressable>
   );
 }
 export function Field({ label, style, ...props }) {
+  const styles = useWorkshopStyles();
+  const { theme } = useTheme();
   return (
     <View style={[{ gap: 6 }, style]}>
-      <Text style={s.muted}>{label}</Text>
+      <Text style={styles.muted}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
-        placeholderTextColor="#838384"
+        placeholderTextColor={theme.textSecondary}
         style={[
-          s.input,
+          styles.input,
           props.multiline && { minHeight: 90, textAlignVertical: "top" },
         ]}
         {...props}
@@ -196,19 +196,20 @@ export function Field({ label, style, ...props }) {
 }
 export function Sheet({ title, children, onClose }) {
   const w = useWords();
+  const styles = useWorkshopStyles();
   return (
     <Modal transparent animationType="fade" visible onRequestClose={onClose}>
-      <View style={s.overlay}>
-        <SafeAreaView style={s.sheet}>
-          <View style={s.header}>
-            <Text style={[s.heading, { flex: 1 }]}>{title}</Text>
+      <View style={styles.overlay}>
+        <SafeAreaView style={styles.sheet}>
+          <View style={styles.header}>
+            <Text style={[styles.heading, { flex: 1 }]}>{title}</Text>
             <Button secondary onPress={onClose}>
               {w.close}
             </Button>
           </View>
           <ScrollView
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={s.sheetBody}
+            contentContainerStyle={styles.sheetBody}
           >
             {children}
           </ScrollView>
@@ -219,28 +220,30 @@ export function Sheet({ title, children, onClose }) {
 }
 export function DetailHeader({ title, onBack, children }) {
   const w = useWords();
+  const styles = useWorkshopStyles();
   return (
-    <View style={s.detailHeader}>
+    <View style={styles.detailHeader}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={w.back}
         onPress={onBack}
-        style={s.iconButton}
+        style={styles.iconButton}
       >
         <Back width={24} height={24} />
       </Pressable>
-      <Text style={[s.heading, { flex: 1, textAlign: "center" }]}>{title}</Text>
-      {children || <View style={s.iconButton} />}
+      <Text style={[styles.heading, { flex: 1, textAlign: "center" }]}>{title}</Text>
+      {children || <View style={styles.iconButton} />}
     </View>
   );
 }
 export function Feedback({ error, loading, onRetry }) {
   const w = useWords();
+  const styles = useWorkshopStyles();
   return loading ? (
-    <ActivityIndicator color="#F00D22" style={{ margin: 24 }} />
+    <ActivityIndicator color={palette.accent} style={styles.spinner} />
   ) : error ? (
-    <View style={s.feedback}>
-      <Text accessibilityRole="alert" style={s.error}>
+    <View style={styles.feedback}>
+      <Text accessibilityRole="alert" style={styles.error}>
         {String(error)}
       </Text>
       {onRetry && (
@@ -251,115 +254,3 @@ export function Feedback({ error, loading, onRetry }) {
     </View>
   ) : null;
 }
-export const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#101113" },
-  content: {
-    padding: 20,
-    paddingBottom: 28,
-    gap: 16,
-    width: "100%",
-    maxWidth: 760,
-    alignSelf: "center",
-  },
-  title: { color: "#EFEFEF", fontSize: 24, fontFamily: "Inter-SemiBold", lineHeight: 34 },
-  heading: {
-    color: "#EFEFEF",
-    fontSize: 16,
-    fontFamily: "Inter-Bold",
-    lineHeight: 23,
-  },
-  text: { color: "#EFEFEF", fontFamily: "Inter", fontSize: 14, lineHeight: 20 },
-  muted: { color: "#C8C8C8", fontFamily: "Inter", fontSize: 13, lineHeight: 19 },
-  error: { color: "#FF7F8A", fontSize: 13 },
-  link: { color: "#F00D22", fontSize: 13, fontFamily: "Inter-SemiBold" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  detailHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    width: "100%",
-    maxWidth: 760,
-    alignSelf: "center",
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  button: {
-    minHeight: 44,
-    borderRadius: 14,
-    backgroundColor: "#F00D22",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    fontFamily: "Inter-SemiBold",
-    color: "#EFEFEF",
-    fontSize: 13,
-    textAlign: "center",
-  },
-  secondary: {
-    backgroundColor: "#292929",
-    borderWidth: 1,
-    borderColor: "#454545",
-  },
-  input: {
-    fontFamily: "Inter",
-    minHeight: 44,
-    borderWidth: 1,
-    borderColor: "#505050",
-    backgroundColor: "#17181A",
-    borderRadius: 10,
-    padding: 12,
-    color: "#EFEFEF",
-    fontSize: 14,
-  },
-  row: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: "#292929",
-    borderRadius: 14,
-    minHeight: 30,
-    justifyContent: "center",
-  },
-  selected: { backgroundColor: "#F00D22" },
-  overlay: {
-    flex: 1,
-    backgroundColor: "#000A",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 12,
-  },
-  sheet: {
-    backgroundColor: "#101113",
-    borderColor: "#454545",
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 16,
-    width: "100%",
-    maxWidth: 700,
-    maxHeight: "95%",
-  },
-  sheetBody: { gap: 16, paddingTop: 16, paddingBottom: 16 },
-  feedback: { gap: 12, paddingVertical: 12 },
-  media: {
-    height: 226,
-    borderRadius: 8,
-    backgroundColor: "#7F7A7A",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    marginHorizontal: 10,
-  },
-});

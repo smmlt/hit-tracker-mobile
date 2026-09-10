@@ -1,15 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TouchableOpacity, 
-  Animated 
-} from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Animated } from 'react-native';
+import { createStyles } from './RegisterScreen.styles.js';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,8 +11,12 @@ import { CustomToast } from '../components/feedback';
 import { API_URL } from '../constants/config';
 import { createPkcePair } from '../utils/oauthPkce';
 import { LanguageContext } from '../localization/LanguageContext';
+import { completeRegistration } from '../utils/authFlow';
+import { useTheme } from '../context/ThemeContext';
 
 export default function RegisterScreen({ navigation, route }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,6 +30,8 @@ export default function RegisterScreen({ navigation, route }) {
   const [toastType, setToastType] = useState('error');
   const [errorMessage, setErrorMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const submittingRef = useRef(false);
+  const toastTimerRef = useRef();
 
   useEffect(() => {
     if (route?.params?.prefilledEmail) {
@@ -53,7 +50,8 @@ export default function RegisterScreen({ navigation, route }) {
       useNativeDriver: true,
     }).start();
 
-    setTimeout(() => {
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
       hideToast();
     }, 3500);
   };
@@ -67,6 +65,11 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const criteria = getPasswordCriteria(password);
+
+  useEffect(() => () => {
+    clearTimeout(toastTimerRef.current);
+    fadeAnim.stopAnimation();
+  }, [fadeAnim]);
 
   const handleAppleLogin = () => {
     showToast(t('appleComingSoon'), 'error');
@@ -93,8 +96,10 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const handleRegister = async () => {
-    const validationError = !fullName ? t('enterFullName')
-      : !isValidEmail(email) ? t('enterValidEmail')
+    if (submittingRef.current) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    const validationError = !fullName.trim() ? t('enterFullName')
+      : !isValidEmail(normalizedEmail) ? t('enterValidEmail')
       : !isValidPassword(password) ? t('passwordRequirements') : '';
     if (validationError) {
       setErrorMessage(validationError);
@@ -102,20 +107,28 @@ export default function RegisterScreen({ navigation, route }) {
     }
 
     try {
+      submittingRef.current = true;
       setErrorMessage('');
-      await register(email, password, fullName);
-      await AsyncStorage.setItem('pendingRegistrationEmail', email);
-      navigation.replace('VerifyEmail', { email });
+      await completeRegistration({
+        displayName: fullName.trim(),
+        email: normalizedEmail,
+        password,
+        register,
+        persistEmail: (value) => AsyncStorage.setItem('pendingRegistrationEmail', value),
+        navigate: (value) => navigation.replace('VerifyEmail', { email: value }),
+      });
     } catch (err) {
       const message = err.message || t('registrationFailed');
       setErrorMessage(message);
       showToast(message, 'error');
+    } finally {
+      submittingRef.current = false;
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.fill}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <BackButton onPress={() => navigation.goBack()} />
 
@@ -191,27 +204,3 @@ export default function RegisterScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: 24, 
-    paddingVertical: 20, 
-    maxWidth: 440, 
-    width: '100%', 
-    alignSelf: 'center' 
-  },
-  formWrapper: { width: '100%' },
-  title: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 20 },
-  hintsContainer: { marginTop: -4, marginBottom: 16 },
-  hintItem: { fontSize: 13, marginBottom: 4 },
-  hintPending: { color: '#9CA3AF' },
-  hintSuccess: { color: '#10B981', fontWeight: '600' },
-  errorMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
-  bottomLinkContainer: { marginTop: 24, alignItems: 'center' },
-  bottomText: { color: '#6B7280', fontSize: 14 },
-  boldText: { color: '#000', fontWeight: '700' },
-});

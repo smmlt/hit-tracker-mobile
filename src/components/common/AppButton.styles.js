@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 
+import { palette } from '../../constants/colors';
 export const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
@@ -10,5 +11,5 @@ export const styles = StyleSheet.create({
   },
   disabled: { opacity: 0.55 },
   pressed: { opacity: 0.82 },
-  label: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  label: { color: palette.whitePure, fontSize: 15, fontWeight: '700' },
 });

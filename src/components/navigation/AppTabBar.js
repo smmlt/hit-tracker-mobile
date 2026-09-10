@@ -34,10 +34,10 @@ export default function AppTabBar({ state, descriptors, navigation }) {
 
         return (
           <Pressable key={route.key} accessibilityLabel={options.tabBarAccessibilityLabel || route.name} accessibilityRole="button" accessibilityState={{ selected: focused }} onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })} onPress={handlePress} style={({ pressed }) => [styles.item, pressed && styles.pressed]}>
-            <View style={{ height: 30, justifyContent: 'center' }}>
+            <View style={styles.iconSlot}>
               {options.tabBarIcon ? options.tabBarIcon({ focused, color, size: 24 }) : <Icon color={color} height={24} width={24} />}
             </View>
-            <Text style={{ color, fontFamily: 'Inter', fontSize: 10 }}>{options.title || route.name}</Text>
+            <Text style={[styles.label, { color }]}>{options.title || route.name}</Text>
           </Pressable>
         );
       })}

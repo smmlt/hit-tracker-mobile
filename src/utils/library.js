@@ -1,8 +1,8 @@
-const difficultyColors = ['#22C55E', '#84CC16', '#FACC15', '#F98300', '#F00D22'];
+import { difficultyColors, palette } from '../constants/colors.js';
 
 export const difficultyBarColors = (difficulty = 1) =>
   difficultyColors.map((_, index) =>
-    index < difficulty ? difficultyColors[difficulty - 1] : '#626262',
+    index < difficulty ? difficultyColors[difficulty - 1] : palette.difficultyInactive,
   );
 
 // A program defines exercises and reps, not the user's working weight or calendar date.

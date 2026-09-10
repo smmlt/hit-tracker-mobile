@@ -6,6 +6,7 @@ import { LanguageContext } from '../../localization/LanguageContext';
 import GridIcon from '../../assets/workshop/More.svg';
 import { createStyles } from './ExerciseFilterBar.styles';
 
+import { palette } from '../../constants/colors';
 export function ExerciseFilterBar({
   musclesList = [],
   selectedMuscleFilter,
@@ -17,12 +18,7 @@ export function ExerciseFilterBar({
   
   const [isModalVisible, setModalVisible] = useState(false);
 
-  const getMuscleDisplayName = (m) => {
-    if (!m) return t('allMuscles') || 'Всі';
-    const translationKey = `muscle_${m.commonName.toLowerCase().replace(/\s+/g, '_')}`;
-    const translatedName = t(translationKey);
-    return translatedName !== translationKey ? translatedName : m.commonName;
-  };
+  const getMuscleDisplayName = (muscle) => muscle?.displayName || muscle?.commonName || t('allMuscles');
 
   const renderChip = (id, name, isActive, closeModal = false) => (
     <TouchableOpacity
@@ -77,7 +73,7 @@ export function ExerciseFilterBar({
           <GridIcon 
             width={20} 
             height={20} 
-            color={theme.textPrimary || '#FFFFFF'}
+            color={theme.textPrimary || palette.whitePure}
           />
         </TouchableOpacity>
       </View>

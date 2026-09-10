@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { ActivityIndicator, Platform, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -24,10 +24,13 @@ import LibraryProgramScreen from '../screens/LibraryProgramScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import UsernameSettingsScreen from '../screens/UsernameSettingsScreen';
 import AdminScreen from '../screens/AdminScreen';
 import TrainingScreen from '../screens/TrainingScreen';
 import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 
+import { palette } from '../constants/colors';
+import { createStyles } from './AppNavigator.styles';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
@@ -41,8 +44,11 @@ function WorkshopStack() {
     <WorkshopStackNavigator.Screen name="ExerciseDetails" component={ExerciseDetailsScreen} />
   </WorkshopStackNavigator.Navigator>;
 }
-
-const AnalyticsPlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
+const AnalyticsPlaceholder = () => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  return <View style={styles.analyticsPlaceholder} />;
+};
 function TrainingStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
@@ -65,10 +71,10 @@ function ProfileStack() {
       <ProfileStackNavigator.Screen name="ProfileMain" component={ProfileScreen} />
       <ProfileStackNavigator.Screen name="Settings" component={SettingsScreen} />
       <ProfileStackNavigator.Screen name="EditProfile" component={EditProfileScreen} />
+      <ProfileStackNavigator.Screen name="UsernameSettings" component={UsernameSettingsScreen} />
     </ProfileStackNavigator.Navigator>
   );
 }
-
 function MainTabs() {
   const { t } = useContext(LanguageContext);
 
@@ -121,15 +127,17 @@ const linking = {
 };
 
 export default function AppNavigator() {
-  const { isLoading, userToken } = useContext(AuthContext);
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  const { isInitializing, userToken } = useContext(AuthContext);
   const [isAdminRoute] = React.useState(() => Platform.OS === 'web'
     && typeof window !== 'undefined'
     && window.location.pathname.toLowerCase().startsWith('/admin'));
 
-  if (isLoading) {
+  if (isInitializing) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#f97316" />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -139,8 +147,8 @@ export default function AppNavigator() {
       <View style={styles.container}>
         <Stack.Navigator
           screenOptions={{
-            headerStyle: { backgroundColor: '#0F172A' },
-            headerTintColor: '#F8FAFC',
+            headerStyle: { backgroundColor: theme.background },
+            headerTintColor: theme.textPrimary,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >
@@ -190,15 +198,3 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loading: {
-    alignItems: 'center',
-    backgroundColor: '#0F172A',
-    flex: 1,
-    justifyContent: 'center',
-  },
-});

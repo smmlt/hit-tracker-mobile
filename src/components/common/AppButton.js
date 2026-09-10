@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, Text } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { styles } from './AppButton.styles';
 
+import { palette } from '../../constants/colors';
 export function AppButton({
   title,
   onPress,
@@ -25,14 +26,14 @@ export function AppButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: isPrimary ? theme.primary : '#909090' },
+        { backgroundColor: isPrimary ? theme.primary : palette.controlDisabled },
         isDisabled && styles.disabled,
         pressed && !isDisabled && styles.pressed,
         style,
       ]}
       {...pressableProps}
     >
-      {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={[styles.label, textStyle]}>{title}</Text>}
+      {loading ? <ActivityIndicator color={palette.whitePure} /> : <Text style={[styles.label, textStyle]}>{title}</Text>}
     </Pressable>
   );
 }

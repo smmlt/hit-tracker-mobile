@@ -5,17 +5,22 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useLibrary } from "../context/LibraryContext";
 import { WorkoutContext } from "../context/WorkoutContext";
 import { LanguageContext } from "../localization/LanguageContext";
+import { useTheme } from "../context/ThemeContext";
 import { ExerciseVideoPlayer } from "../components/media";
 import {
   Button,
   DetailHeader,
   Feedback,
-  s,
+  useWorkshopStyles,
   useWords,
 } from "../components/workshop/ui";
 import { ShareButton } from "../components/workshop/ShareButton";
 
+import { createStyles } from './ExerciseDetailsScreen.styles';
 export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  const s = useWorkshopStyles();
   const w = useWords();
   const { t } = useContext(LanguageContext);
   const { addWorkoutExercises, preparedWorkout, activeWorkout } =
@@ -46,48 +51,33 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
     }
   };
   return (
-    <View style={{ gap: 16 }}>
+    <View style={styles.contentBlock}>
       {exercise.videoUrl ? (
         <ExerciseVideoPlayer
           source={exercise.videoUrl}
           style={s.media}
-          onError={() => setError("Video could not be loaded")}
+          onError={() => setError(t('videoLoadFailed'))}
         />
       ) : (
         <View style={s.media}>
-          <Text style={{ color: "#EFEFEF", fontSize: 12 }}>{w.noMedia}</Text>
+          <Text style={styles.noMedia}>{w.noMedia}</Text>
         </View>
       )}
-      <View style={{ paddingHorizontal: 10, gap: 4 }}>
-        <Text style={s.title}>{exercise.name}</Text>
+      <View style={styles.summary}>
+        <Text style={s.title}>{exercise.displayName || exercise.name}</Text>
         <Text style={s.muted}>
-          {exercise.muscles?.map((m) => m.commonName || m.name).join(" · ") ||
+          {exercise.muscles?.map((m) => m.displayName || m.commonName || m.name).join(" · ") ||
             w.noMuscles}
         </Text>
       </View>
       <Text style={s.heading}>{w.muscles}</Text>
-      <View
-        style={{
-          backgroundColor: "#292929",
-          padding: 10,
-          flexDirection: "row",
-          gap: 16,
-          minHeight: 172,
-        }}
-      >
-        <View
-          style={{
-            width: "43%",
-            minHeight: 150,
-            borderRadius: 8,
-            backgroundColor: "#C4C4C4",
-          }}
-        />
-        <View style={{ flex: 1, gap: 8, justifyContent: "center" }}>
+      <View style={styles.musclePanel}>
+        <View style={styles.muscleImage} />
+        <View style={styles.muscleList}>
           {exercise.muscles?.length ? (
             exercise.muscles.map((muscle) => (
               <View key={muscle.id}>
-                <Text style={s.text}>{muscle.commonName || muscle.name}</Text>
+                <Text style={s.text}>{muscle.displayName || muscle.commonName || muscle.name}</Text>
                 {!!muscle.scientificName && (
                   <Text style={[s.muted, { fontSize: 11 }]}>
                     {muscle.scientificName}
@@ -131,6 +121,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
 }
 
 export default function ExerciseDetailsScreen({ navigation, route }) {
+  const s = useWorkshopStyles();
   const tabBarHeight = useBottomTabBarHeight();
   const w = useWords();
   const library = useLibrary();
@@ -142,7 +133,7 @@ export default function ExerciseDetailsScreen({ navigation, route }) {
       <DetailHeader onBack={() => navigation.goBack()}>
         {exercise && (
           <ShareButton
-            title={exercise.name}
+            title={exercise.displayName || exercise.name}
             description={exercise.description}
           />
         )}

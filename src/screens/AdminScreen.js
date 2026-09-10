@@ -1,37 +1,33 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { createStyles } from './AdminScreen.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProfile } from "../hooks/useProfile";
 import { adminService } from "../services/adminService";
 import { AuthContext } from "../context/AuthContext";
+import { LanguageContext } from "../localization/LanguageContext";
 import { ContentManagement } from "../components/admin/ContentManagement";
 import { ConfirmDialog } from "../components/feedback";
-import { Button, Feedback, Field, Sheet, s } from "../components/workshop/ui";
+import { Button, Feedback, Field, Sheet, useWorkshopStyles } from "../components/workshop/ui";
+import { useTheme } from "../context/ThemeContext";
 
-const labels = {
-  user: "User",
-  helper: "Helper",
-  moderator: "Moderator",
-  admin: "Admin",
-  super_admin: "Super admin",
-};
+import { palette } from '../constants/colors';
+const roles = ["user", "helper", "moderator", "admin", "super_admin"];
 const colors = {
-  user: "#838384",
-  helper: "#6CB4EE",
-  moderator: "#B8A0FF",
-  admin: "#F98300",
-  super_admin: "#F00D22",
+  user: palette.gray,
+  helper: palette.blueHelper,
+  moderator: palette.purpleHelper,
+  admin: palette.orange,
+  super_admin: palette.accent,
 };
 
 export default function AdminScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
+  const roleLabel = (roleName) => t(`role_${roleName}`);
   const {
     profile,
     isLoading: profileLoading,
@@ -94,7 +90,7 @@ export default function AdminScreen() {
       await adminService.updateRole(selected.id, role, userToken);
       await loadUsers(page);
       setSelected(null);
-      setMessage("Role updated");
+      setMessage(t('roleUpdated'));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -110,7 +106,7 @@ export default function AdminScreen() {
       setConfirmDelete(false);
       setSelected(null);
       await loadUsers(users.length === 1 && page > 1 ? page - 1 : page);
-      setMessage("User deleted");
+      setMessage(t('userDeleted'));
     } catch (e) {
       setError(e.message);
       setConfirmDelete(false);
@@ -121,13 +117,13 @@ export default function AdminScreen() {
   if (profileLoading && !profile)
     return (
       <View style={[s.screen, styles.center]}>
-        <ActivityIndicator color="#F00D22" />
+        <ActivityIndicator color={palette.accent} />
       </View>
     );
   if (!canContent)
     return (
       <View style={[s.screen, styles.center]}>
-        <Text style={s.title}>Access denied</Text>
+        <Text style={s.title}>{t('accessDenied')}</Text>
         <Feedback error={profileError} onRetry={refreshProfile} />
       </View>
     );
@@ -136,11 +132,11 @@ export default function AdminScreen() {
     <SafeAreaView style={s.screen}>
       <ScrollView contentContainerStyle={styles.page}>
         <View style={styles.top}>
-          <View style={{ gap: 6 }}>
-            <Text style={styles.brand}>HIT TRACKER / ADMIN</Text>
-            <Text style={styles.title}>Admin panel</Text>
+          <View style={styles.headingGroup}>
+            <Text style={styles.brand}>HIT TRACKER / {t('adminPanel').toUpperCase()}</Text>
+            <Text style={styles.title}>{t('adminPanel')}</Text>
             <Text style={s.muted}>
-              Manage your community and training library.
+              {t('manageCommunity')}
             </Text>
           </View>
           <View style={styles.identity}>
@@ -148,7 +144,7 @@ export default function AdminScreen() {
               style={[styles.dot, { backgroundColor: colors[profile.role] }]}
             />
             <Text style={s.muted}>
-              Signed in as <Text style={s.text}>{labels[profile.role]}</Text>
+              {t('signedInAs', { role: roleLabel(profile.role) })}
             </Text>
           </View>
         </View>
@@ -168,36 +164,36 @@ export default function AdminScreen() {
               <Text
                 style={[
                   s.text,
-                  section === item && { color: "#FFF", fontWeight: "700" },
+                  section === item && { color: theme.onPrimary, fontWeight: "700" },
                 ]}
               >
-                {item[0].toUpperCase() + item.slice(1)}
+                {t(item)}
               </Text>
             </Pressable>
           ))}
         </View>
         {section === "users" ? (
-          <View style={{ gap: 20 }}>
+          <View style={styles.usersSection}>
             <View style={s.header}>
               <View>
-                <Text style={s.title}>Users</Text>
-                <Text style={s.muted}>{total} accounts · roles & access</Text>
+                <Text style={s.title}>{t('users')}</Text>
+                <Text style={s.muted}>{t('accountsRoles', { count: total })}</Text>
               </View>
               <Button secondary onPress={() => loadUsers(page)}>
-                Refresh
+                {t('refresh')}
               </Button>
             </View>
             <View style={[s.row, { alignItems: "flex-end" }]}>
               <Field
-                style={{ flex: 1, minWidth: 160 }}
-                label="Search email or username"
+                style={styles.searchField}
+                label={t('searchEmailUsername')}
                 value={query}
                 onChangeText={setQuery}
                 onSubmitEditing={() => setSearch(query.trim())}
               />
-              <Button onPress={() => setSearch(query.trim())}>Search</Button>
+              <Button onPress={() => setSearch(query.trim())}>{t('search')}</Button>
               <Button secondary={!onlineOnly} onPress={() => setOnlineOnly((value) => !value)}>
-                Online
+                {t('online')}
               </Button>
             </View>
             <Feedback
@@ -220,7 +216,7 @@ export default function AdminScreen() {
                     <View style={s.header}>
                       <View style={styles.avatar}>
                         <Text style={styles.avatarText}>
-                          {(user.username || "?").slice(0, 2).toUpperCase()}
+                          {(user.displayName || user.username || "?").slice(0, 2).toUpperCase()}
                         </Text>
                       </View>
                       <View
@@ -235,19 +231,19 @@ export default function AdminScreen() {
                             { backgroundColor: colors[user.role] },
                           ]}
                         />
-                        <Text style={s.muted}>{labels[user.role]}</Text>
+                        <Text style={s.muted}>{roleLabel(user.role)}</Text>
                       </View>
                     </View>
                     <Text style={s.heading}>
-                      @{user.username}
-                      {user.id === profile.id ? " · you" : ""}
+                      {user.displayName || `@${user.username}`}
+                      {user.id === profile.id ? ` · ${t('you')}` : ""}
                     </Text>
                     <Text selectable style={s.muted}>
-                      {user.email}
+                      {user.username ? `@${user.username} · ` : ""}{user.email}
                     </Text>
                     <View style={styles.presence}>
-                      <View style={[styles.dot, { backgroundColor: user.online ? "#43C26B" : "#838384" }]} />
-                      <Text style={s.muted}>{user.online ? "Online" : "Offline"}</Text>
+                      <View style={[styles.dot, { backgroundColor: user.online ? palette.greenOnline : palette.gray }]} />
+                      <Text style={s.muted}>{user.online ? t('online') : t('offline')}</Text>
                     </View>
                     <View style={styles.cardBottom}>
                       <Text style={s.muted}>ID #{user.id}</Text>
@@ -260,7 +256,7 @@ export default function AdminScreen() {
                           setError("");
                         }}
                       >
-                        Manage
+                        {t('manage')}
                       </Button>
                     </View>
                   </View>
@@ -268,7 +264,7 @@ export default function AdminScreen() {
               })}
             </View>
             {!loading && !users.length && (
-              <Text style={s.muted}>No users found.</Text>
+              <Text style={s.muted}>{t('noUsersFound')}</Text>
             )}
             <View style={s.header}>
               <Button
@@ -276,7 +272,7 @@ export default function AdminScreen() {
                 disabled={page === 1 || loading}
                 onPress={() => loadUsers(page - 1)}
               >
-                Previous
+                {t('previous')}
               </Button>
               <Text style={s.muted}>
                 {page} / {totalPages}
@@ -286,7 +282,7 @@ export default function AdminScreen() {
                 disabled={page >= totalPages || loading}
                 onPress={() => loadUsers(page + 1)}
               >
-                Next
+                {t('next')}
               </Button>
             </View>
           </View>
@@ -296,13 +292,13 @@ export default function AdminScreen() {
       </ScrollView>
       {selected && (
         <Sheet
-          title={`Manage @${selected.username}`}
+          title={t('manageUser', { name: selected.username ? `@${selected.username}` : selected.displayName || selected.email })}
           onClose={() => !busy && setSelected(null)}
         >
           <Text style={s.muted}>{selected.email}</Text>
-          <Text style={s.heading}>Role</Text>
+          <Text style={s.heading}>{t('role')}</Text>
           <View style={s.row}>
-            {Object.keys(labels)
+            {roles
               .filter((key) => isSuper || key !== "super_admin")
               .map((key) => (
                 <Button
@@ -311,125 +307,38 @@ export default function AdminScreen() {
                   disabled={busy}
                   onPress={() => setRole(key)}
                 >
-                  {labels[key]}
+                  {roleLabel(key)}
                 </Button>
               ))}
           </View>
           <Text style={s.muted}>
-            Access is checked by the server. Your own account and protected
-            roles cannot be deleted here.
+            {t('adminAccessHint')}
           </Text>
           <Feedback error={error} />
           <Button
             disabled={busy || role === selected.role}
             onPress={updateRole}
           >
-            Save role
+            {t('saveRole')}
           </Button>
           <Button
             secondary
             disabled={busy}
             onPress={() => setConfirmDelete(true)}
           >
-            Delete user
+            {t('deleteUser')}
           </Button>
         </Sheet>
       )}
       <ConfirmDialog
         visible={confirmDelete}
-        title={`Delete @${selected?.username}?`}
-        message="This permanently deletes the account and its related personal data. This cannot be undone."
-        cancelLabel="Cancel"
-        confirmLabel={busy ? "Deleting…" : "Delete user"}
+        title={t('deleteNamedUser', { name: selected?.username ? `@${selected.username}` : selected?.displayName || selected?.email })}
+        message={t('deleteUserMessage')}
+        cancelLabel={t('cancel')}
+        confirmLabel={busy ? t('deleting') : t('deleteUser')}
         onCancel={() => !busy && setConfirmDelete(false)}
         onConfirm={deleteUser}
       />
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  center: { justifyContent: "center", alignItems: "center", padding: 24 },
-  page: {
-    padding: 20,
-    paddingBottom: 40,
-    width: "100%",
-    maxWidth: 1240,
-    alignSelf: "center",
-    gap: 28,
-  },
-  top: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 20,
-    paddingTop: 16,
-  },
-  brand: {
-    color: "#F00D22",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
-  title: { color: "#EFEFEF", fontSize: 32, fontWeight: "700" },
-  identity: {
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
-    backgroundColor: "#292929",
-    padding: 12,
-    borderRadius: 10,
-  },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  tabs: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#454545",
-    gap: 8,
-  },
-  tab: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 3,
-    borderBottomColor: "transparent",
-  },
-  activeTab: { borderBottomColor: "#F00D22", backgroundColor: "#F00D2210" },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 16 },
-  userCard: {
-    flexBasis: 300,
-    flexGrow: 1,
-    backgroundColor: "#202123",
-    borderWidth: 1,
-    borderColor: "#37383B",
-    borderRadius: 16,
-    padding: 18,
-    gap: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F00D221A",
-  },
-  avatarText: { color: "#FF5666", fontWeight: "700", fontSize: 16 },
-  roleBadge: {
-    borderWidth: 1,
-    borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  presence: { flexDirection: "row", alignItems: "center", gap: 6 },
-  cardBottom: {
-    borderTopWidth: 1,
-    borderTopColor: "#37383B",
-    paddingTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-});

@@ -4,9 +4,14 @@ import { Text, View } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { useLibrary } from "../../context/LibraryContext";
 import { apiRequest } from "../../services/api";
-import { Button, Feedback, Field, Sheet, s, useWords } from "./ui";
+import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "./ui";
+import { useTheme } from "../../context/ThemeContext";
 
+import { createStyles } from './ProgramEditor.styles';
 export function ProgramEditor({ program, official = false, onClose, onSaved }) {
+    const { theme } = useTheme();
+    const styles = createStyles(theme);
+    const s = useWorkshopStyles();
     const { userToken, userData } = useContext(AuthContext);
     const library = useLibrary();
     const w = useWords();
@@ -161,10 +166,10 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
                 </Button>
             </View>
 
-            <Text style={s.muted}>TEST {w.singleWorkoutHint}</Text>
+            <Text style={s.muted}>{w.singleWorkoutHint}</Text>
 
             {picker && (
-                <View style={{ gap: 8 }}>
+                <View style={styles.picker}>
                     <Field
                         label={w.search}
                         value={query}
@@ -200,7 +205,7 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
                                     setPicker(false);
                                 }}
                             >
-                                + {exercise.name}
+                                + {exercise.displayName || exercise.name}
                             </Button>
                         ))}
                 </View>
@@ -209,17 +214,14 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
             {rows.map((row, index) => (
                 <View
                     key={index}
-                    style={{
-                        backgroundColor: "#292929",
-                        borderRadius: 12,
-                        padding: 12,
-                        gap: 12,
-                    }}
+                    style={styles.rowCard}
                 >
                     <View style={s.header}>
                         <Text style={[s.heading, { flex: 1 }]}>
                             {index + 1}.{" "}
                             {library.exercises.find(
+                                (item) => item.id === row.exerciseId,
+                            )?.displayName || library.exercises.find(
                                 (item) => item.id === row.exerciseId,
                             )?.name || `#${row.exerciseId}`}
                         </Text>
@@ -243,12 +245,10 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
                             ["reps", w.reps],
                             ["weekDay", w.weekDay],
                         ].map(([key, label]) => {
-                            console.log(label)
-
                             return (
                                 <Field
                                     key={key}
-                                    style={{flex: 1, minWidth: 65}}
+                                    style={styles.metric}
                                     label={label}
                                     value={row[key]}
                                     keyboardType="numeric"
