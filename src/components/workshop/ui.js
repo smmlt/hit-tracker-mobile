@@ -156,6 +156,7 @@ export function Button({
   secondary,
   disabled,
   style,
+  textStyle,
   ...props
 }) {
   const styles = useWorkshopStyles();
@@ -172,7 +173,7 @@ export function Button({
       ]}
       {...props}
     >
-      <Text style={styles.buttonText}>{children}</Text>
+      <Text style={[styles.buttonText, textStyle]}>{children}</Text>
     </Pressable>
   );
 }

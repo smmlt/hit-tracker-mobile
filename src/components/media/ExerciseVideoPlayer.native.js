@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useEvent } from 'expo';
 import { StyleSheet, View } from 'react-native';
 import { styles } from './ExerciseVideoPlayer.native.styles.js';
@@ -25,11 +25,25 @@ function NativeVideo({ source, onError }) {
 
 export function ExerciseVideoPlayer({ source, onError, style }) {
   const videoId = getYouTubeId(source);
+  const [size, setSize] = useState({ height: 0, width: 0 });
+  const onLayout = ({ nativeEvent: { layout } }) => {
+    if (layout.width !== size.width || layout.height !== size.height) {
+      setSize({ height: layout.height, width: layout.width });
+    }
+  };
 
   return (
-    <View style={[styles.container, style]}>
+    <View onLayout={onLayout} style={[styles.container, style]}>
       {videoId ? (
-        <YoutubePlayer height={220} onError={onError} play={false} videoId={videoId} />
+        size.width > 0 && (
+          <YoutubePlayer
+            height={size.height}
+            onError={onError}
+            play={false}
+            videoId={videoId}
+            width={size.width}
+          />
+        )
       ) : <NativeVideo onError={onError} source={source} />}
     </View>
   );

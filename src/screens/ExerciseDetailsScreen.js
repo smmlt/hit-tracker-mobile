@@ -77,13 +77,16 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
         <View style={styles.muscleList}>
           {exercise.muscles?.length ? (
             exercise.muscles.map((muscle) => (
-              <View key={muscle.id}>
-                <Text style={s.text}>{muscle.displayName || muscle.commonName || muscle.name}</Text>
-                {!!muscle.scientificName && (
-                  <Text style={[s.muted, { fontSize: 11 }]}>
-                    {muscle.scientificName}
-                  </Text>
-                )}
+              <View key={muscle.id} style={styles.muscleItem}>
+                <Text style={styles.muscleDash}>—</Text>
+                <View style={styles.muscleName}>
+                  <Text style={styles.muscleText}>{muscle.displayName || muscle.commonName || muscle.name}</Text>
+                  {!!muscle.scientificName && (
+                    <Text style={[s.muted, { fontSize: 11 }]}>
+                      {muscle.scientificName}
+                    </Text>
+                  )}
+                </View>
               </View>
             ))
           ) : (
@@ -113,6 +116,8 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
         <Button
           disabled={busy || added || activeWorkout?.status === "paused"}
           onPress={add}
+          style={styles.addButton}
+          textStyle={styles.addButtonText}
         >
           {added ? w.added : w.addWorkout}
         </Button>
@@ -131,7 +136,7 @@ export default function ExerciseDetailsScreen({ navigation, route }) {
   );
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={s.screen}>
-      <DetailHeader onBack={() => navigation.goBack()}>
+      <DetailHeader title={w.exerciseDetails} onBack={() => navigation.goBack()}>
         {exercise && (
           <ShareButton
             title={exercise.displayName || exercise.name}
