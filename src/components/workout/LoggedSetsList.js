@@ -1,12 +1,15 @@
 import React, { useContext } from 'react';
 import { View, Text } from 'react-native';
-import { styles } from './LoggedSetsList.styles.js';
+import { createStyles } from './LoggedSetsList.styles.js';
 import { LanguageContext } from '../../localization/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 
 /**
  * Відображає історію записаних сетів або текст-заглушку, якщо їх ще немає
  */
 export function LoggedSetsList({ sets = [] }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { t } = useContext(LanguageContext);
   // Якщо сесій ще немає — показуємо заглушку
   if (sets.length === 0) {

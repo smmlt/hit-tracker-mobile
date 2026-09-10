@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { View, Text, ScrollView, SafeAreaView, ActivityIndicator, RefreshControl, LayoutAnimation, Platform, UIManager, Keyboard, Animated } from 'react-native';
-import { styles } from './HistoryScreen.styles.js';
+import { createStyles } from './HistoryScreen.styles.js';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { useIsFocused } from '@react-navigation/native';
@@ -10,11 +10,14 @@ import { ConfirmDialog, CustomToast } from '../components/feedback';
 import { HistoryCard } from '../components/workout';
 
 import { palette } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 export default function HistoryScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const tabBarHeight = useBottomTabBarHeight();
   const { userToken } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
@@ -97,7 +100,7 @@ export default function HistoryScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={palette.orangeLegacy} />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -107,7 +110,7 @@ export default function HistoryScreen() {
       <ScrollView
         contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 20 }]}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.orangeLegacy} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
         }
       >
         <Text style={styles.title}>{t('workoutHistoryTitle')} 📜</Text>

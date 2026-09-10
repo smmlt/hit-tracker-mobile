@@ -1,9 +1,10 @@
 import React, { useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
-import { styles } from './ExerciseFormModal.styles.js';
+import { createStyles } from './ExerciseFormModal.styles.js';
 
 import { palette } from '../../constants/colors';
 import { LanguageContext } from '../../localization/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 export function ExerciseFormModal({
   visible,
   onClose,
@@ -19,6 +20,8 @@ export function ExerciseFormModal({
   onSubmit,
   submitting,
 }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { t } = useContext(LanguageContext);
   return (
     <Modal
@@ -34,7 +37,7 @@ export function ExerciseFormModal({
           <TextInput
             style={styles.input}
             placeholder={t('exerciseName')}
-            placeholderTextColor={palette.slate500}
+            placeholderTextColor={theme.inputPlaceholder}
             value={name}
             onChangeText={setName}
           />
@@ -42,7 +45,7 @@ export function ExerciseFormModal({
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder={t('exerciseFormTips')}
-            placeholderTextColor={palette.slate500}
+            placeholderTextColor={theme.inputPlaceholder}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -52,7 +55,7 @@ export function ExerciseFormModal({
           <TextInput
             style={styles.input}
             placeholder={t('youtubeOptional')}
-            placeholderTextColor={palette.slate500}
+            placeholderTextColor={theme.inputPlaceholder}
             value={videoUrl}
             onChangeText={setVideoUrl}
           />
@@ -77,7 +80,7 @@ export function ExerciseFormModal({
                         isSelected && styles.selectableChipTextActive,
                       ]}
                     >
-                      {m.commonName}
+                      {m.displayName || m.commonName}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -99,7 +102,7 @@ export function ExerciseFormModal({
               disabled={submitting}
             >
               {submitting ? (
-                <ActivityIndicator color={palette.whitePure} />
+                <ActivityIndicator color={theme.onPrimary} />
               ) : (
                 <Text style={styles.submitButtonText}>{t('create')}</Text>
               )}

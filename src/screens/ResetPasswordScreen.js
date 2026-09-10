@@ -1,6 +1,6 @@
 import React, { useContext, useState, useRef } from 'react';
 import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
-import { styles } from './ResetPasswordScreen.styles.js';
+import { createStyles } from './ResetPasswordScreen.styles.js';
 import { Ionicons } from '@expo/vector-icons';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
@@ -8,7 +8,10 @@ import { apiRequest } from '../services/api';
 import { LanguageContext } from '../localization/LanguageContext';
 
 import { palette } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 export default function ResetPasswordScreen({ navigation, route }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const token = route?.params?.token;
   const { t } = useContext(LanguageContext);
 
@@ -149,7 +152,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
             ) : (
               <View style={styles.centerContent}>
                 <View style={styles.iconCircle}>
-                  <Ionicons name="checkmark" size={48} color={palette.blackPure} />
+                  <Ionicons name="checkmark" size={48} color={theme.textPrimary} />
                 </View>
 
                 <Text style={[styles.title, { textAlign: 'center' }]}>{t('passwordReset')}</Text>

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Platform, Pressable, Share, Text, View } from "react-native";
 import Icon from "../../assets/workshop/Share.svg";
-import { s, useWords } from "./ui";
-
-import { palette } from '../../constants/colors';
+import { useWorkshopStyles, useWords } from "./ui";
+import { useTheme } from "../../context/ThemeContext";
 export function ShareButton({ title, description }) {
+  const { theme } = useTheme();
+  const s = useWorkshopStyles();
   const w = useWords();
   const [message, setMessage] = useState("");
   const share = async () => {
@@ -38,7 +39,7 @@ export function ShareButton({ title, description }) {
               right: 0,
               top: 44,
               width: 160,
-              backgroundColor: palette.surface,
+              backgroundColor: theme.cardBackground,
               padding: 6,
               zIndex: 10,
             },

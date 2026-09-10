@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { View, Text, ScrollView, SafeAreaView, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
-import { styles } from './ExercisesScreen.styles.js';
+import { createStyles } from './ExercisesScreen.styles.js';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
@@ -8,7 +8,10 @@ import { apiFetch } from '../services/api';
 import { ExerciseFilterBar, ExerciseFormModal, ExerciseItem } from '../components/exercise';
 
 import { palette } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 export default function ExercisesScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { userToken, userData } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
   const canManageExercises = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
@@ -125,7 +128,7 @@ export default function ExercisesScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={palette.orangeLegacy} />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }

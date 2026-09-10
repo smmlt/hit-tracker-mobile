@@ -1,12 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { palette } from '../constants/colors';
-
-export const styles = StyleSheet.create({
-  analyticsPlaceholder: { backgroundColor: palette.black, flex: 1 },
+export const createStyles = (theme) => StyleSheet.create({
+  analyticsPlaceholder: { backgroundColor: theme.background, flex: 1 },
   container: { flex: 1 },
   loading: {
     alignItems: 'center',
-    backgroundColor: palette.slate950,
+    backgroundColor: theme.background,
     flex: 1,
     justifyContent: 'center',
   },

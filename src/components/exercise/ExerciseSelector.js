@@ -1,9 +1,12 @@
 import React, { useContext, useState } from 'react';
 import { ScrollView, TouchableOpacity, Text, View } from 'react-native';
-import { styles } from './ExerciseSelector.styles.js';
+import { createStyles } from './ExerciseSelector.styles.js';
 import { LanguageContext } from '../../localization/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState(null);
   const { t } = useContext(LanguageContext);
 
@@ -44,7 +47,7 @@ export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect 
                 onPress={() => setSelectedMuscleFilter(muscle.id)}
               >
                 <Text style={[styles.filterText, isFilterActive && styles.filterTextActive]}>
-                  {muscle.commonName}
+                  {muscle.displayName || muscle.commonName}
                 </Text>
               </TouchableOpacity>
             );
@@ -57,7 +60,7 @@ export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect 
         {filteredExercises.map((ex) => {
           const isSelected = selectedExerciseId === ex.id;
           // Форматуємо рядок м'язів для підказки
-          const muscleNames = ex.muscles?.map((m) => m.commonName).join(', ') || '';
+          const muscleNames = ex.muscles?.map((m) => m.displayName || m.commonName).join(', ') || '';
 
           return (
             <TouchableOpacity
@@ -66,7 +69,7 @@ export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect 
               onPress={() => onSelect(ex.id)}
             >
               <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
-                {ex.name}
+                {ex.displayName || ex.name}
               </Text>
               {muscleNames ? (
                 <Text style={[styles.chipSubText, isSelected && styles.chipSubTextActive]}>

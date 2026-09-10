@@ -30,7 +30,7 @@ import TrainingScreen from '../screens/TrainingScreen';
 import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 
 import { palette } from '../constants/colors';
-import { styles } from './AppNavigator.styles';
+import { createStyles } from './AppNavigator.styles';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
@@ -44,7 +44,11 @@ function WorkshopStack() {
     <WorkshopStackNavigator.Screen name="ExerciseDetails" component={ExerciseDetailsScreen} />
   </WorkshopStackNavigator.Navigator>;
 }
-const AnalyticsPlaceholder = () => <View style={styles.analyticsPlaceholder} />;
+const AnalyticsPlaceholder = () => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  return <View style={styles.analyticsPlaceholder} />;
+};
 function TrainingStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
@@ -123,6 +127,8 @@ const linking = {
 };
 
 export default function AppNavigator() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { isInitializing, userToken } = useContext(AuthContext);
   const [isAdminRoute] = React.useState(() => Platform.OS === 'web'
     && typeof window !== 'undefined'
@@ -131,7 +137,7 @@ export default function AppNavigator() {
   if (isInitializing) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={palette.orange500} />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -141,8 +147,8 @@ export default function AppNavigator() {
       <View style={styles.container}>
         <Stack.Navigator
           screenOptions={{
-            headerStyle: { backgroundColor: palette.slate950 },
-            headerTintColor: palette.slate50,
+            headerStyle: { backgroundColor: theme.background },
+            headerTintColor: theme.textPrimary,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >

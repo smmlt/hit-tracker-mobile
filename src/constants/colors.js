@@ -20,6 +20,7 @@ export const palette = {
   slate800: '#1E293B',
   surfaceMuted: '#202123',
   greenBright: '#22C55E',
+  lime: '#84CC16',
   slate700: '#334155',
   surfaceBorder: '#37383B',
   sky: '#38BDF8',
@@ -29,6 +30,7 @@ export const palette = {
   indigo: '#6366F1',
   slate500: '#64748B',
   grayDark: '#666666',
+  difficultyInactive: '#626262',
   grayLegacy: '#999999',
   grayIcon: '#D9D9D9',
   grayWarm: '#666363',
@@ -47,6 +49,7 @@ export const palette = {
   gray300: '#D1D5DB',
   red700: '#DC2626',
   gray200: '#E5E7EB',
+  difficultyYellow: '#FACC15',
   yellow: '#EAB308',
   successPale: '#ECFDF5',
   red: '#EF4444',
@@ -77,6 +80,14 @@ export const palette = {
   webShadowSmall: '0px 2px 3px rgba(0, 0, 0, 0.3)',
   webShadowMedium: '0px 4px 6px rgba(0, 0, 0, 0.3)',
 };
+
+export const difficultyColors = [
+  palette.greenBright,
+  palette.lime,
+  palette.difficultyYellow,
+  palette.orange,
+  palette.accent,
+];
 
 export const themes = {
   dark: {
@@ -109,6 +120,7 @@ export const themes = {
     success: '#10B981',
     overlay: palette.overlay,
     surfaceElevated: palette.surface,
+    mediaPlaceholder: palette.surfacePlaceholder,
     onPrimary: '#FFFFFF',
   },
   light: {
@@ -141,6 +153,7 @@ export const themes = {
     success: '#10B981',
     overlay: palette.overlay,
     surfaceElevated: '#FFFFFF',
+    mediaPlaceholder: palette.slate300,
     onPrimary: '#FFFFFF',
   },
 };

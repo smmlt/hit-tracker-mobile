@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -12,16 +12,22 @@ import { ProgramBadges } from "../components/workshop/ProgramCard";
 import { ProgramEditor } from "../components/workshop/ProgramEditor";
 import { ScheduleProgramSheet } from "../components/workshop/ScheduleProgramSheet";
 import { ShareButton } from "../components/workshop/ShareButton";
-import { styles } from './LibraryProgramScreen.styles';
+import { useTheme } from "../context/ThemeContext";
+import { LanguageContext } from "../localization/LanguageContext";
+import { translateCatalogName } from "../localization/catalog";
+import { createStyles } from './LibraryProgramScreen.styles';
 import {
   Button,
   DetailHeader,
   Feedback,
-  s,
+  useWorkshopStyles,
   useWords,
 } from "../components/workshop/ui";
 
 export function ProgramDetailsContent({ program, onExercise, onEdit }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  const s = useWorkshopStyles();
   const library = useLibrary();
   const w = useWords();
   return (
@@ -30,7 +36,7 @@ export function ProgramDetailsContent({ program, onExercise, onEdit }) {
         <Text style={styles.noMedia}>{w.noMedia}</Text>
       </View>
       <View style={styles.summary}>
-        <Text style={s.heading}>{program.name.toUpperCase()}</Text>
+        <Text style={s.heading}>{(program.displayName || program.name).toUpperCase()}</Text>
         <ProgramBadges program={program} />
         {!!program.description && (
           <Text style={s.muted}>{program.description}</Text>
@@ -64,11 +70,13 @@ export function ProgramDetailsContent({ program, onExercise, onEdit }) {
   );
 }
 export default function LibraryProgramScreen({ navigation, route }) {
+  const s = useWorkshopStyles();
   const tabBarHeight = useBottomTabBarHeight();
   const { userToken, userData } = useContext(AuthContext);
   const { addWorkoutExercises, activeWorkout } = useContext(WorkoutContext);
   const library = useLibrary();
   const w = useWords();
+  const { t } = useContext(LanguageContext);
   const id = Number(route.params?.programId);
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -93,13 +101,34 @@ export default function LibraryProgramScreen({ navigation, route }) {
   useEffect(() => {
     load();
   }, [load]);
+  const localizedProgram = useMemo(() => {
+    if (!program) return null;
+    return {
+      ...program,
+      displayName: program.isPersonal
+        ? program.name
+        : translateCatalogName(t, "program", program.name),
+      schedule: (program.schedule || []).map((row) => ({
+        ...row,
+        exercise: row.exercise
+          ? {
+              ...row.exercise,
+              displayName: translateCatalogName(t, "exercise", row.exercise.name),
+            }
+          : row.exercise,
+      })),
+    };
+  }, [program, t]);
   const canCustomize =
     program && (!program.isPersonal || program.createdById === userData?.id);
   const add = async () => {
     setBusy(true);
     setError("");
     try {
-      await addWorkoutExercises(programExercises(program), program.name);
+      await addWorkoutExercises(
+        programExercises(localizedProgram),
+        localizedProgram.displayName || localizedProgram.name,
+      );
       navigation
         .getParent()
         .navigate("ActiveWorkout", { screen: "WorkoutSession" });
@@ -113,7 +142,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
     <SafeAreaView edges={["top", "left", "right"]} style={s.screen}>
       <DetailHeader title={w.programDetails} onBack={() => navigation.goBack()}>
         {program && (
-          <ShareButton title={program.name} description={program.description} />
+          <ShareButton title={localizedProgram.displayName || localizedProgram.name} description={localizedProgram.description} />
         )}
       </DetailHeader>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: tabBarHeight + 28 }]}>
@@ -130,7 +159,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
               </Text>
             )}
             <ProgramDetailsContent
-              program={program}
+              program={localizedProgram}
               onExercise={(exercise) =>
                 navigation.push("ExerciseDetails", { exerciseId: exercise.id })
               }

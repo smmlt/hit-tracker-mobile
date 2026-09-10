@@ -6,11 +6,12 @@ import { ProgramCard } from "../workshop/ProgramCard";
 import { ProgramEditor } from "../workshop/ProgramEditor";
 import { ProgramDetailsContent } from "../../screens/LibraryProgramScreen";
 import { ExerciseDetailsContent } from "../../screens/ExerciseDetailsScreen";
-import { Button, Feedback, Field, Sheet, s, useWords } from "../workshop/ui";
+import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "../workshop/ui";
 import { ExerciseEditor } from "./ExerciseEditor";
 import { styles } from './ContentManagement.styles';
 
 export function ContentManagement({ section }) {
+  const s = useWorkshopStyles();
   const library = useLibrary();
   const w = useWords();
   const [query, setQuery] = useState("");

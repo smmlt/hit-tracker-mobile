@@ -1,22 +1,22 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: palette.overlay70,
+    backgroundColor: theme.overlay,
     justifyContent: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: palette.slate800,
+    backgroundColor: theme.cardBackground,
     borderRadius: 16,
     padding: 20,
   },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: palette.slate50, marginBottom: 15 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 15 },
   input: {
-    backgroundColor: palette.slate950,
-    color: palette.slate50,
+    backgroundColor: theme.inputBackground,
+    color: theme.inputText,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
@@ -25,22 +25,22 @@ export const styles = StyleSheet.create({
     height: 70,
     textAlignVertical: 'top',
   },
-  label: { color: palette.slate400, fontSize: 13, marginBottom: 6 },
+  label: { color: theme.textSecondary, fontSize: 13, marginBottom: 6 },
   muscleList: { maxHeight: 120, marginBottom: 15 },
   muscleSelectorContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   selectableChip: {
-    backgroundColor: palette.slate950,
+    backgroundColor: theme.filterChipBackground,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
   },
-  selectableChipActive: { backgroundColor: palette.orangeLegacy },
-  selectableChipText: { color: palette.slate400, fontSize: 12 },
-  selectableChipTextActive: { color: palette.whitePure, fontWeight: 'bold' },
+  selectableChipActive: { backgroundColor: theme.primary },
+  selectableChipText: { color: theme.filterChipText, fontSize: 12 },
+  selectableChipTextActive: { color: theme.onPrimary, fontWeight: 'bold' },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 10 },
   modalButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
-  cancelButton: { backgroundColor: palette.slate700 },
-  cancelButtonText: { color: palette.slate300 },
-  submitButton: { backgroundColor: palette.orangeLegacy },
-  submitButtonText: { color: palette.whitePure, fontWeight: 'bold' },
+  cancelButton: { backgroundColor: theme.surfaceElevated, borderColor: theme.border, borderWidth: 1 },
+  cancelButtonText: { color: theme.textPrimary },
+  submitButton: { backgroundColor: theme.primary },
+  submitButtonText: { color: theme.onPrimary, fontWeight: 'bold' },
 });

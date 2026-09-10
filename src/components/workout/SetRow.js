@@ -1,9 +1,12 @@
 import React, { useContext } from 'react';
 import { View, Text } from 'react-native';
-import { styles } from './SetRow.styles.js';
+import { createStyles } from './SetRow.styles.js';
 import { LanguageContext } from '../../localization/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export function SetRow({ set, index }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { t } = useContext(LanguageContext);
   // Формуємо надійний унікальний ключ для кожного підходу
   const setKey = set.id ? String(set.id) : `set-index-${index}`;

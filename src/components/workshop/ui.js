@@ -1,7 +1,6 @@
 import React, { useContext } from "react";
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { createStyles, s } from './ui.styles.js';
-export { s };
+import { createStyles } from './ui.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LanguageContext } from "../../localization/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";

@@ -2,19 +2,22 @@ import React, { useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '../common';
-import { styles } from './AuthComponents.styles';
-
-import { palette } from '../../constants/colors';
+import { createStyles } from './AuthComponents.styles';
+import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 export function BackButton({ onPress }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   return (
     <TouchableOpacity style={styles.backButton} onPress={onPress} activeOpacity={0.7}>
-      <Ionicons name="arrow-back" size={24} color={palette.blackPure} />
+      <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
     </TouchableOpacity>
   );
 }
 
 export function CustomInput({ label, value, onChangeText, placeholder, secureTextEntry, isPassword, showPassword, onTogglePassword, keyboardType, autoCapitalize, ...inputProps }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   return (
     <View style={styles.inputGroup}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
@@ -24,7 +27,7 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={palette.grayLegacy}
+          placeholderTextColor={theme.inputPlaceholder}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize || 'none'}
@@ -32,7 +35,7 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
         />
         {isPassword && (
           <TouchableOpacity onPress={onTogglePassword} style={styles.eyeIcon}>
-            <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={palette.grayDark} />
+            <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={theme.inputIcon} />
           </TouchableOpacity>
         )}
       </View>
@@ -41,19 +44,25 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
 }
 
 export function PrimaryButton({ title, onPress, isLoading, disabled }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   return <AppButton disabled={disabled} loading={isLoading} onPress={onPress} style={styles.primaryButton} title={title} />;
 }
 
 export function SocialButton({ title, onPress, iconName }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   return (
     <TouchableOpacity style={styles.socialButton} onPress={onPress} activeOpacity={0.7}>
-      <Ionicons name={iconName} size={20} color={palette.blackPure} style={styles.socialIcon} />
+      <Ionicons name={iconName} size={20} color={theme.inputText} style={styles.socialIcon} />
       <Text style={styles.socialButtonText}>{title}</Text>
     </TouchableOpacity>
   );
 }
 
 export function Divider({ text }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { t } = useContext(LanguageContext);
   return (
     <View style={styles.dividerContainer}>

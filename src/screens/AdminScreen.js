@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
-import { styles } from './AdminScreen.styles.js';
+import { createStyles } from './AdminScreen.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProfile } from "../hooks/useProfile";
 import { adminService } from "../services/adminService";
@@ -8,7 +8,8 @@ import { AuthContext } from "../context/AuthContext";
 import { LanguageContext } from "../localization/LanguageContext";
 import { ContentManagement } from "../components/admin/ContentManagement";
 import { ConfirmDialog } from "../components/feedback";
-import { Button, Feedback, Field, Sheet, s } from "../components/workshop/ui";
+import { Button, Feedback, Field, Sheet, useWorkshopStyles } from "../components/workshop/ui";
+import { useTheme } from "../context/ThemeContext";
 
 import { palette } from '../constants/colors';
 const roles = ["user", "helper", "moderator", "admin", "super_admin"];
@@ -21,6 +22,9 @@ const colors = {
 };
 
 export default function AdminScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
   const roleLabel = (roleName) => t(`role_${roleName}`);
@@ -160,7 +164,7 @@ export default function AdminScreen() {
               <Text
                 style={[
                   s.text,
-                  section === item && { color: palette.whitePure, fontWeight: "700" },
+                  section === item && { color: theme.onPrimary, fontWeight: "700" },
                 ]}
               >
                 {t(item)}

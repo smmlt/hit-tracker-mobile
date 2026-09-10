@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { styles } from './HistoryCard.styles.js';
+import { createStyles } from './HistoryCard.styles.js';
 import { SetRow } from './SetRow';
 import { LanguageContext } from '../../localization/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 
 // ⏱️ Форматер тривалості для картки
 function formatDurationHuman(totalSeconds, t) {
@@ -17,6 +18,8 @@ function formatDurationHuman(totalSeconds, t) {
 }
 
 export function HistoryCard({ workout, index, isExpanded, onToggleExpand, onDelete }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { locale, t } = useContext(LanguageContext);
   const uniqueKey = workout.id ? String(workout.id) : `workout-${index}`;
   const setsCount = workout.sets ? workout.sets.length : 0;

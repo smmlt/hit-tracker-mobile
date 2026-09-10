@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { CopyUsernameIcon, EditUsernameIcon } from '../../assets/icons';
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 import { styles } from './UsernameActionsMenu.styles';
@@ -27,16 +27,15 @@ export function UsernameActionsMenu({ isOwner = false, onClose, onCopyResult, on
         <View style={[styles.menu, { backgroundColor: theme.surfaceElevated }]}>
           {isOwner && (
             <>
-              <Pressable accessibilityRole="button" onPress={onEdit} style={styles.row}>
-                <Ionicons color={theme.textPrimary} name="pencil-outline" size={20} />
-                <Text style={[styles.text, { color: theme.textPrimary }]}>{t('editUsername')}</Text>
+              <Pressable accessibilityLabel={t('editUsername')} accessibilityRole="button" onPress={onEdit} style={styles.row}>
+                <EditUsernameIcon color={theme.textSecondary} height={24} width={24} />
+                <Text style={[styles.text, { color: theme.textSecondary }]}>{t('edit')}</Text>
               </Pressable>
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
             </>
           )}
-          <Pressable accessibilityRole="button" onPress={copy} style={styles.row}>
-            <Ionicons color={theme.textPrimary} name="copy-outline" size={20} />
-            <Text style={[styles.text, { color: theme.textPrimary }]}>{t('copyUsername')}</Text>
+          <Pressable accessibilityLabel={t('copyUsername')} accessibilityRole="button" onPress={copy} style={styles.row}>
+            <CopyUsernameIcon color={theme.textSecondary} height={24} width={24} />
+            <Text style={[styles.text, { color: theme.textSecondary }]}>{t('copy')}</Text>
           </Pressable>
         </View>
       </View>

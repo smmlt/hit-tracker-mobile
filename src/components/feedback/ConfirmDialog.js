@@ -1,8 +1,11 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity } from 'react-native';
-import { styles } from './ConfirmDialog.styles.js';
+import { createStyles } from './ConfirmDialog.styles.js';
+import { useTheme } from '../../context/ThemeContext';
 
 export function ConfirmDialog({ visible, title, message, confirmLabel = 'Delete', cancelLabel = 'Cancel', onCancel, onConfirm }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   if (!visible) return null;
 
   return (

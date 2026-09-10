@@ -1,20 +1,20 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../constants/colors';
-export const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: palette.slate950 },
+export const createStyles = (theme) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.background },
   mainContainer: { flex: 1, padding: 20 },
   centerContainer: {
     flex: 1,
-    backgroundColor: palette.slate950,
+    backgroundColor: theme.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: palette.slate50, marginBottom: 15 },
+  title: { fontSize: 24, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 15 },
   listContainer: { flex: 1 },
   sectionTitle: {
     fontSize: 13,
-    color: palette.slate400,
+    color: theme.textSecondary,
     fontWeight: 'bold',
     textTransform: 'uppercase',
     marginBottom: 12,

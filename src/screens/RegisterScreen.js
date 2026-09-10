@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Animated } from 'react-native';
-import { styles } from './RegisterScreen.styles.js';
+import { createStyles } from './RegisterScreen.styles.js';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,8 +12,11 @@ import { API_URL } from '../constants/config';
 import { createPkcePair } from '../utils/oauthPkce';
 import { LanguageContext } from '../localization/LanguageContext';
 import { completeRegistration } from '../utils/authFlow';
+import { useTheme } from '../context/ThemeContext';
 
 export default function RegisterScreen({ navigation, route }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

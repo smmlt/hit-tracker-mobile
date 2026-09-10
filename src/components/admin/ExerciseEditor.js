@@ -3,10 +3,11 @@ import { Pressable, Text, View } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { useLibrary } from "../../context/LibraryContext";
 import { apiRequest } from "../../services/api";
-import { Button, Feedback, Field, Sheet, s, useWords } from "../workshop/ui";
+import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "../workshop/ui";
 import { DifficultyIndicator } from "../exercise/DifficultyIndicator";
 
 export function ExerciseEditor({ exercise, onClose }) {
+  const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
   const library = useLibrary();
   const w = useWords();
@@ -106,7 +107,7 @@ export function ExerciseEditor({ exercise, onClose }) {
             }
             style={[s.chip, muscles.includes(m.id) && s.selected]}
           >
-            <Text style={s.text}>{m.commonName}</Text>
+            <Text style={s.text}>{m.displayName || m.commonName}</Text>
           </Pressable>
         ))}
       </View>

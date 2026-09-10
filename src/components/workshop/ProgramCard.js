@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { createStyles } from './ProgramCard.styles.js';
-import { s, useWords } from "./ui";
+import { useWorkshopStyles, useWords } from "./ui";
 import { useLibrary } from "../../context/LibraryContext";
 import HeartFilled from "../../assets/workshop/HeartFilled.svg";
 import HeartOutline from "../../assets/workshop/HeartOutline.svg";
@@ -11,6 +11,7 @@ import { palette } from '../../constants/colors';
 import { useTheme } from '../../context/ThemeContext';
 export function ProgramBadges({ program }) {
   const w = useWords();
+  const s = useWorkshopStyles();
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const count = new Set(
@@ -28,6 +29,7 @@ export function ProgramBadges({ program }) {
 }
 export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
   const w = useWords();
+  const s = useWorkshopStyles();
   const library = useLibrary();
   const { theme } = useTheme();
   const styles = createStyles(theme);

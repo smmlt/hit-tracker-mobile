@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, Animated, Platform } from 'react-native';
 import { styles } from './CustomToast.styles.js';
+import { useTheme } from '../../context/ThemeContext';
 
 export function CustomToast({ 
   visible, 
@@ -10,9 +11,10 @@ export function CustomToast({
   fadeAnim, 
   onClose 
 }) {
+  const { themeName } = useTheme();
   if (!visible) return null;
 
-  const isLight = variant === 'light';
+  const isLight = variant === 'light' && themeName === 'light';
   const isWeb = Platform.OS === 'web';
 
   return (

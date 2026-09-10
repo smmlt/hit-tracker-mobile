@@ -1,7 +1,5 @@
 import { StyleSheet } from 'react-native';
 
-import { palette, themes } from '../../constants/colors';
-
 export const createStyles = (theme) => StyleSheet.create({
   spinner: { margin: 24 },
   screen: { flex: 1, backgroundColor: theme.background },
@@ -115,5 +113,3 @@ export const createStyles = (theme) => StyleSheet.create({
     marginHorizontal: 10,
   },
 });
-
-export const s = createStyles(themes.dark);

@@ -1,14 +1,17 @@
 import React, { useContext, useRef, useState } from 'react';
 import { Animated, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { styles } from './VerifyEmailScreen.styles.js';
+import { createStyles } from './VerifyEmailScreen.styles.js';
 import { BackButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { completeVerification } from '../utils/authFlow';
+import { useTheme } from '../context/ThemeContext';
 
 export default function VerifyEmailScreen({ navigation, route }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [code, setCode] = useState('');
   const [codeState, setCodeState] = useState('idle');
   const [attemptsRemaining, setAttemptsRemaining] = useState(null);

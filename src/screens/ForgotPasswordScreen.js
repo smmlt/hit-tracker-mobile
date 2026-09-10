@@ -1,6 +1,6 @@
 import React, { useContext, useState, useRef } from 'react';
 import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Animated } from 'react-native';
-import { styles } from './ForgotPasswordScreen.styles.js';
+import { createStyles } from './ForgotPasswordScreen.styles.js';
 import { Ionicons } from '@expo/vector-icons';
 import { isValidEmail } from '../utils/validation';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
@@ -9,7 +9,10 @@ import { apiRequest } from '../services/api';
 import { LanguageContext } from '../localization/LanguageContext';
 
 import { palette } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 export default function ForgotPasswordScreen({ navigation }) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [email, setEmail] = useState('');
   const { t } = useContext(LanguageContext);
   const [isSent, setIsSent] = useState(false);
@@ -84,7 +87,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             ) : (
               <View style={styles.centerContent}>
                 <View style={styles.iconCircle}>
-                  <Ionicons name="mail-unread-outline" size={48} color={palette.blackPure} />
+                  <Ionicons name="mail-unread-outline" size={48} color={theme.textPrimary} />
                 </View>
 
                 <Text style={[styles.title, { textAlign: 'center' }]}>{t('checkYourEmail')}</Text>

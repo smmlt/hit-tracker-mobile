@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../constants/colors';
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   headingGroup: { gap: 6 },
   usersSection: { gap: 20 },
   searchField: { flex: 1, minWidth: 160 },
@@ -28,12 +28,12 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 2,
   },
-  title: { color: palette.white, fontSize: 32, fontWeight: "700" },
+  title: { color: theme.textPrimary, fontSize: 32, fontWeight: "700" },
   identity: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
-    backgroundColor: palette.surface,
+    backgroundColor: theme.cardBackground,
     padding: 12,
     borderRadius: 10,
   },
@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: palette.borderDark,
+    borderBottomColor: theme.border,
     gap: 8,
   },
   tab: {
@@ -55,9 +55,9 @@ export const styles = StyleSheet.create({
   userCard: {
     flexBasis: 300,
     flexGrow: 1,
-    backgroundColor: palette.surfaceMuted,
+    backgroundColor: theme.cardBackground,
     borderWidth: 1,
-    borderColor: palette.surfaceBorder,
+    borderColor: theme.border,
     borderRadius: 16,
     padding: 18,
     gap: 12,
@@ -83,7 +83,7 @@ export const styles = StyleSheet.create({
   presence: { flexDirection: "row", alignItems: "center", gap: 6 },
   cardBottom: {
     borderTopWidth: 1,
-    borderTopColor: palette.surfaceBorder,
+    borderTopColor: theme.border,
     paddingTop: 12,
     flexDirection: "row",
     alignItems: "center",
