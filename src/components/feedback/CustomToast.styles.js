@@ -16,13 +16,13 @@ export const styles = StyleSheet.create({
   width: '90%',
   },
   toastWeb: { bottom: 24, left: '5%', position: 'fixed', right: '5%', width: 'auto', zIndex: 9999 },
-  
-  // Стандартная темна тема (для основного інтерфейсу)
+
+  // Default dark presentation for the main application.
   toastSuccess: { backgroundColor: palette.success, elevation: 6 },
   toastError: { backgroundColor: palette.red, elevation: 6 },
   textDark: { color: palette.whitePure },
 
-  // Світла тема (для екрану входу та реєстрації)
+  // Light presentation for authentication screens.
   toastLight: {
     backgroundColor: palette.whitePure,
     borderWidth: 1,
@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
   textSuccessLight: { color: palette.greenDarkText },
   closeTextLight: { color: palette.gray500 },
 
-  // Общие стили
+  // Shared toast styles.
   toastText: { fontSize: 14, fontWeight: '600', flex: 1, marginRight: 12 },
   toastClose: { padding: 4 },
   toastCloseText: { fontSize: 14, fontWeight: 'bold', color: palette.whitePure },

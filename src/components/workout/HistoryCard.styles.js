@@ -9,10 +9,8 @@ export const createStyles = (theme) => StyleSheet.create({
   workoutType: { color: theme.textPrimary, fontSize: 16, fontWeight: 'bold', marginBottom: 2 },
   workoutDate: { color: theme.textSecondary, fontSize: 12 },
   badgeContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  
-  // ⏱️ СТИЛЬ ДЛЯ БЕЙДЖА ЧАСУ
+  // Duration badge.
   durationBadge: { backgroundColor: palette.skyTint, color: palette.sky, fontWeight: 'bold', fontSize: 11, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  
   setsBadge: { backgroundColor: palette.orangeTint, color: palette.orangeLegacy, fontWeight: 'bold', fontSize: 12, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   arrow: { color: theme.textSecondary, fontSize: 12, fontWeight: 'bold' },
   deleteButton: { padding: 8, borderRadius: 8, backgroundColor: palette.redWash, justifyContent: 'center', alignItems: 'center' },

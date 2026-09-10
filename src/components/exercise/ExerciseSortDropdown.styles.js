@@ -10,7 +10,7 @@ export const createStyles = (theme) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.inputBackground, 
+    backgroundColor: theme.inputBackground,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 12,
@@ -31,7 +31,7 @@ export const createStyles = (theme) => StyleSheet.create({
     transform: [{ rotate: '0deg' }],
   },
   iconRotated: {
-    transform: [{ rotate: '180deg' }], 
+    transform: [{ rotate: '180deg' }],
   },
   modalOverlay: {
     flex: 1,

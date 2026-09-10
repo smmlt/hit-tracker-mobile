@@ -2,15 +2,15 @@ import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
 export const createStyles = (theme) => StyleSheet.create({
-  setRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
+  setRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: theme.cardBackground,
-    padding: 10, 
-    borderRadius: 8, 
-    marginBottom: 6, 
-    borderWidth: 1, 
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 6,
+    borderWidth: 1,
     borderColor: theme.border
   },
   setMainInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },

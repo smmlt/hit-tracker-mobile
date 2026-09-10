@@ -4,14 +4,14 @@ import { palette } from '../constants/colors';
 export const createStyles = (theme) => StyleSheet.create({
   fill: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: theme.background },
-  container: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: 24, 
-    paddingVertical: 20, 
-    maxWidth: 440, 
-    width: '100%', 
-    alignSelf: 'center' 
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    maxWidth: 440,
+    width: '100%',
+    alignSelf: 'center'
   },
   formWrapper: { width: '100%' },
   title: { fontSize: 28, fontWeight: '700', color: theme.textPrimary, marginBottom: 4 },
