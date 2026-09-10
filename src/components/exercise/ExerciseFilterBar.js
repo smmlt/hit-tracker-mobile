@@ -18,12 +18,7 @@ export function ExerciseFilterBar({
   
   const [isModalVisible, setModalVisible] = useState(false);
 
-  const getMuscleDisplayName = (m) => {
-    if (!m) return t('allMuscles') || 'Всі';
-    const translationKey = `muscle_${m.commonName.toLowerCase().replace(/\s+/g, '_')}`;
-    const translatedName = t(translationKey);
-    return translatedName !== translationKey ? translatedName : m.commonName;
-  };
+  const getMuscleDisplayName = (muscle) => muscle?.displayName || muscle?.commonName || t('allMuscles');
 
   const renderChip = (id, name, isActive, closeModal = false) => (
     <TouchableOpacity

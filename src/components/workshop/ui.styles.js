@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-import { palette } from '../../constants/colors';
-export const s = StyleSheet.create({
+import { palette, themes } from '../../constants/colors';
+
+export const createStyles = (theme) => StyleSheet.create({
   spinner: { margin: 24 },
-  screen: { flex: 1, backgroundColor: palette.black },
+  screen: { flex: 1, backgroundColor: theme.background },
   content: {
     padding: 20,
     paddingBottom: 28,
@@ -12,17 +13,17 @@ export const s = StyleSheet.create({
     maxWidth: 760,
     alignSelf: "center",
   },
-  title: { color: palette.white, fontSize: 24, fontFamily: "Inter-SemiBold", lineHeight: 34 },
+  title: { color: theme.textPrimary, fontSize: 24, fontFamily: "Inter-SemiBold", lineHeight: 34 },
   heading: {
-    color: palette.white,
+    color: theme.textPrimary,
     fontSize: 16,
     fontFamily: "Inter-Bold",
     lineHeight: 23,
   },
-  text: { color: palette.white, fontFamily: "Inter", fontSize: 14, lineHeight: 20 },
-  muted: { color: palette.lightGray, fontFamily: "Inter", fontSize: 13, lineHeight: 19 },
-  error: { color: palette.errorSoft, fontSize: 13 },
-  link: { color: palette.accent, fontSize: 13, fontFamily: "Inter-SemiBold" },
+  text: { color: theme.textPrimary, fontFamily: "Inter", fontSize: 14, lineHeight: 20 },
+  muted: { color: theme.textSecondary, fontFamily: "Inter", fontSize: 13, lineHeight: 19 },
+  error: { color: theme.error, fontSize: 13 },
+  link: { color: theme.primary, fontSize: 13, fontFamily: "Inter-SemiBold" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -47,7 +48,7 @@ export const s = StyleSheet.create({
   button: {
     minHeight: 44,
     borderRadius: 14,
-    backgroundColor: palette.accent,
+    backgroundColor: theme.primary,
     paddingHorizontal: 16,
     paddingVertical: 12,
     alignItems: "center",
@@ -55,46 +56,46 @@ export const s = StyleSheet.create({
   },
   buttonText: {
     fontFamily: "Inter-SemiBold",
-    color: palette.white,
+    color: theme.onPrimary,
     fontSize: 13,
     textAlign: "center",
   },
   secondary: {
-    backgroundColor: palette.surface,
+    backgroundColor: theme.cardBackground,
     borderWidth: 1,
-    borderColor: palette.borderDark,
+    borderColor: theme.border,
   },
   input: {
     fontFamily: "Inter",
     minHeight: 44,
     borderWidth: 1,
-    borderColor: palette.borderStrong,
-    backgroundColor: palette.surfaceDark,
+    borderColor: theme.border,
+    backgroundColor: theme.cardBackground,
     borderRadius: 10,
     padding: 12,
-    color: palette.white,
+    color: theme.textPrimary,
     fontSize: 14,
   },
   row: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: palette.surface,
+    backgroundColor: theme.cardBackground,
     borderRadius: 14,
     minHeight: 30,
     justifyContent: "center",
   },
-  selected: { backgroundColor: palette.accent },
+  selected: { backgroundColor: theme.primary },
   overlay: {
     flex: 1,
-    backgroundColor: palette.blackTranslucent,
+    backgroundColor: theme.overlay,
     alignItems: "center",
     justifyContent: "center",
     padding: 12,
   },
   sheet: {
-    backgroundColor: palette.black,
-    borderColor: palette.borderDark,
+    backgroundColor: theme.background,
+    borderColor: theme.border,
     borderWidth: 1,
     borderRadius: 18,
     padding: 16,
@@ -107,10 +108,12 @@ export const s = StyleSheet.create({
   media: {
     height: 226,
     borderRadius: 8,
-    backgroundColor: palette.surfacePlaceholder,
+    backgroundColor: theme.cardBackground,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     marginHorizontal: 10,
   },
 });
+
+export const s = createStyles(themes.dark);

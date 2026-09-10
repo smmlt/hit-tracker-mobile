@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { s } from './ui.styles.js';
+import { createStyles, s } from './ui.styles.js';
 export { s };
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LanguageContext } from "../../localization/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 import Back from "../../assets/workshop/Back.svg";
 
 import { palette } from '../../constants/colors';
@@ -25,6 +26,7 @@ const words = {
     createExercise: "Create exercise",
     edit: "Edit",
     save: "Save",
+    like: "Like",
     cancel: "Cancel",
     close: "Close",
     back: "Back",
@@ -94,6 +96,7 @@ const words = {
     createExercise: "Створити вправу",
     edit: "Редагувати",
     save: "Зберегти",
+    like: "Вподобати",
     cancel: "Скасувати",
     close: "Закрити",
     back: "Назад",
@@ -147,6 +150,7 @@ const words = {
 };
 export const useWords = () =>
   words[useContext(LanguageContext).locale] || words.en;
+export const useWorkshopStyles = () => createStyles(useTheme().theme);
 export function Button({
   children,
   onPress,
@@ -155,32 +159,35 @@ export function Button({
   style,
   ...props
 }) {
+  const styles = useWorkshopStyles();
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
-        s.button,
-        secondary && s.secondary,
+        styles.button,
+        secondary && styles.secondary,
         style,
         (disabled || pressed) && { opacity: 0.5 },
       ]}
       {...props}
     >
-      <Text style={s.buttonText}>{children}</Text>
+      <Text style={styles.buttonText}>{children}</Text>
     </Pressable>
   );
 }
 export function Field({ label, style, ...props }) {
+  const styles = useWorkshopStyles();
+  const { theme } = useTheme();
   return (
     <View style={[{ gap: 6 }, style]}>
-      <Text style={s.muted}>{label}</Text>
+      <Text style={styles.muted}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
-        placeholderTextColor={palette.gray}
+        placeholderTextColor={theme.textSecondary}
         style={[
-          s.input,
+          styles.input,
           props.multiline && { minHeight: 90, textAlignVertical: "top" },
         ]}
         {...props}
@@ -190,19 +197,20 @@ export function Field({ label, style, ...props }) {
 }
 export function Sheet({ title, children, onClose }) {
   const w = useWords();
+  const styles = useWorkshopStyles();
   return (
     <Modal transparent animationType="fade" visible onRequestClose={onClose}>
-      <View style={s.overlay}>
-        <SafeAreaView style={s.sheet}>
-          <View style={s.header}>
-            <Text style={[s.heading, { flex: 1 }]}>{title}</Text>
+      <View style={styles.overlay}>
+        <SafeAreaView style={styles.sheet}>
+          <View style={styles.header}>
+            <Text style={[styles.heading, { flex: 1 }]}>{title}</Text>
             <Button secondary onPress={onClose}>
               {w.close}
             </Button>
           </View>
           <ScrollView
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={s.sheetBody}
+            contentContainerStyle={styles.sheetBody}
           >
             {children}
           </ScrollView>
@@ -213,28 +221,30 @@ export function Sheet({ title, children, onClose }) {
 }
 export function DetailHeader({ title, onBack, children }) {
   const w = useWords();
+  const styles = useWorkshopStyles();
   return (
-    <View style={s.detailHeader}>
+    <View style={styles.detailHeader}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={w.back}
         onPress={onBack}
-        style={s.iconButton}
+        style={styles.iconButton}
       >
         <Back width={24} height={24} />
       </Pressable>
-      <Text style={[s.heading, { flex: 1, textAlign: "center" }]}>{title}</Text>
-      {children || <View style={s.iconButton} />}
+      <Text style={[styles.heading, { flex: 1, textAlign: "center" }]}>{title}</Text>
+      {children || <View style={styles.iconButton} />}
     </View>
   );
 }
 export function Feedback({ error, loading, onRetry }) {
   const w = useWords();
+  const styles = useWorkshopStyles();
   return loading ? (
-    <ActivityIndicator color={palette.accent} style={s.spinner} />
+    <ActivityIndicator color={palette.accent} style={styles.spinner} />
   ) : error ? (
-    <View style={s.feedback}>
-      <Text accessibilityRole="alert" style={s.error}>
+    <View style={styles.feedback}>
+      <Text accessibilityRole="alert" style={styles.error}>
         {String(error)}
       </Text>
       {onRetry && (

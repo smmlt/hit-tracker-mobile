@@ -1,8 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-import { palette } from '../constants/colors';
-export const styles = StyleSheet.create({
-  segmentLabel: { fontSize: 16 },
+export const createStyles = (theme) => StyleSheet.create({
+  screen: { backgroundColor: theme.background, flex: 1 },
+  heading: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 16, lineHeight: 23, marginBottom: 20 },
+  muted: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 13, lineHeight: 19 },
+  row: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 12 },
+  chip: { backgroundColor: theme.cardBackground, borderRadius: 14, justifyContent: 'center', minHeight: 30, paddingHorizontal: 10, paddingVertical: 6 },
+  selected: { backgroundColor: theme.primary },
+  segmentLabel: { color: theme.textSecondary, fontSize: 16 },
+  segmentLabelActive: { color: theme.onPrimary },
   separator: { height: 8 },
   empty: { padding: 24 },
   content: {
@@ -16,7 +22,7 @@ export const styles = StyleSheet.create({
   segment: {
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: palette.white,
+    borderColor: theme.border,
     flexDirection: "row",
     marginHorizontal: 12,
     overflow: "hidden",
@@ -32,17 +38,18 @@ export const styles = StyleSheet.create({
     marginTop: 22,
     marginBottom: 28,
     height: 50,
-    borderColor: palette.accent,
+    borderColor: theme.primary,
     borderRadius: 12,
-    backgroundColor: palette.white,
+    backgroundColor: theme.inputBackground,
   },
+  searchInput: { color: theme.inputText, fontSize: 16 },
   sort: {
     flexDirection: "row",
     alignItems: "center",
     width: 237,
     minHeight: 30,
-    backgroundColor: palette.surface,
-    borderColor: palette.gray,
+    backgroundColor: theme.cardBackground,
+    borderColor: theme.border,
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 8,

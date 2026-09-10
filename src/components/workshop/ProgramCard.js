@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { styles } from './ProgramCard.styles.js';
+import { createStyles } from './ProgramCard.styles.js';
 import { s, useWords } from "./ui";
 import { useLibrary } from "../../context/LibraryContext";
 import HeartFilled from "../../assets/workshop/HeartFilled.svg";
@@ -8,8 +8,11 @@ import HeartOutline from "../../assets/workshop/HeartOutline.svg";
 import Plus from "../../assets/workshop/Plus.svg";
 
 import { palette } from '../../constants/colors';
+import { useTheme } from '../../context/ThemeContext';
 export function ProgramBadges({ program }) {
   const w = useWords();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const count = new Set(
     (program.schedule || []).map((row) => row.exercise?.id).filter(Boolean),
   ).size;
@@ -26,6 +29,8 @@ export function ProgramBadges({ program }) {
 export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
   const w = useWords();
   const library = useLibrary();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const Heart = program.isLiked ? HeartFilled : HeartOutline;
   const rows = (program.schedule || []).filter(
     (row, index, all) =>
@@ -36,7 +41,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
     <View style={styles.card}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={program.name}
+        accessibilityLabel={program.displayName || program.name}
         onPress={onPress}
         style={({ pressed }) => [styles.body, pressed && { opacity: 0.7 }]}
       >
@@ -48,7 +53,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
           </Text>
         )}
         <Text style={styles.title} numberOfLines={2}>
-          {program.name.toUpperCase()}
+          {(program.displayName || program.name).toUpperCase()}
         </Text>
         <ProgramBadges program={program} />
         <View style={styles.preview}>
@@ -59,7 +64,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
                 numberOfLines={1}
                 style={styles.exercise}
               >
-                ·　{row.exercise.name}　({row.setsCount} ×{" "}
+                ·　{row.exercise.displayName || row.exercise.name}　({row.setsCount} ×{" "}
                 {row.targetReps || "—"})
               </Text>
             ))}
@@ -76,7 +81,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
             <View style={styles.actions}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${w.schedule}: ${program.name}`}
+                accessibilityLabel={`${w.schedule}: ${program.displayName || program.name}`}
                 accessibilityState={{ selected: !!program.isScheduled }}
                 onPress={(event) => {
                   event.stopPropagation();
@@ -88,7 +93,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Like ${program.name}`}
+                accessibilityLabel={`${w.like} ${program.displayName || program.name}`}
                 accessibilityState={{ selected: !!program.isLiked }}
                 onPress={(event) => {
                   event.stopPropagation();

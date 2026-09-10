@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
-import { styles } from './HomeScreen.styles.js';
+import { createStyles } from './HomeScreen.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -15,19 +15,20 @@ import {
   Button,
   Feedback,
   Sheet,
-  s,
   useWords,
 } from "../components/workshop/ui";
 import Chevron from "../assets/icons/ChevronDownIcon.svg";
 
-import { palette } from '../constants/colors';
 import { LanguageContext } from '../localization/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 export default function HomeScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userData } = useContext(AuthContext);
   const library = useLibrary();
   const w = useWords();
   const { t } = useContext(LanguageContext);
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [section, setSection] = useState("exercises");
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState(null);
@@ -44,7 +45,9 @@ export default function HomeScreen({ navigation }) {
   );
   const data = library[section]
     .filter((item) => {
-      if (!item.name.toLowerCase().includes(query.trim().toLowerCase()))
+      if (![item.name, item.displayName].some((name) =>
+        name?.toLowerCase().includes(query.trim().toLowerCase()),
+      ))
         return false;
       if (section === "programs") {
         if (
@@ -76,7 +79,7 @@ export default function HomeScreen({ navigation }) {
     );
   const header = (
     <View>
-      <Text style={[s.heading, { marginBottom: 20 }]}>{w.workshop}</Text>
+      <Text style={styles.heading}>{w.workshop}</Text>
       <View style={styles.segment}>
         {["exercises", "programs"].map((key) => (
           <Pressable
@@ -87,10 +90,10 @@ export default function HomeScreen({ navigation }) {
               setSection(key);
               setScope("all");
             }}
-            style={[styles.segmentItem, section === key && s.selected]}
+            style={[styles.segmentItem, section === key && styles.selected]}
           >
             <Text
-              style={[styles.segmentLabel, { color: section === key ? palette.black : palette.gray }]}
+              style={[styles.segmentLabel, section === key && styles.segmentLabelActive]}
             >
               {w[key]}
             </Text>
@@ -102,14 +105,14 @@ export default function HomeScreen({ navigation }) {
         onChangeText={setQuery}
         placeholder={w.search}
         style={styles.search}
-        inputStyle={{ color: palette.surface, fontSize: 16 }}
+        inputStyle={styles.searchInput}
       />
       <ExerciseFilterBar
         musclesList={library.muscles}
         selectedMuscleFilter={muscle}
         onSelectMuscleFilter={setMuscle}
       />
-      <View style={[s.row, { marginVertical: 12 }]}>
+      <View style={styles.row}>
         {(section === "programs"
           ? ["all", "official", "personal"]
           : ["all", "saved"]
@@ -118,10 +121,10 @@ export default function HomeScreen({ navigation }) {
             accessibilityRole="button"
             accessibilityState={{ selected: scope === key }}
             key={key}
-            style={[s.chip, scope === key && s.selected]}
+            style={[styles.chip, scope === key && styles.selected]}
             onPress={() => setScope(key)}
           >
-            <Text style={s.muted}>{w[key]}</Text>
+            <Text style={[styles.muted, scope === key && styles.segmentLabelActive]}>{w[key]}</Text>
           </Pressable>
         ))}
         {section === "programs" && (
@@ -136,10 +139,10 @@ export default function HomeScreen({ navigation }) {
         onPress={() => setSortOpen(true)}
         style={styles.sort}
       >
-        <Text style={[s.muted, { fontWeight: "700", flex: 1 }]}>{w[sort]}</Text>
-        <Chevron width={20} height={20} color={palette.lightGray} />
+        <Text style={[styles.muted, { fontWeight: "700", flex: 1 }]}>{w[sort]}</Text>
+        <Chevron width={20} height={20} color={theme.textSecondary} />
       </Pressable>
-      {!!message && <Text style={s.muted}>{message}</Text>}
+      {!!message && <Text style={styles.muted}>{message}</Text>}
       <Feedback
         error={library.errors[section] || library.errors.muscles}
         onRetry={library.refresh}
@@ -147,7 +150,7 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
   return (
-    <SafeAreaView edges={["top", "left", "right"]} style={s.screen}>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.screen}>
     <FlatList
       showsVerticalScrollIndicator={false}
         data={data}
@@ -159,12 +162,12 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={library.loading}
             onRefresh={library.refresh}
-            tintColor={palette.accent}
+            tintColor={theme.primary}
           />
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={s.muted}>{library.loading ? w.loading : w.empty}</Text>
+            <Text style={styles.muted}>{library.loading ? w.loading : w.empty}</Text>
           </View>
         }
         renderItem={({ item }) =>
