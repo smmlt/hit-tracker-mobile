@@ -1,23 +1,35 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Platform, Pressable, Share, Text, View } from "react-native";
 import Icon from "../../assets/workshop/Share.svg";
 import { useWorkshopStyles, useWords } from "./ui";
 import { useTheme } from "../../context/ThemeContext";
-export function ShareButton({ title, description }) {
+import { LanguageContext } from "../../localization/LanguageContext";
+import { createStyles } from './ShareButton.styles';
+
+export function ShareButton({ title, description, getUrl, url }) {
   const { theme } = useTheme();
+  const { t } = useContext(LanguageContext);
   const s = useWorkshopStyles();
+  const styles = createStyles(theme);
   const w = useWords();
   const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
   const share = async () => {
-    const text = [title, description].filter(Boolean).join("\n\n");
+    setBusy(true);
+    setMessage("");
     try {
+      const resolvedUrl = url || await getUrl?.();
+      if (!resolvedUrl) throw new Error('Share URL is unavailable');
+      const text = [title, description, resolvedUrl].filter(Boolean).join("\n\n");
       if (Platform.OS === "web" && !navigator.share) {
-        await navigator.clipboard.writeText(text);
-        setMessage(w.shared);
-      } else if (Platform.OS === "web") await navigator.share({ title, text });
-      else await Share.share({ title, message: text });
+        await navigator.clipboard.writeText(resolvedUrl);
+        setMessage(t('shareLinkCopied'));
+      } else if (Platform.OS === "web") await navigator.share({ title, text, url: resolvedUrl });
+      else await Share.share({ title, message: text, url: resolvedUrl });
     } catch (error) {
-      if (error.name !== "AbortError") setMessage(error.message);
+      if (error.name !== "AbortError") setMessage(t('shareFailed'));
+    } finally {
+      setBusy(false);
     }
   };
   return (
@@ -25,25 +37,15 @@ export function ShareButton({ title, description }) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={w.share}
+        disabled={busy}
         onPress={share}
-        style={s.iconButton}
+        style={[s.iconButton, busy && styles.busy]}
       >
         <Icon width={24} height={24} />
       </Pressable>
       {!!message && (
         <Text
-          style={[
-            s.muted,
-            {
-              position: "absolute",
-              right: 0,
-              top: 44,
-              width: 160,
-              backgroundColor: theme.cardBackground,
-              padding: 6,
-              zIndex: 10,
-            },
-          ]}
+          style={[s.muted, styles.message]}
           onPress={() => setMessage("")}
         >
           {message}

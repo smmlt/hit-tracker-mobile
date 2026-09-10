@@ -15,6 +15,7 @@ import { ShareButton } from "../components/workshop/ShareButton";
 import { useTheme } from "../context/ThemeContext";
 import { LanguageContext } from "../localization/LanguageContext";
 import { translateCatalogName } from "../localization/catalog";
+import { programShareUrl } from "../utils/shareLinks";
 import { createStyles } from './LibraryProgramScreen.styles';
 import {
   Button,
@@ -141,8 +142,19 @@ export default function LibraryProgramScreen({ navigation, route }) {
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={s.screen}>
       <DetailHeader title={w.programDetails} onBack={() => navigation.goBack()}>
-        {program && (
-          <ShareButton title={localizedProgram.displayName || localizedProgram.name} description={localizedProgram.description} />
+        {program && canCustomize && (
+          <ShareButton
+            title={localizedProgram.displayName || localizedProgram.name}
+            description={localizedProgram.description}
+            getUrl={async () => {
+              const { token } = await apiRequest(
+                `/workout-programs/${program.id}/share`,
+                { method: "POST" },
+                userToken,
+              );
+              return programShareUrl(token);
+            }}
+          />
         )}
       </DetailHeader>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: tabBarHeight + 28 }]}>

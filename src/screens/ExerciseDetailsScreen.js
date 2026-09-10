@@ -15,6 +15,7 @@ import {
   useWords,
 } from "../components/workshop/ui";
 import { ShareButton } from "../components/workshop/ShareButton";
+import { exerciseShareUrl } from "../utils/shareLinks";
 
 import { createStyles } from './ExerciseDetailsScreen.styles';
 export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
@@ -135,6 +136,7 @@ export default function ExerciseDetailsScreen({ navigation, route }) {
           <ShareButton
             title={exercise.displayName || exercise.name}
             description={exercise.description}
+            url={exerciseShareUrl(exercise.id)}
           />
         )}
       </DetailHeader>
