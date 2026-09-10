@@ -5,5 +5,6 @@ export const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject },
   menu: { borderRadius: 10, gap: 10, minWidth: 181, padding: 12 },
   row: { alignItems: 'center', flexDirection: 'row', gap: 12, justifyContent: 'center', minHeight: 24 },
+  divider: { height: StyleSheet.hairlineWidth, width: '100%' },
   text: { fontFamily: 'Inter', fontSize: 16, lineHeight: 22 },
 });

@@ -31,6 +31,7 @@ export function UsernameActionsMenu({ isOwner = false, onClose, onCopyResult, on
                 <EditUsernameIcon color={theme.textSecondary} height={24} width={24} />
                 <Text style={[styles.text, { color: theme.textSecondary }]}>{t('edit')}</Text>
               </Pressable>
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
             </>
           )}
           <Pressable accessibilityLabel={t('copyUsername')} accessibilityRole="button" onPress={copy} style={styles.row}>

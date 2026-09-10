@@ -221,6 +221,7 @@ export function Sheet({ title, children, onClose }) {
 export function DetailHeader({ title, onBack, children }) {
   const w = useWords();
   const styles = useWorkshopStyles();
+  const { theme } = useTheme();
   return (
     <View style={styles.detailHeader}>
       <Pressable
@@ -229,7 +230,7 @@ export function DetailHeader({ title, onBack, children }) {
         onPress={onBack}
         style={styles.iconButton}
       >
-        <Back width={24} height={24} />
+        <Back color={theme.textPrimary} width={24} height={24} />
       </Pressable>
       <Text style={[styles.heading, { flex: 1, textAlign: "center" }]}>{title}</Text>
       {children || <View style={styles.iconButton} />}
