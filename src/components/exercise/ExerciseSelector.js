@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { ScrollView, TouchableOpacity, Text, View } from 'react-native';
+import { styles } from './ExerciseSelector.styles.js';
+import { LanguageContext } from '../../localization/LanguageContext';
 
 export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect }) {
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState(null);
+  const { t } = useContext(LanguageContext);
 
   // Збираємо всі унікальні м'язи з отриманих вправ для створення кнопок фільтрації
   const allMuscles = [];
@@ -29,7 +32,7 @@ export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect 
             onPress={() => setSelectedMuscleFilter(null)}
           >
             <Text style={[styles.filterText, selectedMuscleFilter === null && styles.filterTextActive]}>
-              All
+              {t('allMuscles')}
             </Text>
           </TouchableOpacity>
           {allMuscles.map((muscle) => {
@@ -77,19 +80,3 @@ export function ExerciseSelector({ exercises = [], selectedExerciseId, onSelect 
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  filterContainer: { flexDirection: 'row', marginBottom: 10 },
-  filterChip: { backgroundColor: '#0F172A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 6, borderWidth: 1, borderColor: '#334155' },
-  filterChipActive: { backgroundColor: '#334155', borderColor: '#FF5722' },
-  filterText: { color: '#94A3B8', fontSize: 11, fontWeight: '600' },
-  filterTextActive: { color: '#FFF' },
-
-  container: { flexDirection: 'row', marginBottom: 20 },
-  chip: { backgroundColor: '#1E293B', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 16, marginRight: 8, borderWidth: 1, borderColor: '#334155', minWidth: 130 },
-  chipActive: { backgroundColor: '#FF5722', borderColor: '#FF5722' },
-  chipText: { color: '#CBD5E1', fontWeight: '600', fontSize: 13 },
-  chipTextActive: { color: '#FFF' },
-  chipSubText: { color: '#64748B', fontSize: 10, marginTop: 2 },
-  chipSubTextActive: { color: '#FED7AA' },
-});

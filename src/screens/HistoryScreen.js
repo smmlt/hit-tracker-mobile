@@ -1,25 +1,15 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  ActivityIndicator,
-  RefreshControl,
-  LayoutAnimation,
-  Platform,
-  UIManager,
-  Keyboard,
-  Animated,
-} from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, ActivityIndicator, RefreshControl, LayoutAnimation, Platform, UIManager, Keyboard, Animated } from 'react-native';
+import { styles } from './HistoryScreen.styles.js';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../localization/LanguageContext';
 import { useIsFocused } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { workoutsService } from '../services/workoutsService';
 import { ConfirmDialog, CustomToast } from '../components/feedback';
 import { HistoryCard } from '../components/workout';
 
+import { palette } from '../constants/colors';
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -27,6 +17,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function HistoryScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { userToken } = useContext(AuthContext);
+  const { t } = useContext(LanguageContext);
   
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +56,7 @@ export default function HistoryScreen() {
       setHistory(data);
     } catch (err) {
       console.error(err);
-      showToast('Failed to load workout history', 'error');
+      showToast(t('historyLoadFailed'), 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -96,17 +87,17 @@ export default function HistoryScreen() {
     try {
       await workoutsService.deleteWorkout(userToken, workoutId);
       setHistory((prev) => prev.filter((item) => item.id !== workoutId));
-      showToast('Workout deleted successfully', 'success');
+      showToast(t('workoutDeleted'), 'success');
     } catch (err) {
       console.error(err);
-      showToast('Failed to delete workout', 'error');
+      showToast(t('workoutDeleteFailed'), 'error');
     }
   };
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#FF5722" />
+        <ActivityIndicator size="large" color={palette.orangeLegacy} />
       </View>
     );
   }
@@ -116,14 +107,14 @@ export default function HistoryScreen() {
       <ScrollView
         contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 20 }]}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF5722" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.orangeLegacy} />
         }
       >
-        <Text style={styles.title}>Workout History 📜</Text>
+        <Text style={styles.title}>{t('workoutHistoryTitle')} 📜</Text>
 
         {history.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>You don't have any saved workouts yet.</Text>
+            <Text style={styles.emptyText}>{t('noSavedWorkouts')}</Text>
           </View>
         ) : (
           history.map((workout, index) => {
@@ -144,8 +135,8 @@ export default function HistoryScreen() {
 
       <ConfirmDialog
         visible={!!workoutToDelete}
-        title="Delete Workout?"
-        message="This action cannot be undone. Are you sure you want to delete this workout record?"
+        title={t('deleteWorkout')}
+        message={t('deleteWorkoutMessage')}
         onCancel={() => setWorkoutToDelete(null)}
         onConfirm={confirmDeleteWorkout}
       />
@@ -160,12 +151,3 @@ export default function HistoryScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0F172A' },
-  container: { padding: 20, maxWidth: 800, alignSelf: 'center', width: '100%', paddingBottom: 60 },
-  centerContainer: { flex: 1, backgroundColor: '#0F172A', justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 20 },
-  emptyCard: { backgroundColor: '#1E293B', padding: 24, borderRadius: 12, alignItems: 'center' },
-  emptyText: { color: '#94A3B8', fontSize: 14 },
-});

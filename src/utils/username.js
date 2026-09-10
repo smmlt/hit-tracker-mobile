@@ -1,6 +1,28 @@
 export const MIN_USERNAME_LENGTH = 3;
 export const MAX_USERNAME_LENGTH = 24;
 
+const RESERVED_USERNAMES = new Set([
+  'admin',
+  'administrator',
+  'moderator',
+  'moder',
+  'mod',
+  'adm',
+  'support',
+  'staff',
+  'help',
+  'official',
+  'system',
+  'root',
+  'owner',
+  'hittracker',
+  'hit_tracker',
+]);
+
+export function isReservedUsername(value) {
+  return RESERVED_USERNAMES.has(value.trim().toLowerCase());
+}
+
 export function validateUsername(value) {
   const username = value.trim().toLowerCase();
   if (!username) return { valid: false, username, reason: 'empty' };
@@ -10,14 +32,11 @@ export function validateUsername(value) {
   if (username.length > MAX_USERNAME_LENGTH) {
     return { valid: false, username, reason: 'tooLong' };
   }
-  if (!/^[a-z0-9_.]+$/.test(username)) {
+  if (!/^[a-z0-9_]+$/.test(username)) {
     return { valid: false, username, reason: 'characters' };
   }
-  if (username.startsWith('.') || username.endsWith('.')) {
-    return { valid: false, username, reason: 'edgeDot' };
-  }
-  if (username.includes('..')) {
-    return { valid: false, username, reason: 'consecutiveDots' };
+  if (isReservedUsername(username)) {
+    return { valid: false, username, reason: 'reserved' };
   }
   return { valid: true, username, reason: null };
 }

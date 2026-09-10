@@ -1,20 +1,13 @@
 import React, { useContext, useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  Animated 
-} from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { styles } from './ResetPasswordScreen.styles.js';
 import { Ionicons } from '@expo/vector-icons';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { apiRequest } from '../services/api';
 import { LanguageContext } from '../localization/LanguageContext';
 
+import { palette } from '../constants/colors';
 export default function ResetPasswordScreen({ navigation, route }) {
   const token = route?.params?.token;
   const { t } = useContext(LanguageContext);
@@ -76,7 +69,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
 
       setIsSuccess(true);
     } catch (err) {
-      showToast(err.message || 'Something went wrong');
+      showToast(err.message || t('somethingWentWrong'));
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +77,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.fill}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.formWrapper}>
             {!isSuccess ? (
@@ -129,7 +122,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                       <Ionicons 
                         name={req.met ? "checkmark-circle" : "ellipse-outline"} 
                         size={16} 
-                        color={req.met ? "#10B981" : "#9CA3AF"} 
+                        color={req.met ? palette.success : palette.gray500}
                       />
                       <Text style={[styles.requirementText, req.met && styles.requirementMetText]}>
                         {req.label}
@@ -156,7 +149,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
             ) : (
               <View style={styles.centerContent}>
                 <View style={styles.iconCircle}>
-                  <Ionicons name="checkmark" size={48} color="#000" />
+                  <Ionicons name="checkmark" size={48} color={palette.blackPure} />
                 </View>
 
                 <Text style={[styles.title, { textAlign: 'center' }]}>{t('passwordReset')}</Text>
@@ -185,24 +178,3 @@ export default function ResetPasswordScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20, maxWidth: 440, width: '100%', alignSelf: 'center' },
-  formWrapper: { width: '100%' },
-  centerContent: { alignItems: 'center', width: '100%' },
-  iconCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#6B7280', marginBottom: 24, lineHeight: 22 },
-  strengthContainer: { marginTop: -8, marginBottom: 12 },
-  strengthText: { fontSize: 13, fontWeight: '600', color: '#000', marginBottom: 6 },
-  barsRow: { flexDirection: 'row', gap: 6 },
-  bar: { flex: 1, height: 4, borderRadius: 2 },
-  barActive: { backgroundColor: '#000' },
-  barInactive: { backgroundColor: '#E5E7EB' },
-  requirementsContainer: { marginBottom: 20, gap: 6 },
-  requirementRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  requirementText: { fontSize: 13, color: '#6B7280' },
-  requirementMetText: { color: '#10B981', fontWeight: '500' },
-  fullWidthButton: { width: '100%', marginTop: 24 },
-});

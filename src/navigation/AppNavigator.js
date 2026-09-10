@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { ActivityIndicator, Platform, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -29,6 +29,8 @@ import AdminScreen from '../screens/AdminScreen';
 import TrainingScreen from '../screens/TrainingScreen';
 import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 
+import { palette } from '../constants/colors';
+import { styles } from './AppNavigator.styles';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
@@ -42,8 +44,7 @@ function WorkshopStack() {
     <WorkshopStackNavigator.Screen name="ExerciseDetails" component={ExerciseDetailsScreen} />
   </WorkshopStackNavigator.Navigator>;
 }
-
-const AnalyticsPlaceholder = () => <View style={{flex: 1, backgroundColor: '#101113'}} />;
+const AnalyticsPlaceholder = () => <View style={styles.analyticsPlaceholder} />;
 function TrainingStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
@@ -70,7 +71,6 @@ function ProfileStack() {
     </ProfileStackNavigator.Navigator>
   );
 }
-
 function MainTabs() {
   const { t } = useContext(LanguageContext);
 
@@ -131,7 +131,7 @@ export default function AppNavigator() {
   if (isInitializing) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#f97316" />
+        <ActivityIndicator size="large" color={palette.orange500} />
       </View>
     );
   }
@@ -141,8 +141,8 @@ export default function AppNavigator() {
       <View style={styles.container}>
         <Stack.Navigator
           screenOptions={{
-            headerStyle: { backgroundColor: '#0F172A' },
-            headerTintColor: '#F8FAFC',
+            headerStyle: { backgroundColor: palette.slate950 },
+            headerTintColor: palette.slate50,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >
@@ -192,15 +192,3 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loading: {
-    alignItems: 'center',
-    backgroundColor: '#0F172A',
-    flex: 1,
-    justifyContent: 'center',
-  },
-});

@@ -12,6 +12,7 @@ import { ProgramBadges } from "../components/workshop/ProgramCard";
 import { ProgramEditor } from "../components/workshop/ProgramEditor";
 import { ScheduleProgramSheet } from "../components/workshop/ScheduleProgramSheet";
 import { ShareButton } from "../components/workshop/ShareButton";
+import { styles } from './LibraryProgramScreen.styles';
 import {
   Button,
   DetailHeader,
@@ -24,11 +25,11 @@ export function ProgramDetailsContent({ program, onExercise, onEdit }) {
   const library = useLibrary();
   const w = useWords();
   return (
-    <View style={{ gap: 16 }}>
+    <View style={styles.contentBlock}>
       <View style={s.media}>
-        <Text style={{ color: "#EFEFEF", fontSize: 12 }}>{w.noMedia}</Text>
+        <Text style={styles.noMedia}>{w.noMedia}</Text>
       </View>
-      <View style={{ paddingHorizontal: 10, gap: 10 }}>
+      <View style={styles.summary}>
         <Text style={s.heading}>{program.name.toUpperCase()}</Text>
         <ProgramBadges program={program} />
         {!!program.description && (
@@ -38,7 +39,7 @@ export function ProgramDetailsContent({ program, onExercise, onEdit }) {
       <View style={s.header}>
         <Text style={[s.heading, { flex: 1 }]}>{w.programExercises}</Text>
         {onEdit && (
-          <Pressable accessibilityRole="button" onPress={onEdit} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={s.link}>+ {w.addExercise}</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={onEdit} style={styles.addExercise}><Text style={s.link}>+ {w.addExercise}</Text></Pressable>
         )}
       </View>
       {(program.schedule || []).map(
@@ -55,14 +56,7 @@ export function ProgramDetailsContent({ program, onExercise, onEdit }) {
             />
           ),
       )}
-      <View
-        style={{
-          backgroundColor: "#292929",
-          borderRadius: 10,
-          padding: 14,
-          gap: 8,
-        }}
-      >
+      <View style={styles.tip}>
         <Text style={s.link}>{w.tip}</Text>
         <Text style={s.muted}>{w.tipText}</Text>
       </View>

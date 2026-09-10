@@ -1,11 +1,13 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { styles } from './ProgramCard.styles.js';
 import { s, useWords } from "./ui";
 import { useLibrary } from "../../context/LibraryContext";
 import HeartFilled from "../../assets/workshop/HeartFilled.svg";
 import HeartOutline from "../../assets/workshop/HeartOutline.svg";
 import Plus from "../../assets/workshop/Plus.svg";
 
+import { palette } from '../../constants/colors';
 export function ProgramBadges({ program }) {
   const w = useWords();
   const count = new Set(
@@ -13,7 +15,7 @@ export function ProgramBadges({ program }) {
   ).size;
   return (
     <View style={[s.row, { gap: 4 }]}>
-      <View style={[styles.badge, { backgroundColor: "#F00D22" }]}>
+      <View style={[styles.badge, { backgroundColor: palette.accent }]}>
         <Text style={styles.white}>
           {count} {w.exercises.toLowerCase()}
         </Text>
@@ -50,7 +52,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
         </Text>
         <ProgramBadges program={program} />
         <View style={styles.preview}>
-          <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+          <View style={styles.info}>
             {rows.slice(0, 5).map((row) => (
               <Text
                 key={row.exercise.id}
@@ -82,7 +84,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
                 }}
                 style={s.iconButton}
               >
-                <Plus width={39} height={39} color={program.isScheduled ? "#F98300" : "#838384"} />
+                <Plus width={39} height={39} color={program.isScheduled ? palette.orange : palette.gray} />
               </Pressable>
               <Pressable
                 accessibilityRole="button"
@@ -105,35 +107,3 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
     </View>
   );
 }
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#292929",
-    borderLeftWidth: 5,
-    borderLeftColor: "#F00D22",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  body: { paddingHorizontal: 14, paddingVertical: 12, gap: 8 },
-  title: { color: "#FFFEFE", fontFamily: "Inter", fontSize: 16, lineHeight: 23 },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: "#101113",
-  },
-  muted: { color: "#838384", fontFamily: "Inter", fontSize: 13 },
-  white: { color: "#EFEFEF", fontFamily: "Inter", fontSize: 13 },
-  label: { color: "#F98300", fontSize: 11, fontWeight: "600" },
-  preview: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-    paddingVertical: 4,
-  },
-  exercise: { color: "#C8C8C8", fontFamily: "Inter", fontSize: 13, lineHeight: 19 },
-  actions: { alignItems: "center", width: 58 },
-  like: { flexDirection: "row", alignItems: "center", minHeight: 34, gap: 2 },
-});

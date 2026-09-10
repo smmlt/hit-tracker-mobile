@@ -1,15 +1,42 @@
 import { StyleSheet } from 'react-native';
 
+import { palette } from '../../constants/colors';
 export const styles = StyleSheet.create({
-  cardWrapper: { borderRadius: 12, borderWidth: 1, marginBottom: 12, overflow: 'hidden' },
-  cardInnerRow: { alignItems: 'center', flexDirection: 'row', marginBottom: 4, padding: 12, width: '100%' },
-  imagePlaceholder: { alignItems: 'center', backgroundColor: '#7C3AED', borderRadius: 10, flexShrink: 0, height: 75, justifyContent: 'center', marginRight: 4, width: 75 },
-  placeholderText: { color: '#FFFFFF', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
-  infoContainer: { flex: 1, justifyContent: 'center', paddingLeft: 20 },
-  title: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
-  muscles: { fontSize: 13, marginBottom: 8 },
-  statsRow: { alignItems: 'center', flexDirection: 'row' },
-  iconButton: { alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  difficultyContainer: { alignItems: 'center', flexDirection: 'row', marginRight: 10 },
-  likesCount: { fontSize: 13, fontWeight: '600' },
+  card: { backgroundColor: palette.surface, overflow: "hidden" },
+  body: {
+    padding: 10,
+    minHeight: 123,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  image: { width: 90, height: 90, borderRadius: 8, backgroundColor: palette.imagePlaceholder },
+  info: { flex: 1, minWidth: 0, gap: 8 },
+  title: { color: palette.white, fontFamily: "Inter-Bold", fontSize: 16, lineHeight: 23 },
+  muscleRow: { flexDirection: "row", gap: 5 },
+  muscles: { flex: 1, color: palette.lightGray, fontFamily: "Inter", fontSize: 13, lineHeight: 18 },
+  more: { color: palette.orange, fontSize: 13 },
+  stats: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 4,
+  },
+  action: { flexDirection: "row", alignItems: "center", gap: 2, minHeight: 36 },
+  count: { color: palette.white, fontFamily: "Inter", fontSize: 12 },
+  star: {
+    width: 32,
+    minHeight: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  footer: {
+    fontFamily: "Inter",
+    color: palette.accent,
+    borderTopWidth: 1,
+    borderTopColor: palette.gray,
+    padding: 10,
+    textAlign: "center",
+    fontSize: 13,
+  },
 });

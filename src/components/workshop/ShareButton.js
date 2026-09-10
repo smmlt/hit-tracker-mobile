@@ -3,6 +3,7 @@ import { Platform, Pressable, Share, Text, View } from "react-native";
 import Icon from "../../assets/workshop/Share.svg";
 import { s, useWords } from "./ui";
 
+import { palette } from '../../constants/colors';
 export function ShareButton({ title, description }) {
   const w = useWords();
   const [message, setMessage] = useState("");
@@ -37,7 +38,7 @@ export function ShareButton({ title, description }) {
               right: 0,
               top: 44,
               width: 160,
-              backgroundColor: "#292929",
+              backgroundColor: palette.surface,
               padding: 6,
               zIndex: 10,
             },

@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 
+import { palette } from '../../constants/colors';
 export const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 15 },
@@ -16,7 +17,7 @@ export const styles = StyleSheet.create({
   muscleTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   muscleTag: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
   muscleTagText: { fontSize: 13 },
-  safetyBox: { backgroundColor: '#292929', borderLeftColor: '#EAB308', borderLeftWidth: 4, borderRadius: 10, marginBottom: 20, padding: 15 },
+  safetyBox: { backgroundColor: palette.surface, borderLeftColor: palette.yellow, borderLeftWidth: 4, borderRadius: 10, marginBottom: 20, padding: 15 },
   safetyTitle: { fontSize: 14, fontWeight: 'bold', marginBottom: 8 },
   safetyTip: { fontSize: 13, marginBottom: 6 },
   video: { marginTop: 4 },

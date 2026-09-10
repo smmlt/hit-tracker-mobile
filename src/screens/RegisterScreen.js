@@ -1,15 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TouchableOpacity, 
-  Animated 
-} from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Animated } from 'react-native';
+import { styles } from './RegisterScreen.styles.js';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -134,7 +125,7 @@ export default function RegisterScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.fill}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <BackButton onPress={() => navigation.goBack()} />
 
@@ -210,27 +201,3 @@ export default function RegisterScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: 24, 
-    paddingVertical: 20, 
-    maxWidth: 440, 
-    width: '100%', 
-    alignSelf: 'center' 
-  },
-  formWrapper: { width: '100%' },
-  title: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 20 },
-  hintsContainer: { marginTop: -4, marginBottom: 16 },
-  hintItem: { fontSize: 13, marginBottom: 4 },
-  hintPending: { color: '#9CA3AF' },
-  hintSuccess: { color: '#10B981', fontWeight: '600' },
-  errorMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
-  bottomLinkContainer: { marginTop: 24, alignItems: 'center' },
-  bottomText: { color: '#6B7280', fontSize: 14 },
-  boldText: { color: '#000', fontWeight: '700' },
-});

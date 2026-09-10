@@ -1,15 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TouchableOpacity, 
-  Animated 
-} from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Animated } from 'react-native';
+import { styles } from './LoginScreen.styles.js';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { AuthContext } from '../context/AuthContext';
@@ -192,7 +183,7 @@ export default function LoginScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.fill}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.formWrapper}>
             <Text style={styles.title}>{t('signIn')}</Text>
@@ -260,25 +251,3 @@ export default function LoginScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: 24, 
-    paddingVertical: 20, 
-    maxWidth: 440, 
-    width: '100%', 
-    alignSelf: 'center' 
-  },
-  formWrapper: { width: '100%' },
-  title: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 28 },
-  forgotPass: { alignSelf: 'flex-end', marginBottom: 20 },
-  forgotPassText: { fontSize: 13, color: '#000', fontWeight: '500' },
-  rateLimitMessage: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
-  bottomLinkContainer: { marginTop: 32, alignItems: 'center' },
-  bottomText: { color: '#6B7280', fontSize: 14 },
-  boldText: { color: '#000', fontWeight: '700' },
-});

@@ -6,6 +6,7 @@ import { LanguageContext } from '../../localization/LanguageContext';
 import GridIcon from '../../assets/workshop/More.svg';
 import { createStyles } from './ExerciseFilterBar.styles';
 
+import { palette } from '../../constants/colors';
 export function ExerciseFilterBar({
   musclesList = [],
   selectedMuscleFilter,
@@ -77,7 +78,7 @@ export function ExerciseFilterBar({
           <GridIcon 
             width={20} 
             height={20} 
-            color={theme.textPrimary || '#FFFFFF'}
+            color={theme.textPrimary || palette.whitePure}
           />
         </TouchableOpacity>
       </View>

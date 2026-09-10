@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '../common';
 import { styles } from './AuthComponents.styles';
 
+import { palette } from '../../constants/colors';
+import { LanguageContext } from '../../localization/LanguageContext';
 export function BackButton({ onPress }) {
   return (
     <TouchableOpacity style={styles.backButton} onPress={onPress} activeOpacity={0.7}>
-      <Ionicons name="arrow-back" size={24} color="#000" />
+      <Ionicons name="arrow-back" size={24} color={palette.blackPure} />
     </TouchableOpacity>
   );
 }
@@ -22,7 +24,7 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#999"
+          placeholderTextColor={palette.grayLegacy}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize || 'none'}
@@ -30,7 +32,7 @@ export function CustomInput({ label, value, onChangeText, placeholder, secureTex
         />
         {isPassword && (
           <TouchableOpacity onPress={onTogglePassword} style={styles.eyeIcon}>
-            <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color="#666" />
+            <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={palette.grayDark} />
           </TouchableOpacity>
         )}
       </View>
@@ -45,16 +47,17 @@ export function PrimaryButton({ title, onPress, isLoading, disabled }) {
 export function SocialButton({ title, onPress, iconName }) {
   return (
     <TouchableOpacity style={styles.socialButton} onPress={onPress} activeOpacity={0.7}>
-      <Ionicons name={iconName} size={20} color="#000" style={styles.socialIcon} />
+      <Ionicons name={iconName} size={20} color={palette.blackPure} style={styles.socialIcon} />
       <Text style={styles.socialButtonText}>{title}</Text>
     </TouchableOpacity>
   );
 }
 
-export function Divider({ text = 'or continue with' }) {
+export function Divider({ text }) {
+  const { t } = useContext(LanguageContext);
   return (
     <View style={styles.dividerContainer}>
-      <Text style={styles.dividerText}>{text}</Text>
+      <Text style={styles.dividerText}>{text || t('orContinueWith')}</Text>
     </View>
   );
 }

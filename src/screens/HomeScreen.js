@@ -1,12 +1,6 @@
 import React, { useContext, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { styles } from './HomeScreen.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -26,11 +20,14 @@ import {
 } from "../components/workshop/ui";
 import Chevron from "../assets/icons/ChevronDownIcon.svg";
 
+import { palette } from '../constants/colors';
+import { LanguageContext } from '../localization/LanguageContext';
 export default function HomeScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userData } = useContext(AuthContext);
   const library = useLibrary();
   const w = useWords();
+  const { t } = useContext(LanguageContext);
   const [section, setSection] = useState("exercises");
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState(null);
@@ -93,10 +90,7 @@ export default function HomeScreen({ navigation }) {
             style={[styles.segmentItem, section === key && s.selected]}
           >
             <Text
-              style={{
-                color: section === key ? "#101113" : "#838384",
-                fontSize: 16,
-              }}
+              style={[styles.segmentLabel, { color: section === key ? palette.black : palette.gray }]}
             >
               {w[key]}
             </Text>
@@ -108,7 +102,7 @@ export default function HomeScreen({ navigation }) {
         onChangeText={setQuery}
         placeholder={w.search}
         style={styles.search}
-        inputStyle={{ color: "#292929", fontSize: 16 }}
+        inputStyle={{ color: palette.surface, fontSize: 16 }}
       />
       <ExerciseFilterBar
         musclesList={library.muscles}
@@ -138,12 +132,12 @@ export default function HomeScreen({ navigation }) {
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Sort library"
+        accessibilityLabel={t('sortLibrary')}
         onPress={() => setSortOpen(true)}
         style={styles.sort}
       >
         <Text style={[s.muted, { fontWeight: "700", flex: 1 }]}>{w[sort]}</Text>
-        <Chevron width={20} height={20} color="#C8C8C8" />
+        <Chevron width={20} height={20} color={palette.lightGray} />
       </Pressable>
       {!!message && <Text style={s.muted}>{message}</Text>}
       <Feedback
@@ -160,16 +154,16 @@ export default function HomeScreen({ navigation }) {
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 28 }]}
         ListHeaderComponent={header}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         refreshControl={
           <RefreshControl
             refreshing={library.loading}
             onRefresh={library.refresh}
-            tintColor="#F00D22"
+            tintColor={palette.accent}
           />
         }
         ListEmptyComponent={
-          <View style={{ padding: 24 }}>
+          <View style={styles.empty}>
             <Text style={s.muted}>{library.loading ? w.loading : w.empty}</Text>
           </View>
         }
@@ -227,48 +221,3 @@ export default function HomeScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 28,
-    width: "100%",
-    maxWidth: 760,
-    alignSelf: "center",
-  },
-  segment: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#EFEFEF",
-    flexDirection: "row",
-    marginHorizontal: 12,
-    overflow: "hidden",
-  },
-  segmentItem: {
-    flex: 1,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-  },
-  search: {
-    marginTop: 22,
-    marginBottom: 28,
-    height: 50,
-    borderColor: "#F00D22",
-    borderRadius: 12,
-    backgroundColor: "#EFEFEF",
-  },
-  sort: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: 237,
-    minHeight: 30,
-    backgroundColor: "#292929",
-    borderColor: "#838384",
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 8,
-    marginBottom: 12,
-  },
-});

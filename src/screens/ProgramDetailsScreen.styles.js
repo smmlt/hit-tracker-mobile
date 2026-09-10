@@ -1,0 +1,30 @@
+import { StyleSheet } from 'react-native';
+
+import { palette } from '../constants/colors';
+export const styles = StyleSheet.create({
+  errorText: {},
+  safe: { flex: 1 },
+  header: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 16 },
+  back: { fontSize: 15, fontWeight: '800' },
+  headerTitle: { fontSize: 17, fontWeight: '800' },
+  headerSpacer: { width: 56 },
+  loader: { marginTop: 48 },
+  content: { gap: 12, padding: 18, paddingBottom: 80 },
+  title: { fontSize: 28, fontWeight: '900' },
+  removeButton: { alignItems: 'center', alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
+  removeText: { fontSize: 12, fontWeight: '900' },
+  description: { fontSize: 14, lineHeight: 21 },
+  date: { fontSize: 13, fontWeight: '800' },
+  scheduleInfo: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
+  status: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  status_planned: { backgroundColor: palette.blueDark },
+  status_completed: { backgroundColor: palette.greenDark },
+  status_missed: { backgroundColor: palette.redDark },
+  statusText: { color: palette.whitePure, fontSize: 11, fontWeight: '900' },
+  sectionTitle: { fontSize: 19, fontWeight: '800', marginTop: 8 },
+  exerciseCard: { borderRadius: 14, borderWidth: 1, gap: 5, padding: 14 },
+  exerciseName: { fontSize: 16, fontWeight: '800' },
+  meta: { fontSize: 13 },
+  startButton: { alignItems: 'center', borderRadius: 12, marginTop: 8, padding: 14 },
+  startText: { color: palette.whitePure, fontWeight: '900' },
+});

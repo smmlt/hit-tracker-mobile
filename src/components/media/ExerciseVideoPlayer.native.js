@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useEvent } from 'expo';
 import { StyleSheet, View } from 'react-native';
+import { styles } from './ExerciseVideoPlayer.native.styles.js';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
@@ -33,8 +34,3 @@ export function ExerciseVideoPlayer({ source, onError, style }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { aspectRatio: 16 / 9, borderRadius: 12, overflow: 'hidden', width: '100%' },
-  player: { flex: 1 },
-});

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useContext } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
+import { createStyles } from './ExerciseSortDropdown.styles.js';
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 import { ChevronDownIcon } from '../../assets/icons';
@@ -91,71 +92,3 @@ export function ExerciseSortDropdown({ currentSort, onSelectSort }) {
     </View>
   );
 }
-
-const createStyles = (theme) => StyleSheet.create({
-  wrapper: {
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-    zIndex: 10,
-  },
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.inputBackground, 
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  text: {
-    color: theme.inputText,
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  boldText: {
-    fontWeight: '600',
-    color: theme.inputText,
-  },
-  icon: {
-    marginLeft: 8,
-    transform: [{ rotate: '0deg' }],
-  },
-  iconRotated: {
-    transform: [{ rotate: '180deg' }], 
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    width: 200,
-    backgroundColor: theme.inputBackground,
-    borderRadius: 12,
-    paddingVertical: 6,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  optionItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  optionItemActive: {
-    backgroundColor: theme.primary + '20',
-  },
-  optionText: {
-    fontSize: 14,
-    color: theme.inputText,
-    fontWeight: '400',
-  },
-  optionTextActive: {
-    fontWeight: 'bold',
-    color: theme.primary,
-  },
-});

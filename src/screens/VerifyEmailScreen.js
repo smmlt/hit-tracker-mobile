@@ -1,5 +1,6 @@
 import React, { useContext, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { styles } from './VerifyEmailScreen.styles.js';
 import { BackButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';
 import { AuthContext } from '../context/AuthContext';
@@ -193,26 +194,3 @@ export default function VerifyEmailScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: '#FFF' },
-  container: { alignSelf: 'center', flexGrow: 1, maxWidth: 393, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 34, width: '100%' },
-  formWrapper: { marginTop: 88, width: '100%' },
-  title: { color: '#000', fontSize: 28, fontWeight: '700', marginBottom: 4 },
-  subtitle: { color: '#666363', fontSize: 18, lineHeight: 23, marginBottom: 44 },
-  codeInputWrapper: { height: 71, position: 'relative', width: '100%' },
-  codeCells: { flexDirection: 'row', gap: 7, justifyContent: 'space-between', width: '100%' },
-  codeCell: { alignItems: 'center', borderColor: '#7F7A7A', borderRadius: 10, borderWidth: 2, flex: 1, height: 71, justifyContent: 'center', maxWidth: 57 },
-  codeCellFocused: { borderColor: '#1D1B20' },
-  codeCellError: { backgroundColor: '#FEF2F2', borderColor: '#DC2626' },
-  codeCellSuccess: { backgroundColor: '#ECFDF5', borderColor: '#059669' },
-  codeDigit: { color: '#111827', fontSize: 28, fontWeight: '600' },
-  hiddenCodeInput: { ...StyleSheet.absoluteFillObject, color: 'transparent', opacity: 0.01 },
-  status: { color: '#7F7A7A', fontSize: 15, fontWeight: '700', marginTop: 24, textAlign: 'center' },
-  warning: { color: '#DC2626', fontSize: 13, lineHeight: 18, marginTop: 10, textAlign: 'center' },
-  lockedBox: { alignItems: 'center' },
-  requestCode: { color: '#000', fontSize: 14, fontWeight: '700', marginTop: 12 },
-  bottomLinkContainer: { alignItems: 'center', marginTop: 'auto', paddingTop: 48 },
-  bottomText: { color: '#000', fontSize: 15, fontWeight: '700' },
-});

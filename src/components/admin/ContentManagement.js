@@ -8,6 +8,7 @@ import { ProgramDetailsContent } from "../../screens/LibraryProgramScreen";
 import { ExerciseDetailsContent } from "../../screens/ExerciseDetailsScreen";
 import { Button, Feedback, Field, Sheet, s, useWords } from "../workshop/ui";
 import { ExerciseEditor } from "./ExerciseEditor";
+import { styles } from './ContentManagement.styles';
 
 export function ContentManagement({ section }) {
   const library = useLibrary();
@@ -25,7 +26,7 @@ export function ContentManagement({ section }) {
         (filter === "personal") === item.isPersonal),
   );
   return (
-    <View style={{ gap: 16 }}>
+    <View style={styles.content}>
       <View style={s.header}>
         <View>
           <Text style={s.title}>{w[section]}</Text>
@@ -56,11 +57,11 @@ export function ContentManagement({ section }) {
         loading={library.loading && !items.length}
         onRetry={library.refresh}
       />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
+      <View style={styles.grid}>
         {items.map((item) => (
           <View
             key={item.id}
-            style={{ flexGrow: 1, flexBasis: 340, minWidth: 0, maxWidth: 600 }}
+            style={styles.item}
           >
             {section === "programs" ? (
               <ProgramCard
@@ -68,7 +69,7 @@ export function ContentManagement({ section }) {
                 showOwner
                 onPress={() => setPreview(item)}
               >
-                <View style={{ padding: 12, gap: 8 }}>
+                <View style={styles.programActions}>
                   {!!item.description && (
                     <Text numberOfLines={2} style={s.muted}>
                       {item.description}
@@ -88,7 +89,7 @@ export function ContentManagement({ section }) {
                 exercise={item}
                 onPress={() => setExerciseDetails(item)}
               >
-                <View style={{ padding: 12 }}>
+                <View style={styles.exerciseActions}>
                   <Button secondary onPress={() => setEditor(item)}>
                     {w.edit}
                   </Button>

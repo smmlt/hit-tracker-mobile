@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { styles } from './ExerciseItem.styles.js';
 import HeartFilled from "../../assets/workshop/HeartFilled.svg";
 import HeartOutline from "../../assets/workshop/HeartOutline.svg";
 import StarFilled from "../../assets/workshop/StarFilled.svg";
@@ -97,42 +98,3 @@ export function ExerciseItem({
     </View>
   );
 }
-const styles = StyleSheet.create({
-  card: { backgroundColor: "#292929", overflow: "hidden" },
-  body: {
-    padding: 10,
-    minHeight: 123,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  image: { width: 90, height: 90, borderRadius: 8, backgroundColor: "#C4C4C4" },
-  info: { flex: 1, minWidth: 0, gap: 8 },
-  title: { color: "#EFEFEF", fontFamily: "Inter-Bold", fontSize: 16, lineHeight: 23 },
-  muscleRow: { flexDirection: "row", gap: 5 },
-  muscles: { flex: 1, color: "#C8C8C8", fontFamily: "Inter", fontSize: 13, lineHeight: 18 },
-  more: { color: "#F98300", fontSize: 13 },
-  stats: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 4,
-  },
-  action: { flexDirection: "row", alignItems: "center", gap: 2, minHeight: 36 },
-  count: { color: "#EFEFEF", fontFamily: "Inter", fontSize: 12 },
-  star: {
-    width: 32,
-    minHeight: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  footer: {
-    fontFamily: "Inter",
-    color: "#F00D22",
-    borderTopWidth: 1,
-    borderTopColor: "#838384",
-    padding: 10,
-    textAlign: "center",
-    fontSize: 13,
-  },
-});

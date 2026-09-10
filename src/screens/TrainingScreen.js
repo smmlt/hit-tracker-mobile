@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { DATE_CELL_WIDTH, DATE_GAP, styles } from './TrainingScreen.styles.js';
 import { useFocusEffect } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../context/AuthContext';
@@ -7,6 +8,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
 
+import { palette } from '../constants/colors';
 const weekDays = {
   en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   uk: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
@@ -19,8 +21,6 @@ const weekDayByDateIndex = {
 const parseDate = (value) => new Date(`${value}T12:00:00`);
 const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 const DATE_STRIP_DAYS = 15;
-const DATE_CELL_WIDTH = 54;
-const DATE_GAP = 8;
 const addDays = (date, count) => {
   const result = new Date(date);
   result.setDate(result.getDate() + count);
@@ -215,9 +215,9 @@ export default function TrainingScreen({ navigation }) {
             const active = key === selectedDate || isInRange(key);
             return (
               <Pressable key={key} onPress={() => chooseDate(date)} style={[styles.dateCell, { borderColor: theme.border }, active && { backgroundColor: theme.primary, borderColor: theme.primary }]}>
-                <Text style={[styles.dayName, { color: active ? '#fff' : theme.textSecondary }]}>{weekDayByDateIndex[locale][date.getDay()]}</Text>
-                <Text style={[styles.dayNumber, { color: active ? '#fff' : theme.textPrimary }]}>{date.getDate()}</Text>
-                {assignedDates.has(key) && <View style={[styles.dot, { backgroundColor: active ? '#fff' : theme.secondary }]} />}
+                <Text style={[styles.dayName, { color: active ? palette.whitePure : theme.textSecondary }]}>{weekDayByDateIndex[locale][date.getDay()]}</Text>
+                <Text style={[styles.dayNumber, { color: active ? palette.whitePure : theme.textPrimary }]}>{date.getDate()}</Text>
+                {assignedDates.has(key) && <View style={[styles.dot, { backgroundColor: active ? palette.whitePure : theme.secondary }]} />}
               </Pressable>
             );
           })}
@@ -225,7 +225,7 @@ export default function TrainingScreen({ navigation }) {
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('scheduledPrograms')}</Text>
-          <Text style={{ color: theme.textSecondary }}>{selectedAssignments.length}</Text>
+          <Text style={[styles.assignmentCount, { color: theme.textSecondary }]}>{selectedAssignments.length}</Text>
         </View>
 
         {loading ? <ActivityIndicator color={theme.primary} /> : selectedAssignments.map((assignment) => (
@@ -247,7 +247,7 @@ export default function TrainingScreen({ navigation }) {
             <Pressable onPress={() => navigation.getParent()?.navigate('Home')}><Text style={[styles.link, { color: theme.primary }]}>{t('openWorkshop')}</Text></Pressable>
           </View>
         )}
-        {!!error && <Text style={{ color: theme.error }}>{error}</Text>}
+        {!!error && <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>}
       </ScrollView>
 
       <Modal visible={calendarOpen} transparent animationType="fade" onRequestClose={() => setCalendarOpen(false)}>
@@ -268,8 +268,8 @@ export default function TrainingScreen({ navigation }) {
               const inMonth = date.getMonth() === month.getMonth();
               return <Pressable key={key} onPress={() => chooseRangeDate(date)} style={styles.monthDay}>
                 {active && <View style={[styles.rangeFill, { backgroundColor: theme.primary }, rangeStartDay && styles.rangeStart, rangeEndDay && styles.rangeEnd]} />}
-                <Text style={[styles.monthDayText, { color: active ? '#fff' : inMonth ? theme.textPrimary : theme.textSecondary }]}>{date.getDate()}</Text>
-                {assignedDates.has(key) && <View style={[styles.dot, { backgroundColor: active ? '#fff' : theme.secondary }]} />}
+                <Text style={[styles.monthDayText, { color: active ? palette.whitePure : inMonth ? theme.textPrimary : theme.textSecondary }]}>{date.getDate()}</Text>
+                {assignedDates.has(key) && <View style={[styles.dot, { backgroundColor: active ? palette.whitePure : theme.secondary }]} />}
               </Pressable>;
             })}</View>
             <View style={styles.modalActions}>
@@ -286,10 +286,10 @@ export default function TrainingScreen({ navigation }) {
             <Text style={[styles.monthTitle, { color: theme.textPrimary }]}>{t('chooseProgram')}</Text>
             <Text style={[styles.rangeHint, { color: theme.textSecondary }]}>{t('addProgramHint')} {selectedDate}</Text>
             <View style={styles.repeatPicker}>
-              <Pressable onPress={() => setRepeatWeekly(true)} style={[styles.repeatOption, { borderColor: theme.border }, repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={{ color: repeatWeekly ? '#fff' : theme.textPrimary }}>{t('everyWeek')}</Text></Pressable>
-              <Pressable onPress={() => setRepeatWeekly(false)} style={[styles.repeatOption, { borderColor: theme.border }, !repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={{ color: !repeatWeekly ? '#fff' : theme.textPrimary }}>{t('onlyThisDay')}</Text></Pressable>
+              <Pressable onPress={() => setRepeatWeekly(true)} style={[styles.repeatOption, { borderColor: theme.border }, repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={[styles.repeatText, { color: repeatWeekly ? palette.whitePure : theme.textPrimary }]}>{t('everyWeek')}</Text></Pressable>
+              <Pressable onPress={() => setRepeatWeekly(false)} style={[styles.repeatOption, { borderColor: theme.border }, !repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={[styles.repeatText, { color: !repeatWeekly ? palette.whitePure : theme.textPrimary }]}>{t('onlyThisDay')}</Text></Pressable>
             </View>
-            {programsLoading ? <ActivityIndicator color={theme.primary} style={{ margin: 24 }} /> : <ScrollView style={styles.programPickerList}>{programs.map((program) => (
+            {programsLoading ? <ActivityIndicator color={theme.primary} style={styles.modalSpinner} /> : <ScrollView style={styles.programPickerList}>{programs.map((program) => (
               <Pressable disabled={schedulingId !== null} key={program.id} onPress={() => addProgramToPlan(program)} style={[styles.pickerProgram, { borderColor: theme.border }]}>
                 <Text style={[styles.programTitle, { color: theme.textPrimary }]}>{schedulingId === program.id ? '…' : program.name}</Text>
                 {!!program.description && <Text numberOfLines={2} style={[styles.description, { color: theme.textSecondary }]}>{program.description}</Text>}
@@ -302,7 +302,3 @@ export default function TrainingScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1 }, content: { padding: 18, paddingBottom: 120 }, header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4 }, title: { fontSize: 30, fontWeight: '900' }, calendarButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 }, calendarIcon: { fontSize: 24 }, selectedDate: { fontSize: 16, fontWeight: '700', marginTop: 18, textTransform: 'capitalize' }, addProgramButton: { alignItems: 'center', alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1, marginTop: 12, paddingHorizontal: 12, paddingVertical: 8 }, addProgramText: { fontSize: 12, fontWeight: '800' }, dateStrip: { gap: DATE_GAP, paddingVertical: 16 }, dateCell: { alignItems: 'center', borderRadius: 14, borderWidth: 1, height: 74, justifyContent: 'center', width: DATE_CELL_WIDTH }, dayName: { fontSize: 11, fontWeight: '600' }, dayNumber: { fontSize: 20, fontWeight: '800', marginTop: 3 }, dot: { borderRadius: 3, height: 5, marginTop: 4, width: 5 }, sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, marginTop: 6 }, sectionTitle: { fontSize: 19, fontWeight: '800' }, programCard: { borderRadius: 16, borderWidth: 1, gap: 10, marginBottom: 12, padding: 16 }, programTop: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' }, programTitle: { flex: 1, fontSize: 17, fontWeight: '800' }, scheduledDate: { fontSize: 12, fontWeight: '700' }, description: { fontSize: 13, lineHeight: 19 }, exercisePreview: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }, exerciseChip: { borderRadius: 999, borderWidth: 1, maxWidth: 150, paddingHorizontal: 9, paddingVertical: 5 }, exerciseChipText: { fontSize: 11, fontWeight: '700' }, secondaryAction: { alignItems: 'center', borderRadius: 10, borderWidth: 1, justifyContent: 'center', padding: 10 }, secondaryActionText: { fontSize: 12, fontWeight: '800' }, status: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, status_planned: { backgroundColor: '#1D4ED8' }, status_completed: { backgroundColor: '#15803D' }, status_missed: { backgroundColor: '#991B1B' }, statusText: { color: '#fff', fontSize: 10, fontWeight: '800' }, empty: { alignItems: 'center', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, gap: 8, padding: 28 }, emptyTitle: { fontSize: 17, fontWeight: '800', textAlign: 'center' }, link: { fontWeight: '800', padding: 6 }, overlay: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.72)', flex: 1, justifyContent: 'center', padding: 20 }, modal: { borderRadius: 20, maxWidth: 420, padding: 18, width: '100%' }, monthHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, monthArrow: { fontSize: 34, paddingHorizontal: 12 }, monthTitle: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' }, rangeHint: { fontSize: 12, marginTop: 6, textAlign: 'center' }, repeatPicker: { flexDirection: 'row', gap: 8, marginTop: 16 }, repeatOption: { borderRadius: 9, borderWidth: 1, flex: 1, padding: 10 }, programPickerList: { marginTop: 12, maxHeight: 300 }, pickerProgram: { borderRadius: 12, borderWidth: 1, gap: 5, marginBottom: 8, padding: 12 }, weekHeader: { flexDirection: 'row', marginTop: 10 }, weekLabel: { textAlign: 'center', width: '14.285%' }, monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }, monthDay: { alignItems: 'center', height: 46, justifyContent: 'center', position: 'relative', width: '14.285%' }, rangeFill: { bottom: 9, left: 0, position: 'absolute', right: 0, top: 9 }, rangeStart: { borderBottomLeftRadius: 10, borderTopLeftRadius: 10, left: 4 }, rangeEnd: { borderBottomRightRadius: 10, borderTopRightRadius: 10, right: 4 }, monthDayText: { fontWeight: '700', zIndex: 1 }, modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-});

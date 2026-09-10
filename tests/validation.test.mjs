@@ -2,18 +2,19 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   createUsernameAvailabilityController,
+  isReservedUsername,
   MAX_USERNAME_LENGTH,
   MIN_USERNAME_LENGTH,
   validateUsername,
 } from '../src/utils/username.js';
 
 test('PROFILE-USERNAME-006 validates and normalizes the username contract', () => {
-  assert.deepEqual(validateUsername(' User._Name '), {
+  assert.deepEqual(validateUsername(' User_Name '), {
     valid: true,
-    username: 'user._name',
+    username: 'user_name',
     reason: null,
   });
-  for (const value of ['abc', '_ab', 'ab_', 'a__b', 'a._b', 'a_.b']) {
+  for (const value of ['abc', '_ab', 'ab_', 'a__b', 'user9']) {
     assert.equal(validateUsername(value).valid, true, value);
   }
   for (const value of [
@@ -21,12 +22,23 @@ test('PROFILE-USERNAME-006 validates and normalizes the username contract', () =
     'a'.repeat(MAX_USERNAME_LENGTH + 1),
     'user-name',
     'користувач',
-    '.user',
-    'user.',
-    'user..name',
+    'user.name',
   ]) {
     assert.equal(validateUsername(value).valid, false, value);
   }
+});
+
+test('PROFILE-USERNAME-012 rejects reserved staff and product usernames', () => {
+  for (const username of ['admin', 'moderator', 'support', 'official', 'adm', 'moder']) {
+    assert.equal(isReservedUsername(username), true);
+    assert.equal(validateUsername(username).reason, 'reserved');
+  }
+  assert.equal(validateUsername('regular_user').valid, true);
+  assert.equal(validateUsername('admiral').valid, true);
+  assert.equal(validateUsername('model').valid, true);
+  assert.equal(validateUsername('adminovich').valid, true);
+  assert.equal(validateUsername('bohdan_admin123').valid, true);
+  assert.equal(validateUsername('firma_official').valid, true);
 });
 
 test('PROFILE-USERNAME-003 debounces checks without discarding the latest value', async () => {

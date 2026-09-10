@@ -6,6 +6,8 @@ import { useLibrary } from "../../context/LibraryContext";
 import { apiRequest } from "../../services/api";
 import { Button, Feedback, Field, Sheet, s, useWords } from "./ui";
 
+import { palette } from '../../constants/colors';
+import { styles } from './ProgramEditor.styles';
 export function ProgramEditor({ program, official = false, onClose, onSaved }) {
     const { userToken, userData } = useContext(AuthContext);
     const library = useLibrary();
@@ -161,10 +163,10 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
                 </Button>
             </View>
 
-            <Text style={s.muted}>TEST {w.singleWorkoutHint}</Text>
+            <Text style={s.muted}>{w.singleWorkoutHint}</Text>
 
             {picker && (
-                <View style={{ gap: 8 }}>
+                <View style={styles.picker}>
                     <Field
                         label={w.search}
                         value={query}
@@ -209,12 +211,7 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
             {rows.map((row, index) => (
                 <View
                     key={index}
-                    style={{
-                        backgroundColor: "#292929",
-                        borderRadius: 12,
-                        padding: 12,
-                        gap: 12,
-                    }}
+                    style={styles.rowCard}
                 >
                     <View style={s.header}>
                         <Text style={[s.heading, { flex: 1 }]}>
@@ -243,12 +240,10 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
                             ["reps", w.reps],
                             ["weekDay", w.weekDay],
                         ].map(([key, label]) => {
-                            console.log(label)
-
                             return (
                                 <Field
                                     key={key}
-                                    style={{flex: 1, minWidth: 65}}
+                                    style={styles.metric}
                                     label={label}
                                     value={row[key]}
                                     keyboardType="numeric"
