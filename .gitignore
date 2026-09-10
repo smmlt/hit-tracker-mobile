@@ -46,3 +46,4 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+web/static/js/canvaskit.wasm

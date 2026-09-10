@@ -28,6 +28,7 @@ import UsernameSettingsScreen from '../screens/UsernameSettingsScreen';
 import AdminScreen from '../screens/AdminScreen';
 import TrainingScreen from '../screens/TrainingScreen';
 import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
 
 import { palette } from '../constants/colors';
 import { createStyles } from './AppNavigator.styles';
@@ -101,7 +102,7 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="Analytics" 
-        component={AnalyticsPlaceholder} 
+        component={AnalyticsScreen} 
         options={{ title: t('analytics') }} 
       />
       <Tab.Screen 
