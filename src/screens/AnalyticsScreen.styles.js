@@ -64,6 +64,8 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.border,
     minHeight: 340,
+    display: 'flex',
+    justifyContent: 'center'
   },
   chartTitle: {
     fontSize: 16,
@@ -72,7 +74,24 @@ export const createStyles = (theme) => StyleSheet.create({
     marginBottom: 8,
   },
   chartFrame: {
-    height: 280,
+    height: 300,
+    position: 'relative',
+  },
+  xAxisTitle: {
+    color: theme.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: -4,
+  },
+  yAxisTitle: {
+    color: theme.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+    position: 'absolute',
+    left: -2,
+    top: 112,
+    transform: [{ rotate: '-90deg' }],
   },
   loadingText: {
     color: theme.textSecondary,

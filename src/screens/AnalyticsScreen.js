@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { LoadSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
+import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { BubbleChart } from 'react-native-gifted-charts';
 
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -8,62 +8,19 @@ import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
 import { createStyles } from './AnalyticsScreen.styles.js';
 
-const skiaWebOptions = {
-  locateFile: (file) => (file === 'canvaskit.wasm' ? '/web/static/js/canvaskit.wasm' : file),
-};
-
 export default function AnalyticsScreen() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const { t } = useContext(LanguageContext);
   const { userToken } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      LoadSkiaWeb(skiaWebOptions).catch((caught) => {
-        console.warn('Unable to initialize Skia web CanvasKit for analytics chart:', caught);
-      });
-    }
-  }, []);
-
   const [exerciseIds, setExerciseIds] = useState([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [loadingIds, setLoadingIds] = useState(false);
   const [loadingSets, setLoadingSets] = useState(false);
-  const [chartReady, setChartReady] = useState(false);
-  const [chartComponents, setChartComponents] = useState(null);
   const [error, setError] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const startChart = async () => {
-      try {
-        if (Platform.OS === 'web') {
-          await LoadSkiaWeb(skiaWebOptions);
-        }
-
-        const chart = require('victory-native');
-        if (!cancelled) {
-          setChartComponents({ CartesianChart: chart.CartesianChart, Scatter: chart.Scatter });
-          setChartReady(true);
-        }
-      } catch (caught) {
-        console.warn('Unable to prepare chart renderer:', caught);
-        if (!cancelled) {
-          setChartReady(false);
-          setError('Chart renderer failed to load');
-        }
-      }
-    };
-
-    startChart();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const selectedExercise = useMemo(() => {
     return exerciseIds.find((item) => item.id === selectedExerciseId || item.exerciseId === selectedExerciseId) || null;
@@ -111,6 +68,8 @@ export default function AnalyticsScreen() {
     loadExerciseIds();
   }, [userToken]);
 
+  let maxY = 0
+
   useEffect(() => {
     const loadSets = async () => {
       if (!selectedExerciseId || !userToken) {
@@ -120,6 +79,8 @@ export default function AnalyticsScreen() {
 
       setLoadingSets(true);
       setError('');
+
+      
 
       try {
         const response = await apiFetch(`/workouts/exercise/${selectedExerciseId}/sets`, {}, userToken);
@@ -158,7 +119,8 @@ export default function AnalyticsScreen() {
         });
 
         const plotted = Array.from(points.values());
-        setChartData(plotted);
+        setChartData(plotted.map((row) => ({ x: row.weight, y: row.reps, r: 7 })));
+        
       } catch (caught) {
         setError(caught.message || 'Failed to load sets');
       } finally {
@@ -166,8 +128,12 @@ export default function AnalyticsScreen() {
       }
     };
 
+    maxY = Math.ceil(Math.max(...chartData.map(item => item.y)) / 100) * 100 + 100;
+
     loadSets();
   }, [selectedExerciseId, userToken]);
+
+  // const font = useFont(InterRegular, 12);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -217,25 +183,33 @@ export default function AnalyticsScreen() {
             <Text style={styles.loadingText}>Loading...</Text>
           ) : error ? (
             <Text style={styles.emptyText}>{error}</Text>
-          ) : !chartReady || !chartComponents ? (
-            <Text style={styles.loadingText}>Loading chart engine...</Text>
           ) : chartData.length === 0 ? (
             <Text style={styles.emptyText}>No set data available</Text>
           ) : (
             <View style={styles.chartFrame}>
-              <chartComponents.CartesianChart
+              <Text style={styles.yAxisTitle}>Reps</Text>
+              <BubbleChart
                 data={chartData}
-                xKey="weight"
-                yKeys={['reps']}
-                domainPadding={{ x: 16, y: 16 }}
-                axisOptions={{
-                  lineColor: theme.border,
-                  labelColor: theme.textPrimary,
-                  tickLabelColor: theme.textSecondary,
-                }}
-              >
-                {({ points }) => <chartComponents.Scatter points={points.reps} radius={7} color={theme.primary} />}
-              </chartComponents.CartesianChart>
+                scatterChart
+                height={250}
+                width={400}
+                endSpacing={20}
+                yNoOfSections={5}
+                xNoOfSections={5}
+                
+                yAxisColor={theme.border}
+                xAxisColor={theme.border}
+                rulesColor={theme.border}
+                yAxisTextStyle={{ color: theme.textSecondary }}
+                xAxisLabelTextStyle={{ color: theme.textSecondary }}
+                bubblesColor={theme.primary}
+                formatXLabel={(label) => String(label)}
+                formatYLabel={(label) => String(label)}
+                // maxValue={maxY}
+                // yAxisOffset={0}
+                // xAxisOffset={0}
+              />
+              <Text style={styles.xAxisTitle}>Weight</Text>
             </View>
           )}
         </View>
