@@ -8,6 +8,24 @@ import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
 import { createStyles } from './AnalyticsScreen.styles.js';
 
+
+const getBestFitLine = (data) => {
+  const n = data.length;
+
+  const sumX = data.reduce((sum, p) => sum + p.x, 0);
+  const sumY = data.reduce((sum, p) => sum + p.y, 0);
+  const sumXY = data.reduce((sum, p) => sum + p.x * p.y, 0);
+  const sumX2 = data.reduce((sum, p) => sum + p.x * p.x, 0);
+
+  const slope =
+    (n * sumXY - sumX * sumY) /
+    (n * sumX2 - sumX * sumX);
+
+  const intercept = (sumY - slope * sumX) / n;
+
+  return { slope, intercept };
+};
+
 export default function AnalyticsScreen() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -80,6 +98,8 @@ export default function AnalyticsScreen() {
       setLoadingSets(true);
       setError('');
 
+      let dataToSet = []
+
       
 
       try {
@@ -119,22 +139,34 @@ export default function AnalyticsScreen() {
         });
 
         const plotted = Array.from(points.values());
-        setChartData(plotted.map((row) => ({ x: row.weight, y: row.reps, r: 7 })));
-        
+        // setChartData(plotted.map((row) => ({ x: row.weight, y: row.reps, r: 7 })));
+        dataToSet = plotted.map((row) => ({ x: row.weight, y: row.reps, r: 7 }));
       } catch (caught) {
         setError(caught.message || 'Failed to load sets');
       } finally {
         setLoadingSets(false);
       }
+
+      let lineOfBestFit = getBestFitLine(dataToSet);
+      // reps = slope * weight + intercept
+      // therefore weight = (reps - intercept) / slope
+      let oneRepMaxWeight = (1 - lineOfBestFit.intercept) / lineOfBestFit.slope;
+      dataToSet = [...dataToSet, {x: oneRepMaxWeight, y: 1, bubbleColor: '#ffb700', r: 7, label: `1RM*: ${oneRepMaxWeight.toFixed(1)}kg` }];
+
+      maxY = Math.ceil(Math.max(...dataToSet.map(item => item.y)) / 100) * 100 + 100;
+      setChartData(dataToSet);
     };
 
-    maxY = Math.ceil(Math.max(...chartData.map(item => item.y)) / 100) * 100 + 100;
+   
+
+    
 
     loadSets();
   }, [selectedExerciseId, userToken]);
 
   // const font = useFont(InterRegular, 12);
 
+  console.log(chartData)
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -208,6 +240,7 @@ export default function AnalyticsScreen() {
                 // maxValue={maxY}
                 // yAxisOffset={0}
                 // xAxisOffset={0}
+                labelTextStyle={{ color: 'white' }}
               />
               <Text style={styles.xAxisTitle}>Weight</Text>
             </View>
