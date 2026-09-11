@@ -137,9 +137,6 @@ export default function HomeScreen({ navigation }) {
         musclesList={library.muscles}
         selectedMuscleFilter={muscle}
         onSelectMuscleFilter={setMuscle}
-        savedSelected={section === "exercises" && scope === "saved"}
-        savedLabel={w.saved}
-        onSelectSaved={section === "exercises" ? () => setScope(scope === "saved" ? "all" : "saved") : undefined}
       />
       {section === "programs" && (
         <Pressable accessibilityRole="button" onPress={() => setCreator(true)} style={styles.createProgram}>
