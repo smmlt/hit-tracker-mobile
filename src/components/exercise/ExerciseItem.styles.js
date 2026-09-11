@@ -3,14 +3,15 @@ import { StyleSheet } from 'react-native';
 export const createStyles = (theme) => StyleSheet.create({
   card: { backgroundColor: theme.cardBackground, overflow: "hidden" },
   body: {
-    padding: 10,
-    minHeight: 123,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minHeight: 107,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
   image: { width: 90, height: 90, borderRadius: 8, backgroundColor: theme.border },
-  info: { flex: 1, minWidth: 0, gap: 8 },
+  info: { flex: 1, minWidth: 0, gap: 4, paddingVertical: 8 },
   title: { color: theme.textPrimary, fontFamily: "Inter-Bold", fontSize: 16, lineHeight: 23 },
   muscleRow: { flexDirection: "row", gap: 5 },
   muscles: { flex: 1, color: theme.textSecondary, fontFamily: "Inter", fontSize: 13, lineHeight: 18 },

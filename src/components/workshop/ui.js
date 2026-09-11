@@ -16,6 +16,8 @@ const words = {
     official: "Official",
     personal: "Personal",
     saved: "Saved",
+    muscleGroups: "MUSCLE GROUPS",
+    sort: "Sort",
     search: "Search",
     popular: "Popular",
     newest: "Newest",
@@ -85,7 +87,9 @@ const words = {
     all: "Всі",
     official: "Готові",
     personal: "Особисті",
-    saved: "Обрані",
+    saved: "Збережені",
+    muscleGroups: "ГРУПИ М’ЯЗІВ",
+    sort: "Сортування",
     search: "Пошук",
     popular: "Популярні",
     newest: "Нові",
@@ -156,6 +160,7 @@ export function Button({
   secondary,
   disabled,
   style,
+  textStyle,
   ...props
 }) {
   const styles = useWorkshopStyles();
@@ -172,7 +177,7 @@ export function Button({
       ]}
       {...props}
     >
-      <Text style={styles.buttonText}>{children}</Text>
+      <Text style={[styles.buttonText, textStyle]}>{children}</Text>
     </Pressable>
   );
 }

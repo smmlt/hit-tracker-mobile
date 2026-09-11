@@ -104,12 +104,15 @@ export const createStyles = (theme) => StyleSheet.create({
   sheetBody: { gap: 16, paddingTop: 16, paddingBottom: 16 },
   feedback: { gap: 12, paddingVertical: 12 },
   media: {
-    height: 226,
+    aspectRatio: 333 / 226,
+    alignSelf: "center",
     borderRadius: 8,
     backgroundColor: theme.cardBackground,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     marginHorizontal: 10,
+    maxWidth: 520,
+    width: "94%",
   },
 });

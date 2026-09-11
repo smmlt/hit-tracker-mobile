@@ -28,6 +28,8 @@ import UsernameSettingsScreen from '../screens/UsernameSettingsScreen';
 import AdminScreen from '../screens/AdminScreen';
 import TrainingScreen from '../screens/TrainingScreen';
 import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
+import SharedExerciseScreen from '../screens/SharedExerciseScreen';
+import SharedProgramScreen from '../screens/SharedProgramScreen';
 
 import { palette } from '../constants/colors';
 import { createStyles } from './AppNavigator.styles';
@@ -122,6 +124,8 @@ const linking = {
       VerifyEmail: 'verify-email',
       ForgotPassword: 'forgot-password',
       ResetPassword: 'reset-password',
+      SharedExercise: 'share/exercises/:exerciseId',
+      SharedProgram: 'share/programs/:token',
     },
   },
 };
@@ -146,12 +150,23 @@ export default function AppNavigator() {
     <NavigationContainer linking={linking}>
       <View style={styles.container}>
         <Stack.Navigator
+          initialRouteName={userToken === null ? 'Login' : isAdminRoute ? 'Admin' : 'MainApp'}
           screenOptions={{
             headerStyle: { backgroundColor: theme.background },
             headerTintColor: theme.textPrimary,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >
+          <Stack.Screen
+            name="SharedExercise"
+            component={SharedExerciseScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SharedProgram"
+            component={SharedProgramScreen}
+            options={{ headerShown: false }}
+          />
           {userToken === null ? (
             <>
               <Stack.Screen 

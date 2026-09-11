@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  container: { aspectRatio: 16 / 9, borderRadius: 12, overflow: 'hidden', width: '100%' },
+  container: { alignSelf: 'stretch', borderRadius: 8, minHeight: 1, overflow: 'hidden' },
   player: { flex: 1 },
 });
