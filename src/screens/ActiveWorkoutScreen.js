@@ -76,12 +76,12 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     if (!activeWorkout?.programId || plan.length) return;
     apiFetch(`/workout-programs/${activeWorkout.programId}`, {}, userToken).then((res) => {
       if (res.ok) {
-        prepareWorkout((current) => current?.exercises?.length ? current : { title: res.data.name, exercises: fromProgram(res.data) });
+        prepareWorkout((current) => current?.exercises?.length ? current : { title: res.data.name, programId: res.data.id, exercises: fromProgram(res.data) });
       }
     });
   }, [activeWorkout?.programId, plan.length, userToken]);
   useEffect(() => {
-    if (route.params?.program && !preparedWorkout && !result) prepareWorkout({ title: route.params.program.name, exercises: fromProgram(route.params.program) });
+    if (route.params?.program && !preparedWorkout && !result) prepareWorkout({ title: route.params.program.name, programId: route.params.program.id, exercises: fromProgram(route.params.program) });
   }, [route.params?.program, preparedWorkout, result]);
   useEffect(() => { if (!activeWorkout || activeWorkout.status === 'paused') return undefined; const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, [activeWorkout]);
 
@@ -90,7 +90,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const totalTime = activeWorkout ? Math.max(0, Math.floor((now - new Date(activeWorkout.createdAt).getTime()) / 1000)) : 0;
   const setsFor = useCallback((exerciseId) => loggedSets.filter((set) => set.exerciseId === exerciseId), [loggedSets]);
   const plannedSets = useMemo(() => plan.reduce((total, item) => total + (Number(item.sets) || 0), 0), [plan]);
-  const begin = () => startWorkout(title, scheduleId);
+  const begin = () => startWorkout(title, scheduleId, preparedWorkout || { exercises: plan, programId: route.params?.program?.id });
   const logSet = async (item, draft) => {
     if (!activeWorkout || paused || !draft.weight || !draft.reps) return false;
     const response = await apiFetch(`/workouts/${activeWorkout.id}/sets`, { method: 'POST', body: JSON.stringify({ exerciseId: item.id, weight: Number(draft.weight), reps: Number(draft.reps), rpe: draft.rpe ? Number(draft.rpe) : undefined, isFailure: draft.failure }) }, userToken);

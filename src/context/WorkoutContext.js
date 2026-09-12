@@ -13,6 +13,7 @@ export const WorkoutProvider = ({ children }) => {
   const [loggedSets, setLoggedSets] = useState([]);
   const [preparedWorkout, setPreparedWorkout] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [historyRevision, setHistoryRevision] = useState(0);
 
   /**
    * Перевірка наявності активного тренування на бекенді
@@ -47,14 +48,26 @@ export const WorkoutProvider = ({ children }) => {
   /**
    * Запуск нового тренування
    */
-  const startWorkout = async (type = 'HIT Session', scheduleId = null) => {
+  const startWorkout = async (type = 'HIT Session', scheduleId = null, prepared = null) => {
     if (!userToken) return null;
 
     try {
       setIsLoading(true);
       const res = await apiFetch('/workouts/start', {
         method: 'POST',
-        body: JSON.stringify({ type, ...(scheduleId ? { scheduleId } : {}) }),
+        body: JSON.stringify({
+          type,
+          ...(scheduleId ? { scheduleId } : {}),
+          ...(prepared?.programId ? { programId: prepared.programId } : {}),
+          ...(prepared?.exercises?.length ? {
+            plan: prepared.exercises.map((item) => ({
+              exerciseId: item.id,
+              sets: Number(item.sets) || 0,
+              reps: item.reps === undefined || item.reps === null ? undefined : Number(item.reps),
+              weight: item.weight === undefined || item.weight === null ? undefined : Number(item.weight),
+            })),
+          } : {}),
+        }),
       }, userToken);
 
       if (res.ok && res.data) {
@@ -92,6 +105,7 @@ export const WorkoutProvider = ({ children }) => {
         setActiveWorkout(null);
         setLoggedSets([]);
         setPreparedWorkout(null);
+        setHistoryRevision((value) => value + 1);
         return true;
       }
     } catch (err) {
@@ -128,15 +142,19 @@ export const WorkoutProvider = ({ children }) => {
     return null;
   };
 
-  const addWorkoutExercises = async (items, title = 'Workout') => {
+  const addWorkoutExercises = async (items, title = 'Workout', programId = null) => {
     let restored = null;
     if (!preparedWorkout && activeWorkout?.programId) {
       const program = await apiRequest(`/workout-programs/${activeWorkout.programId}`, {}, userToken);
-      restored = { title: program.name, exercises: programExercises(program) };
+      restored = { title: program.name, programId: program.id, exercises: programExercises(program) };
     }
     setPreparedWorkout((current) => {
       const base = current || restored || { title: activeWorkout?.type || title, exercises: [] };
-      return { ...base, exercises: mergeWorkoutExercises(base.exercises || [], items) };
+      return {
+        ...base,
+        programId: base.programId || programId || null,
+        exercises: mergeWorkoutExercises(base.exercises || [], items),
+      };
     });
   };
 
@@ -157,6 +175,7 @@ export const WorkoutProvider = ({ children }) => {
         cancelWorkout,
         togglePauseWorkout,
         checkActiveWorkout,
+        historyRevision,
       }}
     >
       {children}

@@ -15,6 +15,7 @@ export const programExercises = (program) =>
       exercise: row.exercise,
       sets: row.setsCount,
       reps: row.targetReps,
+      weight: row.plannedWeight,
     }));
 
 // A workout logs sets by exercise ID, so adding an existing exercise must not duplicate it.

@@ -39,6 +39,7 @@ export default function ProgramDetailsScreen({ navigation, route }) {
     prepareWorkout({
       title: program.name,
       scheduleId: assignment.id,
+      programId: program.id,
       exercises: programExercises(program),
     });
     navigation.navigate('WorkoutSession');

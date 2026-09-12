@@ -19,6 +19,7 @@ import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
 import HistoryScreen from '../screens/HistoryScreen';
+import HistoryDetailsScreen from '../screens/HistoryDetailsScreen';
 import ExerciseDetailsScreen from '../screens/ExerciseDetailsScreen';
 import LibraryProgramScreen from '../screens/LibraryProgramScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -38,6 +39,16 @@ const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
 const TrainingStackNavigator = createNativeStackNavigator();
 const WorkshopStackNavigator = createNativeStackNavigator();
+const HistoryStackNavigator = createNativeStackNavigator();
+
+function HistoryStack() {
+  return (
+    <HistoryStackNavigator.Navigator screenOptions={{ headerShown: false }}>
+      <HistoryStackNavigator.Screen name="HistoryHome" component={HistoryScreen} />
+      <HistoryStackNavigator.Screen name="HistoryDetails" component={HistoryDetailsScreen} />
+    </HistoryStackNavigator.Navigator>
+  );
+}
 
 function WorkshopStack() {
   return <WorkshopStackNavigator.Navigator screenOptions={{ headerShown: false }}>
@@ -88,7 +99,7 @@ function MainTabs() {
     >
       <Tab.Screen 
         name="History" 
-        component={HistoryScreen} 
+        component={HistoryStack}
         options={{ title: t('history') }} 
       />
       <Tab.Screen 

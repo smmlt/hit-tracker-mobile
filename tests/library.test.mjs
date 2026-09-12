@@ -29,7 +29,7 @@ test('empty program produces an empty workout plan', () => {
   assert.deepEqual(mergeWorkoutExercises([], []), []);
 });
 
-test('a program starts as one full session without copying legacy weekdays or prescribed weights', () => {
+test('a program starts as one full session and keeps planned weight for history', () => {
   for (const isPersonal of [false, true]) {
     const program = { isPersonal, schedule: [
       { exercise: { id: 1, name: 'Bench press' }, setsCount: 3, targetReps: 6, weekDay: 0, week: 1, plannedWeight: 85 },
@@ -37,10 +37,10 @@ test('a program starts as one full session without copying legacy weekdays or pr
     ] };
     const original = JSON.stringify(program);
     const plan = programExercises(program);
-    assert.deepEqual(plan.map(({ id, sets, reps }) => ({ id, sets, reps })), [
-      { id: 1, sets: 3, reps: 6 }, { id: 2, sets: 2, reps: 8 },
+    assert.deepEqual(plan.map(({ id, sets, reps, weight }) => ({ id, sets, reps, weight })), [
+      { id: 1, sets: 3, reps: 6, weight: 85 }, { id: 2, sets: 2, reps: 8, weight: 100 },
     ]);
-    assert.ok(plan.every((item) => item.weight === undefined && item.weekDay === undefined && item.week === undefined));
+    assert.ok(plan.every((item) => item.weekDay === undefined && item.week === undefined));
     assert.equal(JSON.stringify(program), original);
   }
 });

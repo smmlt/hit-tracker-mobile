@@ -129,6 +129,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
       await addWorkoutExercises(
         programExercises(localizedProgram),
         localizedProgram.displayName || localizedProgram.name,
+        program.id,
       );
       navigation
         .getParent()
