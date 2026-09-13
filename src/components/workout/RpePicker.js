@@ -5,9 +5,9 @@ import { useTheme } from '../../context/ThemeContext';
 import { rpeColor } from '../../utils/activeWorkout';
 import { createStyles } from './RpePicker.styles';
 
-export function RpePicker({ disabled, label, onChange, onClose, open, value }) {
+export function RpePicker({ compact, disabled, label, onChange, onClose, open, value }) {
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, compact);
   const selectedColor = value ? rpeColor(value) : theme.border;
 
   return <>

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../../constants/colors';
 
-export const createStyles = (theme) => StyleSheet.create({
+export const createStyles = (theme, compact = false) => StyleSheet.create({
   disabled: { opacity: 0.45 },
   dot: { borderRadius: 7, height: 14, width: 14 },
   field: {
@@ -12,7 +12,7 @@ export const createStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     height: 44,
     justifyContent: 'center',
-    width: 55,
+    width: compact ? 50 : 55,
   },
   fieldText: { fontFamily: 'Inter-SemiBold', fontSize: 13, marginRight: 2 },
   option: {

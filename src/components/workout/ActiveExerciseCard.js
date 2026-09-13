@@ -70,6 +70,7 @@ function SetEditorRow({ compact, disabled, existingSet, item, number, onSave, th
         value={draft.weight}
       />
       <RpePicker
+        compact={compact}
         disabled={disabled}
         label={`${t('selectRpe')} · ${t('setNumber', { number })}`}
         onChange={(value) => value === 'open' ? setPickerOpen(true) : change('rpe', value)}
@@ -150,15 +151,15 @@ export function ActiveExerciseCard({
         <Text style={styles.detailsText}>{t('viewExerciseDetails')}</Text>
       </Pressable>
       {recordingDisabled && <Text style={styles.startHint}>{t('startToRecordSets')}</Text>}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.tableScroll} horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={[styles.headerText, styles.setNumber]}>{t('setColumn')}</Text>
-            <Text style={[styles.headerText, styles.metricHeader]} numberOfLines={1}>{t('repsColumn')}</Text>
-            <Text style={[styles.headerText, styles.metricHeader]} numberOfLines={1}>{t('weightColumn')}</Text>
+            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.metricHeader]}>{t('activeRepsColumn')}</Text>
+            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.metricHeader]}>{t('activeWeightColumn')}</Text>
             <Text style={[styles.headerText, styles.rpeHeader]}>RPE</Text>
-            <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.headerText, styles.iconHeader]}>{t('failureColumn')}</Text>
-            <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.headerText, styles.iconHeader]}>{t('done')}</Text>
+            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.iconHeader]}>{t('activeFailureColumn')}</Text>
+            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.iconHeader]}>{t('done')}</Text>
           </View>
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
             <SetEditorRow
