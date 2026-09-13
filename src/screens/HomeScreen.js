@@ -21,7 +21,7 @@ import {
 
 import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userData } = useContext(AuthContext);
   const library = useLibrary();
@@ -36,6 +36,7 @@ export default function HomeScreen({ navigation }) {
   const [sortOpen, setSortOpen] = useState(false);
   const [scope, setScope] = useState("all");
   const [creator, setCreator] = useState(false);
+  const [creatorInitial, setCreatorInitial] = useState(null);
   const [schedule, setSchedule] = useState(null);
   const [message, setMessage] = useState("");
   useFocusEffect(
@@ -43,6 +44,15 @@ export default function HomeScreen({ navigation }) {
       library.refresh();
     }, [library.refresh]),
   );
+  React.useEffect(() => {
+    const draft = route.params?.createProgram;
+    if (!draft) return;
+    setSection("programs");
+    setScope("personal");
+    setCreatorInitial(draft);
+    setCreator(true);
+    navigation.setParams({ createProgram: undefined });
+  }, [navigation, route.params?.createProgram]);
   const data = library[section]
     .filter((item) => {
       if (![item.name, item.displayName].some((name) =>
@@ -139,7 +149,7 @@ export default function HomeScreen({ navigation }) {
         onSelectMuscleFilter={setMuscle}
       />
       {section === "programs" && (
-        <Pressable accessibilityRole="button" onPress={() => setCreator(true)} style={styles.createProgram}>
+        <Pressable accessibilityRole="button" onPress={() => { setCreatorInitial(null); setCreator(true); }} style={styles.createProgram}>
           <Text style={styles.createProgramText}>+ {w.createProgram}</Text>
         </Pressable>
       )}
@@ -209,10 +219,11 @@ export default function HomeScreen({ navigation }) {
       )}
       {creator && (
         <ProgramEditor
-          onClose={() => setCreator(false)}
-          onSaved={(result) =>
-            navigation.push("LibraryProgram", { programId: result.id })
-          }
+          initialValues={creatorInitial}
+          onClose={() => { setCreator(false); setCreatorInitial(null); }}
+          onSaved={(result) => {
+            if (!creatorInitial) navigation.push("LibraryProgram", { programId: result.id });
+          }}
         />
       )}
       {schedule && (

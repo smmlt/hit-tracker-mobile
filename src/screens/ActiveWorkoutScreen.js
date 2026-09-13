@@ -73,11 +73,10 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const [notes, setNotes] = useState('');
   const [now, setNow] = useState(Date.now());
   const [pendingSaves, setPendingSaves] = useState(0);
+  const [checkingProgram, setCheckingProgram] = useState(false);
   const [result, setResult] = useState(null);
-  const [saveDescription, setSaveDescription] = useState('');
-  const [saveName, setSaveName] = useState('');
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [savingProgram, setSavingProgram] = useState(false);
+  const [resultError, setResultError] = useState('');
+  const [savePromptOpen, setSavePromptOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
 
   const plan = result ? finishedPlan : preparedWorkout?.exercises || planFromSnapshot(activeWorkout);
@@ -214,7 +213,8 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       elapsed: typeof completedWorkout.durationSeconds === 'number'
         ? completedWorkout.durationSeconds
         : elapsed,
-      exercises: new Set(loggedSets.map((set) => set.exerciseId)).size,
+      exerciseIds: plan.map((item) => item.id).filter(Number.isInteger),
+      exercises: plan.length,
       failure: loggedSets.filter((set) => set.isFailure).length,
       plannedReps,
       sets: loggedSets.length,
@@ -222,28 +222,60 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         ? Math.max(0, Math.floor((new Date(completedWorkout.finishedAt).getTime() - new Date(completedWorkout.createdAt).getTime()) / 1000))
         : totalTime,
       volume: loggedSets.reduce((sum, set) => sum + set.weight * set.reps, 0),
-    });
-  };
-
-  const saveAsPersonalProgram = async () => {
-    if (!saveName.trim() || !plan.length) return;
-    setSavingProgram(true);
-    const response = await apiFetch('/workout-programs', {
-      method: 'POST',
-      body: JSON.stringify({
-        description: saveDescription.trim() || undefined,
+      programDraft: {
+        description: '',
         exercises: plan.map((item) => ({
           exerciseId: item.id,
           reps: Number(item.reps) || undefined,
           sets: Math.max(Number(item.sets) || 1, setsFor(item.id).length),
+          week: 1,
           weekDay: 0,
           weight: Number(item.weight) || 0,
         })),
-        name: saveName.trim(),
-      }),
-    }, userToken);
-    setSavingProgram(false);
-    if (response.ok) setSaveOpen(false);
+        name: `${title} ${t('copySuffix')}`,
+      },
+    });
+  };
+
+  const returnToTrainingPlan = () => navigation.navigate('TrainingHome');
+
+  const completeResult = async () => {
+    if (checkingProgram || !result) return;
+    if (!result.exerciseIds.length) {
+      returnToTrainingPlan();
+      return;
+    }
+    setCheckingProgram(true);
+    setResultError('');
+    try {
+      const response = await apiFetch('/workout-programs/match', {
+        method: 'POST',
+        body: JSON.stringify({ exerciseIds: result.exerciseIds }),
+      }, userToken);
+      if (!response.ok || !response.data) throw new Error('match failed');
+      if (response.data.programId) {
+        returnToTrainingPlan();
+        return;
+      }
+      setSavePromptOpen(true);
+    } catch {
+      setResultError(t('saveProgramCheckFailed'));
+    } finally {
+      setCheckingProgram(false);
+    }
+  };
+
+  const createProgramFromResult = () => {
+    setSavePromptOpen(false);
+    const tabs = navigation.getParent();
+    if (!tabs) {
+      returnToTrainingPlan();
+      return;
+    }
+    tabs.navigate('Home', {
+      screen: 'WorkshopHome',
+      params: { createProgram: result.programDraft },
+    });
   };
 
   if (!activeWorkout && !plan.length) {
@@ -261,46 +293,69 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       ? Math.min(100, Math.round(result.actualReps / result.plannedReps * 100))
       : 0;
     return <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.result}>
-        <Text style={styles.eyebrow}>{t('workoutComplete').toUpperCase()}</Text>
-        <Text style={styles.title}>{title}</Text>
-        <View style={styles.resultCard}>
-          {[
-            [t('activeTime'), formatTimer(result.elapsed)],
-            [t('totalTime'), formatTimer(result.totalTime)],
-            [t('exercises'), String(result.exercises)],
-            [t('setsShort'), `${result.sets}/${plannedSets}`],
-            [t('planCompletion'), result.plannedReps ? `${completion}%` : '—'],
-            [t('volume'), `${Math.round(result.volume)} ${t('kilogramsShort')}`],
-            [t('averageRpe'), result.avgRpe ? result.avgRpe.toFixed(1) : '—'],
-            [t('failureSets'), String(result.failure)],
-          ].map(([label, value]) => <View key={label} style={styles.resultRow}>
-            <Text style={styles.muted}>{label}</Text>
-            <Text style={styles.resultValue}>{value}</Text>
-          </View>)}
+      <ScrollView contentContainerStyle={styles.result} showsVerticalScrollIndicator={false}>
+        <View style={styles.resultHeader}>
+          <Ionicons color={theme.success} name="checkmark-circle" size={25} />
+          <Text style={styles.resultHeaderText}>{t('workoutComplete').toUpperCase()}</Text>
         </View>
-        <Pressable onPress={() => { setSaveName(`${title} ${t('copySuffix')}`); setSaveOpen(true); }} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>{t('saveAsProgram')}</Text>
-        </Pressable>
-        <Pressable onPress={() => navigation.navigate('TrainingHome')} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>{t('backToTrainingPlan')}</Text>
+        <Text style={styles.resultProgramTitle}>{displayTitle}</Text>
+        <View style={styles.resultMetricGrid}>
+          <View style={styles.resultMetricCard}>
+            <Ionicons color={theme.primary} name="time-outline" size={22} />
+            <Text style={styles.resultMetricLabel}>{t('activeTime')}</Text>
+            <Text style={styles.resultMetricValue}>{formatTimer(result.elapsed)}</Text>
+            <Text style={styles.resultMetricCaption}>{t('totalTime')}: {formatTimer(result.totalTime)}</Text>
+          </View>
+          <View style={styles.resultMetricCard}>
+            <Ionicons color={theme.primary} name="barbell-outline" size={22} />
+            <Text style={styles.resultMetricLabel}>{t('exercises')}</Text>
+            <Text style={styles.resultMetricValue}>{result.exercises}</Text>
+          </View>
+          <View style={styles.resultMetricCard}>
+            <Ionicons color={theme.primary} name="layers-outline" size={22} />
+            <Text style={styles.resultMetricLabel}>{t('setsShort')}</Text>
+            <Text style={styles.resultMetricValue}>{result.sets}</Text>
+          </View>
+          <View style={styles.resultMetricCard}>
+            <Ionicons color={theme.primary} name="trending-up-outline" size={22} />
+            <Text style={styles.resultMetricLabel}>{t('planCompletion')}</Text>
+            <Text style={[styles.resultMetricValue, styles.resultMetricSuccess]}>{result.plannedReps ? `${completion}%` : '—'}</Text>
+          </View>
+        </View>
+        <View style={[styles.resultMetricCard, styles.resultWideMetric]}>
+          <Ionicons color={theme.primary} name="bar-chart-outline" size={23} />
+          <View>
+            <Text style={styles.resultMetricLabel}>{t('volume')}</Text>
+            <Text style={styles.resultWideValue}>{Math.round(result.volume)} {t('kilogramsShort')}</Text>
+          </View>
+        </View>
+        <View style={styles.resultMetricGrid}>
+          <View style={styles.resultMetricCard}>
+            <Text style={styles.resultMetricLabel}>{t('averageRpe')}</Text>
+            <Text style={styles.resultMetricValue}>{result.avgRpe ? result.avgRpe.toFixed(1) : '—'}</Text>
+          </View>
+          <View style={styles.resultMetricCard}>
+            <Text style={styles.resultMetricLabel}>{t('failureSets')}</Text>
+            <Text style={styles.resultMetricValue}>{result.failure}</Text>
+          </View>
+        </View>
+        {!!resultError && <Text style={styles.resultError}>{resultError}</Text>}
+        <Pressable accessibilityRole="button" disabled={checkingProgram} onPress={completeResult} style={[styles.resultDoneButton, checkingProgram && styles.disabled]}>
+          {checkingProgram ? <ActivityIndicator color={theme.onPrimary} /> : <Text style={styles.resultDoneText}>{t('done')}</Text>}
         </Pressable>
       </ScrollView>
-      <Modal animationType="slide" onRequestClose={() => setSaveOpen(false)} presentationStyle="pageSheet" visible={saveOpen}>
-        <SafeAreaView style={styles.safe}>
-          <View style={styles.saveForm}>
-            <Text style={styles.sectionTitle}>{t('savePersonalProgram')}</Text>
-            <Text style={styles.muted}>{t('personalCopyHint')}</Text>
-            <TextInput onChangeText={setSaveName} placeholder={t('programName')} placeholderTextColor={theme.textSecondary} style={styles.notes} value={saveName} />
-            <TextInput multiline onChangeText={setSaveDescription} placeholder={t('descriptionOptional')} placeholderTextColor={theme.textSecondary} style={styles.notes} value={saveDescription} />
-            <View style={styles.modalActions}>
-              <Pressable onPress={() => setSaveOpen(false)} style={styles.secondaryButton}><Text style={styles.secondaryButtonText}>{t('cancel')}</Text></Pressable>
-              <Pressable disabled={savingProgram || !saveName.trim()} onPress={saveAsPersonalProgram} style={[styles.primaryButton, (!saveName.trim() || savingProgram) && styles.disabled]}>
-                <Text style={styles.primaryButtonText}>{savingProgram ? t('saving') : t('save')}</Text>
-              </Pressable>
-            </View>
+      <Modal animationType="fade" onRequestClose={returnToTrainingPlan} transparent visible={savePromptOpen}>
+        <View style={styles.savePromptOverlay}>
+          <View style={styles.savePrompt}>
+            <Pressable accessibilityLabel={t('close')} accessibilityRole="button" onPress={returnToTrainingPlan} style={styles.savePromptClose}>
+              <Ionicons color={theme.textPrimary} name="close" size={30} />
+            </Pressable>
+            <Text style={styles.savePromptTitle}>{t('saveWorkoutAsProgram')}</Text>
+            <Pressable accessibilityRole="button" onPress={createProgramFromResult} style={styles.savePromptConfirm}>
+              <Text style={styles.savePromptConfirmText}>{t('yes')}</Text>
+            </Pressable>
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
     </SafeAreaView>;
   }
