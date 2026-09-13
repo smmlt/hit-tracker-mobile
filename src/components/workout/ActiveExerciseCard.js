@@ -84,7 +84,7 @@ function SetEditorRow({ compact, disabled, existingSet, item, number, onSave, th
         accessibilityState={{ checked: draft.failure, disabled }}
         disabled={disabled}
         onPress={() => change('failure', !draft.failure)}
-        style={styles.iconTouch}
+        style={styles.failureTouch}
       >
         <View style={[styles.failureCheck, draft.failure && styles.failureChecked]}>
           {draft.failure && <Ionicons color={palette.whitePure} name="checkmark" size={21} />}
@@ -95,7 +95,7 @@ function SetEditorRow({ compact, disabled, existingSet, item, number, onSave, th
         accessibilityRole="button"
         disabled={disabled || saving || !valid || !dirty}
         onPress={confirm}
-        style={styles.iconTouch}
+        style={styles.doneTouch}
       >
         <View style={[
           styles.confirmCheck,
@@ -154,12 +154,12 @@ export function ActiveExerciseCard({
       <ScrollView contentContainerStyle={styles.tableScroll} horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.headerText, styles.setNumber]}>{t('setColumn')}</Text>
+            <Text numberOfLines={1} style={[styles.setHeader, styles.headerText]}>{t('setColumn')}</Text>
             <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.metricHeader]}>{t('activeRepsColumn')}</Text>
             <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.metricHeader]}>{t('activeWeightColumn')}</Text>
             <Text style={[styles.headerText, styles.rpeHeader]}>RPE</Text>
-            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.iconHeader]}>{t('activeFailureColumn')}</Text>
-            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.iconHeader]}>{t('done')}</Text>
+            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.failureHeader]}>{t('activeFailureColumn')}</Text>
+            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.doneHeader]}>{t('done')}</Text>
           </View>
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
             <SetEditorRow
