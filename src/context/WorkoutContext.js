@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import { AppState } from 'react-native';
 import { AuthContext } from './AuthContext';
 import { apiFetch } from '../services/api';
 import { apiRequest } from '../services/api';
@@ -87,18 +88,14 @@ export const WorkoutProvider = ({ children }) => {
   /**
    * Завершення тренування
    */
-  const finishWorkout = async (notes = '', durationSeconds = 0) => {
+  const finishWorkout = async (notes = '') => {
     if (!activeWorkout) return false;
 
     try {
       setIsLoading(true);
       const res = await apiFetch(`/workouts/${activeWorkout.id}/finish`, {
         method: 'POST',
-        body: JSON.stringify({ 
-          notes: notes || '', 
-          durationSeconds: Number(durationSeconds) || 0,
-          finishedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ notes: notes || '' }),
       }, userToken);
 
       if (res.ok) {
@@ -106,7 +103,7 @@ export const WorkoutProvider = ({ children }) => {
         setLoggedSets([]);
         setPreparedWorkout(null);
         setHistoryRevision((value) => value + 1);
-        return true;
+        return res.data?.workout || true;
       }
     } catch (err) {
       console.error('Error finishing workout:', err);
@@ -141,6 +138,37 @@ export const WorkoutProvider = ({ children }) => {
     }
     return null;
   };
+
+  const heartbeatActiveWorkout = useCallback(async () => {
+    if (!activeWorkout?.id || activeWorkout.status !== 'active') return null;
+    try {
+      const res = await apiFetch(`/workouts/${activeWorkout.id}/heartbeat`, { method: 'POST' }, userToken);
+      if (res.ok && res.data?.workout) {
+        setActiveWorkout(res.data.workout);
+        return res.data.workout;
+      }
+    } catch (err) {
+      console.error('Error updating workout activity:', err);
+    }
+    return null;
+  }, [activeWorkout?.id, activeWorkout?.status, userToken]);
+
+  useEffect(() => {
+    if (!activeWorkout?.id || activeWorkout.status !== 'active') return undefined;
+
+    const sendHeartbeat = () => {
+      if (AppState.currentState === 'active') heartbeatActiveWorkout();
+    };
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 5 * 60_000);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') sendHeartbeat();
+    });
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
+  }, [activeWorkout?.id, activeWorkout?.status, heartbeatActiveWorkout]);
 
   const addWorkoutExercises = async (items, title = 'Workout', programId = null) => {
     let restored = null;

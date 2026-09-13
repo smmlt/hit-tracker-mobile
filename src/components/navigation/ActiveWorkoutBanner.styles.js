@@ -1,16 +1,17 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
-export const styles = StyleSheet.create({
+
+export const createStyles = (theme) => StyleSheet.create({
   banner: {
-    backgroundColor: palette.indigo, // Гарний індиго-колір під темну тему
+    backgroundColor: theme.cardBackground,
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: palette.whiteTint,
+    borderTopColor: theme.primary,
   },
   leftContainer: {
     flexDirection: 'row',
@@ -20,20 +21,20 @@ export const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: palette.greenBright, // Зелений індикатор активності
+    backgroundColor: palette.greenBright,
     marginRight: 12,
   },
   title: {
-    color: palette.slate50,
+    color: theme.textPrimary,
     fontSize: 13,
     fontWeight: 'bold',
   },
   subtitle: {
-    color: palette.slate300,
+    color: theme.textSecondary,
     fontSize: 11,
   },
   resumeText: {
-    color: palette.whitePure,
+    color: theme.primary,
     fontWeight: 'bold',
     fontSize: 13,
   },

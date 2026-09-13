@@ -21,6 +21,7 @@ test('LOCALIZATION-003 translates official catalog names and preserves custom co
   assert.equal(translateCatalogName(uk, 'exercise', 'Barbell Bench Press'), 'Жим штанги лежачи');
   assert.equal(translateCatalogName(uk, 'program', 'Upper Body Strength'), 'Сила верхньої частини тіла');
   assert.equal(translateCatalogName(uk, 'program', 'HIT Classic Full Body'), 'Класичний HIT на все тіло');
+  assert.equal(translateCatalogName(uk, 'program', 'HIT Full Body'), 'HIT на все тіло');
   assert.equal(translateCatalogName(uk, 'exercise', 'Dumbbell Bicep Curl'), 'Згинання рук із гантелями на біцепс');
   assert.equal(translateCatalogName(uk, 'program', 'Bohdan custom plan'), 'Bohdan custom plan');
 });
