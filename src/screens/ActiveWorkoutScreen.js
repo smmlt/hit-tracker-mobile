@@ -237,7 +237,10 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     });
   };
 
-  const returnToTrainingPlan = () => navigation.navigate('TrainingHome');
+  const returnToTrainingPlan = () => {
+    if (navigation.canGoBack()) navigation.popToTop();
+    else navigation.navigate('TrainingHome');
+  };
 
   const completeResult = async () => {
     if (checkingProgram || !result) return;
@@ -272,6 +275,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       returnToTrainingPlan();
       return;
     }
+    navigation.popToTop();
     tabs.navigate('Home', {
       screen: 'WorkshopHome',
       params: { createProgram: result.programDraft },
