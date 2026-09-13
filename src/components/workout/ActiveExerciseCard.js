@@ -49,35 +49,41 @@ function SetEditorRow({ compact, disabled, existingSet, item, number, onSave, th
   return <View>
     <View style={styles.setRow}>
       <Text style={styles.setNumber}>{number}</Text>
-      <TextInput
-        accessibilityLabel={`${t('repsColumn')} ${number}`}
-        editable={!disabled}
-        keyboardType="number-pad"
-        onChangeText={(value) => /^\d*$/.test(value) && change('reps', value)}
-        placeholder={String(item.reps || '—')}
-        placeholderTextColor={theme.textSecondary}
-        style={styles.input}
-        value={draft.reps}
-      />
-      <TextInput
-        accessibilityLabel={`${t('weightColumn')} ${number}`}
-        editable={!disabled}
-        keyboardType="decimal-pad"
-        onChangeText={(value) => /^\d*[.,]?\d*$/.test(value) && change('weight', value)}
-        placeholder="0"
-        placeholderTextColor={theme.textSecondary}
-        style={styles.input}
-        value={draft.weight}
-      />
-      <RpePicker
-        compact={compact}
-        disabled={disabled}
-        label={`${t('selectRpe')} · ${t('setNumber', { number })}`}
-        onChange={(value) => value === 'open' ? setPickerOpen(true) : change('rpe', value)}
-        onClose={() => setPickerOpen(false)}
-        open={pickerOpen}
-        value={draft.rpe}
-      />
+      <View style={styles.repsColumn}>
+        <TextInput
+          accessibilityLabel={`${t('repsColumn')} ${number}`}
+          editable={!disabled}
+          keyboardType="number-pad"
+          onChangeText={(value) => /^\d*$/.test(value) && change('reps', value)}
+          placeholder={String(item.reps || '—')}
+          placeholderTextColor={theme.textSecondary}
+          style={styles.input}
+          value={draft.reps}
+        />
+      </View>
+      <View style={styles.weightColumn}>
+        <TextInput
+          accessibilityLabel={`${t('weightColumn')} ${number}`}
+          editable={!disabled}
+          keyboardType="decimal-pad"
+          onChangeText={(value) => /^\d*[.,]?\d*$/.test(value) && change('weight', value)}
+          placeholder="0"
+          placeholderTextColor={theme.textSecondary}
+          style={styles.input}
+          value={draft.weight}
+        />
+      </View>
+      <View style={styles.rpeColumn}>
+        <RpePicker
+          compact={compact}
+          disabled={disabled}
+          label={`${t('selectRpe')} · ${t('setNumber', { number })}`}
+          onChange={(value) => value === 'open' ? setPickerOpen(true) : change('rpe', value)}
+          onClose={() => setPickerOpen(false)}
+          open={pickerOpen}
+          value={draft.rpe}
+        />
+      </View>
       <Pressable
         accessibilityLabel={`${t('toFailure')} · ${t('setNumber', { number })}`}
         accessibilityRole="checkbox"
@@ -155,11 +161,11 @@ export function ActiveExerciseCard({
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text numberOfLines={1} style={[styles.setHeader, styles.headerText]}>{t('setColumn')}</Text>
-            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.metricHeader]}>{t('activeRepsColumn')}</Text>
-            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.metricHeader]}>{t('activeWeightColumn')}</Text>
-            <Text style={[styles.headerText, styles.rpeHeader]}>RPE</Text>
-            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.failureHeader]}>{t('activeFailureColumn')}</Text>
-            <Text adjustsFontSizeToFit minimumFontScale={0.7} numberOfLines={1} style={[styles.headerText, styles.doneHeader]}>{t('done')}</Text>
+            <Text numberOfLines={1} style={[styles.headerText, styles.repsColumn]}>{t('activeRepsColumn')}</Text>
+            <Text numberOfLines={1} style={[styles.headerText, styles.weightColumn]}>{t('activeWeightColumn')}</Text>
+            <Text numberOfLines={1} style={[styles.headerText, styles.rpeColumn]}>RPE</Text>
+            <Text numberOfLines={1} style={[styles.headerText, styles.failureHeader]}>{t('activeFailureColumn')}</Text>
+            <Text numberOfLines={1} style={[styles.headerText, styles.doneHeader]}>{t('done')}</Text>
           </View>
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
             <SetEditorRow
