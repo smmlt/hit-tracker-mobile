@@ -14,6 +14,7 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   exerciseList: { gap: 10 },
   eyebrow: { color: theme.primary, fontFamily: 'Inter-Bold', fontSize: 11, letterSpacing: 1.4 },
   finishButton: { alignItems: 'center', borderColor: theme.textSecondary, borderRadius: 10, borderWidth: 1, justifyContent: 'center', marginTop: 14, minHeight: 48 },
+  finishActive: { backgroundColor: theme.primary, borderColor: theme.primary },
   finishDisabled: { borderColor: theme.border, opacity: 0.55 },
   finishText: { color: theme.textPrimary, fontFamily: 'Inter', fontSize: 16 },
   finishTextDisabled: { color: theme.textSecondary },

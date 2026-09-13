@@ -348,7 +348,11 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         accessibilityRole="button"
         disabled={!activeWorkout || pendingSaves > 0}
         onPress={() => setFinishOpen(true)}
-        style={[styles.finishButton, (!activeWorkout || pendingSaves > 0) && styles.finishDisabled]}
+        style={[
+          styles.finishButton,
+          activeWorkout && pendingSaves === 0 && styles.finishActive,
+          (!activeWorkout || pendingSaves > 0) && styles.finishDisabled,
+        ]}
       >
         <Text style={[styles.finishText, (!activeWorkout || pendingSaves > 0) && styles.finishTextDisabled]}>{t('finish')}</Text>
       </Pressable>
