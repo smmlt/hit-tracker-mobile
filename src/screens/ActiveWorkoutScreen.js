@@ -58,6 +58,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     prepareWorkout,
     preparedWorkout,
     setLoggedSets,
+    setActiveWorkout,
     startWorkout,
     togglePauseWorkout,
   } = useContext(WorkoutContext);
@@ -175,6 +176,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         userToken,
       );
       if (!response.ok || !response.data?.set) return false;
+      if (response.data.workout) setActiveWorkout(response.data.workout);
       setLoggedSets((current) => replaceRecordedSet(current, {
         ...existingSet,
         ...response.data.set,
@@ -197,7 +199,8 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const finish = async () => {
     setFinishedPlan(plan);
     setFinishedTitle(title);
-    if (!await finishWorkout(notes, elapsed)) return;
+    const completedWorkout = await finishWorkout(notes);
+    if (!completedWorkout) return;
     setFinishOpen(false);
     const rpeSets = loggedSets.filter((set) => set.rpe);
     const plannedReps = plan.reduce(
@@ -208,12 +211,16 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     setResult({
       actualReps,
       avgRpe: rpeSets.reduce((sum, set) => sum + set.rpe, 0) / (rpeSets.length || 1),
-      elapsed,
+      elapsed: typeof completedWorkout.durationSeconds === 'number'
+        ? completedWorkout.durationSeconds
+        : elapsed,
       exercises: new Set(loggedSets.map((set) => set.exerciseId)).size,
       failure: loggedSets.filter((set) => set.isFailure).length,
       plannedReps,
       sets: loggedSets.length,
-      totalTime,
+      totalTime: completedWorkout.finishedAt
+        ? Math.max(0, Math.floor((new Date(completedWorkout.finishedAt).getTime() - new Date(completedWorkout.createdAt).getTime()) / 1000))
+        : totalTime,
       volume: loggedSets.reduce((sum, set) => sum + set.weight * set.reps, 0),
     });
   };
