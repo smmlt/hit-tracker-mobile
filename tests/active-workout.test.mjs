@@ -17,6 +17,11 @@ test('exercise plan completion uses total repetitions across all recorded sets',
   assert.equal(progress.complete, true);
 });
 
+test('exercise plan completion requires both the planned sets and total repetitions', () => {
+  assert.equal(exercisePlanProgress({ sets: 4, reps: 10 }, [{ reps: 40 }]).complete, false);
+  assert.equal(exercisePlanProgress({ sets: 4, reps: 10 }, Array.from({ length: 4 }, () => ({ reps: 8 }))).complete, false);
+});
+
 test('sets without a repetition target fall back to planned set count', () => {
   assert.equal(exercisePlanProgress({ sets: 3 }, [{ reps: 5 }, { reps: 5 }]).complete, false);
   assert.equal(exercisePlanProgress({ sets: 3 }, [{ reps: 5 }, { reps: 5 }, { reps: 1 }]).complete, true);

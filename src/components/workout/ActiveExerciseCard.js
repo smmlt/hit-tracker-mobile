@@ -132,7 +132,7 @@ export function ActiveExerciseCard({
   const rowCount = Math.max(progress.plannedSets + extraSets, sets.length);
   const completedColor = progress.complete ? palette.greenBright : theme.border;
 
-  return <View style={[styles.card, { borderColor: completedColor }, progress.complete && styles.completedCard]}>
+  return <View style={[styles.card, { borderColor: completedColor }]}>
     <Pressable accessibilityRole="button" onPress={onToggle} style={styles.cardHeader}>
       <Ionicons color={theme.textSecondary} name="reorder-three-outline" size={26} />
       <View style={styles.cardTitleBlock}>

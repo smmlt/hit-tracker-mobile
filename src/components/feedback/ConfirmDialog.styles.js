@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 
-import { palette } from '../../constants/colors';
 export const createStyles = (theme) => StyleSheet.create({
   modalOverlay: {
     position: 'absolute',
@@ -26,6 +25,6 @@ export const createStyles = (theme) => StyleSheet.create({
   dialogBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
   cancelBtn: { backgroundColor: theme.surfaceElevated, borderColor: theme.border, borderWidth: 1 },
   cancelBtnText: { color: theme.textPrimary, fontWeight: '600', fontSize: 14 },
-  confirmBtn: { backgroundColor: palette.red },
-  confirmBtnText: { color: palette.whitePure, fontWeight: '600', fontSize: 14 },
+  confirmBtn: { backgroundColor: theme.primary },
+  confirmBtnText: { color: theme.onPrimary, fontWeight: '600', fontSize: 14 },
 });

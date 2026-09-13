@@ -9,7 +9,6 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   cardHeader: { alignItems: 'center', flexDirection: 'row', gap: 8, minHeight: 54, paddingHorizontal: 10 },
   cardTitleBlock: { flex: 1 },
   completeText: { color: palette.greenBright },
-  completedCard: { backgroundColor: theme.background === palette.black ? palette.greenDark : palette.successPale },
   confirmCheck: { alignItems: 'center', borderColor: theme.border, borderRadius: 20, borderWidth: 1, height: 38, justifyContent: 'center', width: 38 },
   confirmDisabled: { opacity: 0.45 },
   confirmed: { backgroundColor: palette.greenBright, borderColor: palette.greenBright },

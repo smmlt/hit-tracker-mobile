@@ -22,9 +22,9 @@ export function exercisePlanProgress(item, recordedSets) {
     0,
   );
   const targetReps = plannedSets * plannedReps;
-  const complete = targetReps > 0
-    ? actualReps >= targetReps
-    : plannedSets > 0 && actualSets >= plannedSets;
+  const complete = plannedSets > 0
+    && actualSets >= plannedSets
+    && (targetReps === 0 || actualReps >= targetReps);
 
   return { actualReps, actualSets, complete, plannedSets, targetReps };
 }

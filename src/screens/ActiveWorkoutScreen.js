@@ -103,6 +103,23 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     () => !!plan.length && plan.every((item) => exercisePlanProgress(item, setsFor(item.id)).complete),
     [plan, setsFor],
   );
+  const incompleteMessage = useMemo(() => {
+    const rows = plan.flatMap((item) => {
+      const progress = exercisePlanProgress(item, setsFor(item.id));
+      const missing = [
+        progress.actualSets < progress.plannedSets
+          ? t('incompleteSets', { actual: progress.actualSets, planned: progress.plannedSets })
+          : null,
+        progress.actualReps < progress.targetReps
+          ? t('incompleteReps', { actual: progress.actualReps, planned: progress.targetReps })
+          : null,
+      ].filter(Boolean);
+      return missing.length
+        ? [`• ${translateCatalogName(t, 'exercise', item.name)}: ${missing.join(', ')}`]
+        : [];
+    });
+    return `${t('finishIncompleteIntro')}\n${rows.join('\n')}\n\n${t('finishIncompleteContinue')}`;
+  }, [plan, setsFor, t]);
 
   const setPlan = (change) => prepareWorkout((current) => ({
     ...current,
@@ -372,7 +389,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     <ConfirmDialog
       cancelLabel={t('keepTraining')}
       confirmLabel={t('finish')}
-      message={isPlanComplete ? t('finishSaveMessage') : t('finishIncompleteMessage', { logged: loggedSets.length, planned: plannedSets })}
+      message={isPlanComplete ? t('finishSaveMessage') : incompleteMessage}
       onCancel={() => setFinishOpen(false)}
       onConfirm={finish}
       title={t('finishWorkout')}
