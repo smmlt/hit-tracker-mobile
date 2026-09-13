@@ -186,6 +186,14 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     }
   };
 
+  const removeExercise = (id) => {
+    prepareWorkout((current) => ({
+      ...current,
+      exercises: (current?.exercises || plan).filter((item) => item.id !== id),
+    }));
+    if (expandedExerciseId === id) setExpandedExerciseId(null);
+  };
+
   const finish = async () => {
     setFinishedPlan(plan);
     setFinishedTitle(title);
@@ -331,6 +339,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           item={item}
           key={item.id}
           onDetails={setSelectedExercise}
+          onRemove={removeExercise}
           onSave={saveSet}
           onToggle={() => setExpandedExerciseId((current) => current === item.id ? null : item.id)}
           recordingDisabled={!activeWorkout}

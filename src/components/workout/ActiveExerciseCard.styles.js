@@ -25,6 +25,8 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   metricHeader: { width: compact ? 55 : 58 },
   planSummary: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 11, marginTop: 2 },
   readyToConfirm: { borderColor: theme.primary, borderWidth: 2 },
+  removeButton: { alignItems: 'center', alignSelf: 'stretch', borderColor: theme.error, borderRadius: 8, borderWidth: 1, justifyContent: 'center', minHeight: 40 },
+  removeText: { color: theme.error, fontFamily: 'Inter-SemiBold', fontSize: 12 },
   rowError: { color: theme.error, fontFamily: 'Inter', fontSize: 11, marginLeft: compact ? 29 : 36, marginTop: 3 },
   rpeHeader: { width: compact ? 55 : 58 },
   setNumber: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 12, textAlign: 'center', width: compact ? 29 : 36 },
