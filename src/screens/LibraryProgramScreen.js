@@ -6,8 +6,9 @@ import { AuthContext } from "../context/AuthContext";
 import { WorkoutContext } from "../context/WorkoutContext";
 import { useLibrary } from "../context/LibraryContext";
 import { apiRequest } from "../services/api";
-import { programExercises } from "../utils/library";
+import { programDifficulty, programExercises } from "../utils/library";
 import { ExerciseItem } from "../components/exercise/ExerciseItem";
+import { DifficultyIndicator } from "../components/exercise/DifficultyIndicator";
 import { ProgramBadges } from "../components/workshop/ProgramCard";
 import { ProgramEditor } from "../components/workshop/ProgramEditor";
 import { ScheduleProgramSheet } from "../components/workshop/ScheduleProgramSheet";
@@ -25,12 +26,19 @@ import {
   useWords,
 } from "../components/workshop/ui";
 
-export function ProgramDetailsContent({ program, onExercise, onEdit }) {
+export function ProgramDetailsContent({ program, onExercise, onEdit, showProgramDifficulty = false }) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const s = useWorkshopStyles();
   const library = useLibrary();
   const w = useWords();
+  const schedule = (program.schedule || []).map((row) => ({
+    ...row,
+    exercise: row.exercise && (
+      library.exercises.find((item) => item.id === row.exercise.id) || row.exercise
+    ),
+  }));
+  const difficulty = showProgramDifficulty ? programDifficulty(schedule) : null;
   return (
     <View style={styles.contentBlock}>
       <View style={s.media}>
@@ -39,6 +47,20 @@ export function ProgramDetailsContent({ program, onExercise, onEdit }) {
       <View style={styles.summary}>
         <Text style={s.heading}>{(program.displayName || program.name).toUpperCase()}</Text>
         <ProgramBadges program={program} />
+        {difficulty && (
+          <View style={[styles.programDifficulty, { borderColor: theme.border }]}>
+            <View style={styles.programDifficultyCopy}>
+              <Text style={styles.programDifficultyLabel}>{w.programDifficulty}</Text>
+              <Text style={styles.programDifficultyValue}>
+                {w[`difficultyLevel${difficulty.level}`]} · {difficulty.level}/5
+              </Text>
+              {difficulty.hasAdvancedExercise && (
+                <Text style={styles.programDifficultyHint}>{w.containsAdvancedExercise}</Text>
+              )}
+            </View>
+            <DifficultyIndicator difficulty={difficulty.level} />
+          </View>
+        )}
         {!!program.description && (
           <Text style={s.muted}>{program.description}</Text>
         )}
@@ -49,15 +71,12 @@ export function ProgramDetailsContent({ program, onExercise, onEdit }) {
           <Pressable accessibilityRole="button" onPress={onEdit} style={styles.addExercise}><Text style={s.link}>+ {w.addExercise}</Text></Pressable>
         )}
       </View>
-      {(program.schedule || []).map(
+      {schedule.map(
         (row, index) =>
           row.exercise && (
             <ExerciseItem
               key={`${row.exercise.id}-${index}`}
-              exercise={
-                library.exercises.find((item) => item.id === row.exercise.id) ||
-                row.exercise
-              }
+              exercise={row.exercise}
               onPress={onExercise}
               footer={`${row.setsCount} ${w.sets.toLowerCase()} × ${row.targetReps || "—"} ${w.reps.toLowerCase()}`}
             />
@@ -133,7 +152,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
       );
       navigation
         .getParent()
-        .navigate("ActiveWorkout", { screen: "WorkoutSession" });
+        .navigate("ActiveWorkout", { screen: "WorkoutSession", initial: false });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -173,6 +192,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
             )}
             <ProgramDetailsContent
               program={localizedProgram}
+              showProgramDifficulty
               onExercise={(exercise) =>
                 navigation.push("ExerciseDetails", { exerciseId: exercise.id })
               }

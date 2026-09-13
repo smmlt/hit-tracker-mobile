@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { difficultyBarColors, mergeWorkoutExercises, programExercises } from '../src/utils/library.js';
+import {
+  difficultyBarColors,
+  mergeWorkoutExercises,
+  programDifficulty,
+  programExercises,
+} from '../src/utils/library.js';
 
 test('difficulty uses five bars with the exact saved level and a green-to-red scale', () => {
   const colors = ['#22C55E', '#84CC16', '#FACC15', '#F98300', '#F00D22'];
@@ -27,6 +32,26 @@ test('adding exercises preserves the current plan and never mutates the original
 test('empty program produces an empty workout plan', () => {
   assert.deepEqual(programExercises(null), []);
   assert.deepEqual(mergeWorkoutExercises([], []), []);
+});
+
+test('program difficulty weighs each exercise by its number of sets', () => {
+  assert.deepEqual(
+    programDifficulty([
+      { setsCount: 1, exercise: { difficulty: 5 } },
+      { setsCount: 4, exercise: { difficulty: 2 } },
+    ]),
+    { level: 3, hasAdvancedExercise: true },
+  );
+});
+
+test('program difficulty stays hidden until every scheduled exercise has a valid level', () => {
+  assert.equal(
+    programDifficulty([
+      { setsCount: 3, exercise: { difficulty: 2 } },
+      { setsCount: 2, exercise: {} },
+    ]),
+    null,
+  );
 });
 
 test('a program starts as one full session and keeps planned weight for history', () => {

@@ -10,14 +10,17 @@ import { apiFetch, apiRequest } from '../services/api';
 import { ConfirmDialog } from '../components/feedback';
 import { ProgramDetailsContent } from './LibraryProgramScreen';
 import { programExercises } from '../utils/library';
+import { scheduleCardTone } from '../utils/scheduleCard';
+import { palette } from '../constants/colors';
 
 export default function ProgramDetailsScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { assignment } = route.params;
   const { userToken } = useContext(AuthContext);
   const { prepareWorkout, activeWorkout } = useContext(WorkoutContext);
-  const { t } = useContext(LanguageContext);
+  const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
+  const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,6 +51,16 @@ export default function ProgramDetailsScreen({ navigation, route }) {
   const openExercise = (item) => {
     navigation.push('ExerciseDetails', { exerciseId: item.id });
   };
+  const tone = scheduleCardTone(assignment);
+  const statusColor = {
+    planned: palette.accent,
+    completed: palette.greenBright,
+    missed: palette.orange,
+    completedLate: palette.grayLegacy,
+  }[tone];
+  const statusLabel = tone === 'completedLate'
+    ? `${t('scheduleStatus_completed')} ${new Date(assignment.completedAt).toLocaleDateString(localeTag, { day: 'numeric', month: 'long' })}`
+    : t(`scheduleStatus_${assignment.status}`);
 
   const removeFromPlan = async () => {
     setRemoving(true);
@@ -73,13 +86,17 @@ export default function ProgramDetailsScreen({ navigation, route }) {
               <Text style={[styles.removeText, { color: theme.error }]}>{removing ? '…' : t('removeFromPlan')}</Text>
             </Pressable>
             <View style={styles.scheduleInfo}>
-              <Text style={[styles.date, { color: theme.primary }]}>{t('scheduledFor')}: {assignment.scheduledFor}</Text>
-              <View style={[styles.status, styles[`status_${assignment.status}`]]}>
-                <Text style={styles.statusText}>{t(`scheduleStatus_${assignment.status}`)}</Text>
+              <Text style={[styles.date, { color: theme.textSecondary }]}>{t('scheduledFor')}: {assignment.scheduledFor}</Text>
+              <View style={[styles.status, { backgroundColor: statusColor }]}>
+                <Text style={styles.statusText}>{statusLabel}</Text>
               </View>
             </View>
 
-            <ProgramDetailsContent program={program} onExercise={openExercise} />
+            <ProgramDetailsContent
+              program={program}
+              showProgramDifficulty
+              onExercise={openExercise}
+            />
 
             <Pressable onPress={beginWorkout} style={[styles.startButton, { backgroundColor: theme.primary }]}>
               <Text style={styles.startText}>{assignment.status === 'completed' ? t('trainAgain') : t('startWorkout')}</Text>
