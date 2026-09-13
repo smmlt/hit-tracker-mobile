@@ -3,10 +3,15 @@ import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, Text, Vi
 import { DATE_CELL_WIDTH, DATE_GAP, styles } from './TrainingScreen.styles.js';
 import { useFocusEffect } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
+import { calendarDaySelection, scheduleCardTone } from '../utils/scheduleCard';
+import { programDifficulty } from '../utils/library';
+import { DifficultyIndicator } from '../components/exercise/DifficultyIndicator';
+import { useWords } from '../components/workshop/ui';
 
 import { palette } from '../constants/colors';
 const weekDays = {
@@ -27,49 +32,69 @@ const addDays = (date, count) => {
   return result;
 };
 
-function ProgramCard({ assignment, navigation, showScheduledDate, t, theme, userToken }) {
-  const [preview, setPreview] = useState([]);
+function ProgramCard({ assignment, navigation, t, theme, userToken, localeTag }) {
+  const w = useWords();
+  const [schedule, setSchedule] = useState([]);
 
   useEffect(() => {
     let active = true;
     apiFetch(`/workout-programs/${assignment.programId}`, {}, userToken).then((response) => {
       if (!active || !response.ok) return;
-      const unique = response.data.schedule.filter((entry) => entry.exercise).reduce((items, entry) => (
-        items.some((exercise) => exercise.id === entry.exercise.id)
-          ? items
-          : [...items, entry.exercise]
-      ), []);
-      setPreview(unique);
+      setSchedule(response.data.schedule.filter((entry) => entry.exercise));
     });
     return () => { active = false; };
   }, [assignment.programId, userToken]);
 
+  const preview = useMemo(() => schedule.reduce((items, entry) => (
+    items.some((exercise) => exercise.id === entry.exercise.id)
+      ? items
+      : [...items, entry.exercise]
+  ), []), [schedule]);
+  const difficulty = programDifficulty(schedule);
+
   const openDetails = () => navigation.navigate('ProgramDetails', { assignment });
-  const visibleExercises = preview.slice(0, 3);
-  const hiddenCount = Math.max(0, preview.length - visibleExercises.length);
+  const tone = scheduleCardTone(assignment);
+  const statusColor = {
+    planned: palette.accent,
+    completed: palette.greenBright,
+    missed: palette.orange,
+    completedLate: palette.grayLegacy,
+  }[tone];
+  const statusLabel = tone === 'completedLate'
+    ? `${t('scheduleStatus_completed')} ${new Date(assignment.completedAt).toLocaleDateString(localeTag, { day: 'numeric', month: 'long' })}`
+    : t(`scheduleStatus_${assignment.status}`);
 
   return (
-    <View style={[styles.programCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-      <Pressable onPress={openDetails}>
-        <View style={styles.programTop}>
-          <Text style={[styles.programTitle, { color: theme.textPrimary }]}>{assignment.programName}</Text>
-          <View style={[styles.status, styles[`status_${assignment.status}`]]}><Text style={styles.statusText}>{t(`scheduleStatus_${assignment.status}`)}</Text></View>
-        </View>
-        {showScheduledDate && <Text style={[styles.scheduledDate, { color: theme.textSecondary }]}>{assignment.scheduledFor}</Text>}
-        {!!assignment.programDescription && <Text style={[styles.description, { color: theme.textSecondary }]}>{assignment.programDescription}</Text>}
-        <View style={styles.exercisePreview}>
-          {visibleExercises.map((exercise) => (
-            <View key={exercise.id} style={[styles.exerciseChip, { borderColor: theme.border }]}>
-              <Text numberOfLines={1} style={[styles.exerciseChipText, { color: theme.textSecondary }]}>{exercise.name}</Text>
+    <Pressable
+      accessibilityLabel={`${t('viewProgram')}: ${assignment.programName}`}
+      accessibilityRole="button"
+      onPress={openDetails}
+      style={({ pressed }) => [styles.programCard, { backgroundColor: theme.cardBackground, borderLeftColor: statusColor }, pressed && styles.programCardPressed]}
+    >
+      <View style={styles.statusRow}>
+        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+        <Text style={[styles.statusText, { color: theme.textSecondary }]}>{statusLabel}</Text>
+      </View>
+      <Text numberOfLines={1} style={[styles.programTitle, { color: theme.textPrimary }]}>{assignment.programName}</Text>
+      {!!preview.length && (
+        <View style={styles.programMeta}>
+          {difficulty && (
+            <View style={[styles.metaChip, styles.difficultyChip, { backgroundColor: theme.background }]}>
+              <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>
+                {w[`difficultyLevel${difficulty.level}`]}
+              </Text>
+              <DifficultyIndicator difficulty={difficulty.level} />
             </View>
-          ))}
-          {hiddenCount > 0 && <View style={[styles.exerciseChip, { borderColor: theme.primary }]}><Text style={[styles.exerciseChipText, { color: theme.primary }]}>+{hiddenCount}</Text></View>}
+          )}
+          <View style={[styles.metaChip, { backgroundColor: theme.background }]}>
+            <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>{preview.length} {t('exercisesShort')}</Text>
+          </View>
         </View>
-      </Pressable>
-      <Pressable onPress={openDetails} style={[styles.secondaryAction, { borderColor: theme.primary }]}>
-        <Text style={[styles.secondaryActionText, { color: theme.primary }]}>{t('viewProgram')}</Text>
-      </Pressable>
-    </View>
+      )}
+      <View style={[styles.secondaryAction, { borderColor: statusColor }]}>
+        <Text style={[styles.secondaryActionText, { color: statusColor }]}>{t('viewProgram')}</Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -191,7 +216,7 @@ export default function TrainingScreen({ navigation }) {
             <Text style={[styles.title, { color: theme.textPrimary }]}>{t('training')}</Text>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel={t('openCalendar')} onPress={() => setCalendarOpen(true)} style={[styles.calendarButton, { borderColor: theme.border }]}>
-            <Text style={[styles.calendarIcon, { color: theme.textPrimary }]}>▦</Text>
+            <Ionicons color={theme.textPrimary} name="calendar-outline" size={22} />
           </Pressable>
         </View>
 
@@ -236,7 +261,7 @@ export default function TrainingScreen({ navigation }) {
             t={t}
             theme={theme}
             userToken={userToken}
-            showScheduledDate={!!rangeEnd}
+            localeTag={localeTag}
           />
         ))}
 
@@ -262,9 +287,11 @@ export default function TrainingScreen({ navigation }) {
             <View style={styles.weekHeader}>{weekDays[locale].map((day) => <Text key={day} style={[styles.weekLabel, { color: theme.textSecondary }]}>{day}</Text>)}</View>
             <View style={styles.monthGrid}>{calendarDays.map((date) => {
               const key = dateKey(date);
-              const active = isInRange(key);
-              const rangeStartDay = key === rangeStart;
-              const rangeEndDay = key === rangeEnd || (rangeStart === key && !rangeEnd);
+              const {
+                active,
+                startsSelection: rangeStartDay,
+                endsSelection: rangeEndDay,
+              } = calendarDaySelection(key, selectedDate, rangeStart, rangeEnd);
               const inMonth = date.getMonth() === month.getMonth();
               return <Pressable key={key} onPress={() => chooseRangeDate(date)} style={styles.monthDay}>
                 {active && <View style={[styles.rangeFill, { backgroundColor: theme.primary }, rangeStartDay && styles.rangeStart, rangeEndDay && styles.rangeEnd]} />}

@@ -95,7 +95,7 @@ export const themes = {
     cardBackground: palette.surface,
 
     tabBarBackground: 'rgba(18, 18, 18, 0.8)',
-    tabBarActive: '#F00D22',
+    tabBarActive: palette.white,
     tabBarInactive: '#838384',
 
     inputBackground: '#FFF6F6',
@@ -128,7 +128,7 @@ export const themes = {
     cardBackground: '#F1F5F9',
 
     tabBarBackground: 'rgba(232, 236, 239, 0.8)',
-    tabBarActive: '#F00D22',
+    tabBarActive: palette.accent,
     tabBarInactive: '#94A3B8',
 
     inputBackground: palette.gray100,

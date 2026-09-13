@@ -94,6 +94,7 @@ function MainTabs() {
   return (
     <Tab.Navigator
       initialRouteName="Home"
+      backBehavior="history"
       tabBar={(props) => <AppTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
@@ -144,10 +145,11 @@ const linking = {
 export default function AppNavigator() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const { isInitializing, userToken } = useContext(AuthContext);
+  const { isInitializing, userData, userToken } = useContext(AuthContext);
   const [isAdminRoute] = React.useState(() => Platform.OS === 'web'
     && typeof window !== 'undefined'
     && window.location.pathname.toLowerCase().startsWith('/admin'));
+  const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
 
   if (isInitializing) {
     return (
@@ -161,23 +163,13 @@ export default function AppNavigator() {
     <NavigationContainer linking={linking}>
       <View style={styles.container}>
         <Stack.Navigator
-          initialRouteName={userToken === null ? 'Login' : isAdminRoute ? 'Admin' : 'MainApp'}
+          initialRouteName={userToken === null ? 'Login' : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
           screenOptions={{
             headerStyle: { backgroundColor: theme.background },
             headerTintColor: theme.textPrimary,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >
-          <Stack.Screen
-            name="SharedExercise"
-            component={SharedExerciseScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="SharedProgram"
-            component={SharedProgramScreen}
-            options={{ headerShown: false }}
-          />
           {userToken === null ? (
             <>
               <Stack.Screen 
@@ -206,7 +198,7 @@ export default function AppNavigator() {
                 options={{ headerShown: false }} 
               />
             </>
-          ) : isAdminRoute ? (
+          ) : isAdminRoute && canOpenAdmin ? (
             <Stack.Screen
               name="Admin"
               component={AdminScreen}
@@ -219,6 +211,16 @@ export default function AppNavigator() {
               options={{ headerShown: false }} 
             />
           )}
+          <Stack.Screen
+            name="SharedExercise"
+            component={SharedExerciseScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SharedProgram"
+            component={SharedProgramScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </View>
     </NavigationContainer>

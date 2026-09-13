@@ -5,7 +5,6 @@ import {
   Modal,
   Pressable,
   RefreshControl,
-  ScrollView,
   Text,
   TextInput,
   View,
@@ -221,12 +220,9 @@ export default function HistoryScreen({ navigation }) {
   const listHeader = (
     <View style={styles.headerContent}>
       <View style={styles.headingRow}>
-        <View>
-          <Text style={styles.eyebrow}>{t('completedWorkouts').toUpperCase()}</Text>
-          <Text style={styles.heading}>{t('workoutHistoryTitle')}</Text>
-        </View>
+        <Text style={styles.heading}>{t('workoutHistoryTitle').toUpperCase()}</Text>
         <Pressable accessibilityLabel={t('openCalendar')} onPress={openCalendar} style={styles.calendarButton}>
-          <Ionicons color={activePreset === 'custom' ? theme.primary : theme.textPrimary} name="calendar-outline" size={22} />
+          <Ionicons color={activePreset === 'custom' ? theme.primary : theme.textPrimary} name="calendar-outline" size={24} />
         </Pressable>
       </View>
 
@@ -248,7 +244,7 @@ export default function HistoryScreen({ navigation }) {
         )}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+      <View style={styles.filters}>
         {[
           ['all', t('allDates')],
           ['today', t('today')],
@@ -266,7 +262,7 @@ export default function HistoryScreen({ navigation }) {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       {activePreset === 'custom' && selection.start && (
         <Pressable onPress={openCalendar} style={styles.appliedRange}>

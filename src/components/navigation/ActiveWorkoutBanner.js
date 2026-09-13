@@ -31,7 +31,7 @@ export function ActiveWorkoutBanner({ navigation: tabNavigation }) {
     <TouchableOpacity
       style={styles.banner}
       activeOpacity={0.85}
-      onPress={() => navigation.navigate('ActiveWorkout', { screen: 'WorkoutSession' })}
+      onPress={() => navigation.navigate('ActiveWorkout', { screen: 'WorkoutSession', initial: false })}
     >
       <View style={styles.leftContainer}>
         <Animated.View style={[styles.pulseDot, { opacity: pulse, transform: [{ scale: pulse }] }]} />

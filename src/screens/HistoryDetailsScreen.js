@@ -131,6 +131,7 @@ export default function HistoryDetailsScreen({ navigation, route }) {
     navigation.getParent()?.navigate('Home', {
       screen: 'LibraryProgram',
       params: { programId: details.programSource.id },
+      initial: false,
     });
   };
 

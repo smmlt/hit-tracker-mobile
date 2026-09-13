@@ -1,9 +1,14 @@
+import { Platform } from 'react-native';
 import { apiRequest } from './api';
 
 export const authService = {
   login: (email, password) => apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email,
+        password,
+        client: Platform.OS === 'web' ? 'web' : 'native',
+      }),
     }, null, 'Login failed'),
 
   register: (email, password, displayName) => apiRequest('/auth/register', {
@@ -20,4 +25,14 @@ export const authService = {
     method: 'POST',
     body: JSON.stringify({ code, codeVerifier }),
   }, null, 'Google sign-in failed'),
+
+  refresh: (refreshToken) => apiRequest('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify(refreshToken ? { refreshToken } : {}),
+  }, null, 'Session refresh failed'),
+
+  logout: (refreshToken) => apiRequest('/auth/logout', {
+    method: 'POST',
+    body: JSON.stringify(refreshToken ? { refreshToken } : {}),
+  }, null, 'Logout failed'),
 };

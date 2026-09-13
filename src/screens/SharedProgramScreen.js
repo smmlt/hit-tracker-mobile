@@ -6,12 +6,13 @@ import { useLibrary } from '../context/LibraryContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { translateCatalogName } from '../localization/catalog';
 import { apiRequest } from '../services/api';
+import { findMatchingPersonalProgram } from '../utils/sharedLibrary';
 import { Button, DetailHeader, Feedback, useWorkshopStyles } from '../components/workshop/ui';
 import { ProgramDetailsContent } from './LibraryProgramScreen';
 import { styles } from './SharedContentScreen.styles';
 
 export default function SharedProgramScreen({ navigation, route }) {
-  const { userToken } = useContext(AuthContext);
+  const { userToken, userData } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
   const library = useLibrary();
   const workshopStyles = useWorkshopStyles();
@@ -51,15 +52,20 @@ export default function SharedProgramScreen({ navigation, route }) {
   } : null, [program, t]);
   const openProgram = (programId) => navigation.replace('MainApp', {
     screen: 'Home',
-    params: { screen: 'LibraryProgram', params: { programId } },
+    params: { screen: 'LibraryProgram', params: { programId }, initial: false },
   });
+  const matchingProgram = useMemo(() => (
+    program?.isPersonal
+      ? findMatchingPersonalProgram(library.programs, program, userData?.id)
+      : null
+  ), [library.programs, program, userData?.id]);
   const handlePrimaryAction = async () => {
     if (!userToken) {
       navigation.navigate('Login');
       return;
     }
-    if (!program.isPersonal) {
-      openProgram(program.id);
+    if (!program.isPersonal || matchingProgram) {
+      openProgram(matchingProgram?.id || program.id);
       return;
     }
     setBusy(true);
@@ -99,7 +105,7 @@ export default function SharedProgramScreen({ navigation, route }) {
               {!userToken
                 ? t('signInToAddShared')
                 : localizedProgram.isPersonal
-                  ? t('addToMyLibrary')
+                  ? matchingProgram ? t('openInLibrary') : t('addToMyLibrary')
                   : t('openInLibrary')}
             </Button>
           </>

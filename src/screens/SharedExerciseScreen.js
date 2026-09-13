@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { translateCatalogName } from '../localization/catalog';
 import { apiRequest } from '../services/api';
-import { DetailHeader, Feedback, useWorkshopStyles } from '../components/workshop/ui';
+import { Button, DetailHeader, Feedback, useWorkshopStyles } from '../components/workshop/ui';
 import { ExerciseDetailsContent } from './ExerciseDetailsScreen';
 import { styles } from './SharedContentScreen.styles';
 
@@ -52,7 +52,13 @@ export default function SharedExerciseScreen({ navigation, route }) {
       <DetailHeader title={t('exerciseDetails')} onBack={goBack} />
       <ScrollView contentContainerStyle={[workshopStyles.content, styles.content]} showsVerticalScrollIndicator={false}>
         <Feedback error={error} loading={loading} onRetry={load} />
-        {localizedExercise && <ExerciseDetailsContent allowAdd={false} exercise={localizedExercise} />}
+        {localizedExercise && <>
+          <ExerciseDetailsContent allowAdd={false} exercise={localizedExercise} />
+          {!!userToken && <Button onPress={() => navigation.replace('MainApp', {
+            screen: 'Home',
+            params: { screen: 'ExerciseDetails', params: { exerciseId }, initial: false },
+          })}>{t('openInLibrary')}</Button>}
+        </>}
       </ScrollView>
     </SafeAreaView>
   );

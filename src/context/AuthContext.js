@@ -1,11 +1,22 @@
-import React, { createContext, useCallback, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { authService } from '../services/authService';
 import { apiFetch } from '../services/api';
-import { setUnauthorizedHandler } from '../services/unauthorized';
-import { loadAuthToken, removeAuthToken, saveAuthToken as persistAuthToken } from '../services/secureTokenStorage';
+import {
+  refreshAccessToken,
+  setRefreshHandler,
+  setUnauthorizedHandler,
+} from '../services/unauthorized';
+import {
+  loadAuthToken,
+  loadRefreshToken,
+  removeAuthToken,
+  removeRefreshToken,
+  saveAuthToken as persistAuthToken,
+  saveRefreshToken,
+} from '../services/secureTokenStorage';
 
 export const AuthContext = createContext();
 
@@ -14,6 +25,7 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const sessionEpoch = useRef(0);
 
   const saveAuthToken = useCallback(async (token) => {
     await persistAuthToken(token);
@@ -21,18 +33,62 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const clearAuth = useCallback(async () => {
-    await Promise.all([removeAuthToken(), AsyncStorage.removeItem('userData')]);
+    sessionEpoch.current += 1;
+    await Promise.all([
+      removeAuthToken(),
+      removeRefreshToken(),
+      AsyncStorage.removeItem('userData'),
+    ]);
     setUserToken(null);
     setUserData(null);
   }, []);
 
+  const applySession = useCallback(async (data) => {
+    const accessToken = data.accessToken || data.token;
+    await Promise.all([
+      persistAuthToken(accessToken),
+      saveRefreshToken(data.refreshToken),
+      data.user
+        ? AsyncStorage.setItem('userData', JSON.stringify(data.user))
+        : Promise.resolve(),
+    ]);
+    setUserToken(accessToken);
+    if (data.user) setUserData(data.user);
+    return accessToken;
+  }, []);
+
+  const refreshSession = useCallback(async () => {
+    const epoch = sessionEpoch.current;
+    try {
+      const data = await authService.refresh(await loadRefreshToken());
+      if (epoch !== sessionEpoch.current) {
+        await authService.logout(data.refreshToken).catch(() => {});
+        return null;
+      }
+      return await applySession(data);
+    } catch (error) {
+      if (error.status === 401) {
+        await clearAuth();
+        return null;
+      }
+      throw error;
+    }
+  }, [applySession, clearAuth]);
+
   useEffect(() => {
     setUnauthorizedHandler(clearAuth);
-    return () => setUnauthorizedHandler(null);
-  }, [clearAuth]);
+    setRefreshHandler(refreshSession);
+    return () => {
+      setUnauthorizedHandler(null);
+      setRefreshHandler(null);
+    };
+  }, [clearAuth, refreshSession]);
 
   useEffect(() => {
     if (!userToken) return;
+    const refreshTimer = setTimeout(() => {
+      refreshAccessToken().catch(() => {});
+    }, 4 * 60_000);
     const touchPresence = () => apiFetch('/users/me/presence', { method: 'POST' }, userToken).catch(() => {});
     touchPresence();
     const interval = setInterval(touchPresence, 60_000);
@@ -40,10 +96,11 @@ export const AuthProvider = ({ children }) => {
       if (state === 'active') touchPresence();
     });
     return () => {
+      clearTimeout(refreshTimer);
       clearInterval(interval);
       subscription.remove();
     };
-  }, [userToken]);
+  }, [refreshSession, userToken]);
 
   const handleOAuthRedirect = useCallback(async (url, codeVerifier) => {
     if (!url) return false;
@@ -55,7 +112,11 @@ export const AuthProvider = ({ children }) => {
     const code = parsed.queryParams?.code;
 
     if (error === 'access_denied') {
-      await clearAuth();
+      try {
+        await authService.logout(await loadRefreshToken());
+      } finally {
+        await clearAuth();
+      }
       return true;
     }
     if (token) {
@@ -64,15 +125,11 @@ export const AuthProvider = ({ children }) => {
     }
     if (code && codeVerifier) {
       const data = await authService.exchangeOAuthCode(code, codeVerifier);
-      await saveAuthToken(data.accessToken || data.token);
-      if (data.user) {
-        await AsyncStorage.setItem('userData', JSON.stringify(data.user));
-        setUserData(data.user);
-      }
+      await applySession(data);
       return true;
     }
     return false;
-  }, [clearAuth, saveAuthToken]);
+  }, [applySession, clearAuth, saveAuthToken]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -81,13 +138,28 @@ export const AuthProvider = ({ children }) => {
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           const handled = await handleOAuthRedirect(window.location.href);
           if (handled) {
+            try {
+              await refreshSession();
+            } catch {
+              // The new access token remains usable if refresh is temporarily unavailable.
+            }
             window.history.replaceState({}, document.title, window.location.pathname);
             setIsInitializing(false);
             return;
           }
         }
 
-        // 2. Native tokens are protected by Keychain/Keystore; web uses its browser storage.
+        // 2. Refresh first so the restored role always comes from the database.
+        const storedRefreshToken = await loadRefreshToken();
+        if (Platform.OS === 'web' || storedRefreshToken) {
+          try {
+            const refreshedToken = await refreshSession();
+            if (refreshedToken) return;
+          } catch {
+            // A temporary network failure may still leave a usable native access token.
+          }
+        }
+
         const storedToken = await loadAuthToken();
         const storedUser = await AsyncStorage.getItem('userData');
 
@@ -123,20 +195,13 @@ export const AuthProvider = ({ children }) => {
       const subscription = Linking.addEventListener('url', handleDeepLink);
       return () => subscription.remove();
     }
-  }, []);
+  }, [handleOAuthRedirect, refreshSession]);
 
   const login = useCallback(async (email, password) => {
     setIsLoading(true);
     try {
       const data = await authService.login(email, password);
-      const accessToken = data.accessToken || data.token;
-      const user = data.user || null;
-
-      await saveAuthToken(accessToken);
-      if (user) {
-        await AsyncStorage.setItem('userData', JSON.stringify(user));
-      }
-      setUserData(user);
+      await applySession(data);
 
       return data;
     } catch (error) {
@@ -144,7 +209,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [saveAuthToken]);
+  }, [applySession]);
 
   const register = useCallback(async (email, password, displayName) => {
     setIsLoading(true);
@@ -168,10 +233,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     setIsLoading(true);
+    sessionEpoch.current += 1;
     try {
+      await authService.logout(await loadRefreshToken());
       await clearAuth();
     } catch (error) {
-      console.error('Failed to clear storage during logout:', error);
+      console.error('Failed to revoke the session during logout:', error);
     } finally {
       setIsLoading(false);
     }

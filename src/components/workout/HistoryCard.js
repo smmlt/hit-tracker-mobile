@@ -1,18 +1,19 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { LanguageContext } from '../../localization/LanguageContext';
 import { translateCatalogName } from '../../localization/catalog';
 import { useTheme } from '../../context/ThemeContext';
+import { visibleExercisePreviewCount } from '../../utils/historyPreview';
 import { createStyles } from './HistoryCard.styles';
 
-function formatDuration(totalSeconds, t) {
+function formatDuration(totalSeconds) {
   const seconds = Math.max(0, Number(totalSeconds) || 0);
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  if (hours) return `${hours}${t('hourShort')} ${minutes}${t('minuteShort')}`;
-  if (minutes) return `${minutes}${t('minuteShort')}`;
-  return `${seconds}${t('secondShort')}`;
+  const remainingSeconds = seconds % 60;
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+    : `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
 }
 
 export function HistoryCard({ workout, onPress }) {
@@ -24,6 +25,20 @@ export function HistoryCard({ workout, onPress }) {
   const title = workout.programName
     ? translateCatalogName(t, 'program', workout.programName)
     : workout.title || t('workout');
+  const previewNames = (workout.exercisePreview || [])
+    .map((name) => translateCatalogName(t, 'exercise', name));
+  const totalExerciseCount = Math.max(
+    Number(workout.exerciseCount) || 0,
+    previewNames.length + (Number(workout.remainingExerciseCount) || 0),
+  );
+  const [previewWidth, setPreviewWidth] = useState(0);
+  const visibleNameCount = visibleExercisePreviewCount({
+    containerWidth: previewWidth - 2,
+    counterLabel: t('exercisesShort'),
+    previewNames,
+    totalExerciseCount,
+  });
+  const remainingExerciseCount = Math.max(0, totalExerciseCount - visibleNameCount);
 
   return (
     <Pressable
@@ -36,45 +51,37 @@ export function HistoryCard({ workout, onPress }) {
         <View style={styles.titleBlock}>
           <Text numberOfLines={1} style={styles.title}>{title}</Text>
           <Text style={styles.date}>
-            {completedAt.toLocaleString(localeTag, {
+            {completedAt.toLocaleDateString(localeTag, {
               day: 'numeric',
-              month: 'short',
-              year: 'numeric',
+              month: 'long',
+            })} · {completedAt.toLocaleTimeString(localeTag, {
               hour: '2-digit',
               minute: '2-digit',
             })}
           </Text>
         </View>
-        <Ionicons color={theme.textSecondary} name="chevron-forward" size={20} />
       </View>
 
       <View style={styles.metrics}>
-        <View style={styles.metric}>
-          <Ionicons color={theme.textSecondary} name="time-outline" size={15} />
-          <Text style={styles.metricText}>{formatDuration(workout.activeDurationSeconds, t)}</Text>
-        </View>
-        <View style={styles.metric}>
-          <Ionicons color={theme.textSecondary} name="barbell-outline" size={15} />
-          <Text style={styles.metricText}>{workout.exerciseCount} {t('exercisesShort')}</Text>
-        </View>
-        <View style={styles.metric}>
-          <Ionicons color={theme.textSecondary} name="layers-outline" size={15} />
-          <Text style={styles.metricText}>{workout.setCount} {t('setsShort')}</Text>
-        </View>
+        <Text style={styles.duration}>{formatDuration(workout.activeDurationSeconds)}</Text>
+        <Text style={styles.metricText}><Text style={styles.metricValue}>{workout.exerciseCount}</Text> {t('exercisesShort')}</Text>
+        <Text style={styles.metricText}><Text style={styles.metricValue}>{workout.setCount}</Text> {t('setsShort')}</Text>
       </View>
 
-      {!!workout.exercisePreview?.length && (
-        <View style={styles.preview}>
-          {workout.exercisePreview.map((name) => (
-            <View key={name} style={styles.exerciseChip}>
-              <Text numberOfLines={1} style={styles.exerciseChipText}>{translateCatalogName(t, 'exercise', name)}</Text>
-            </View>
-          ))}
-          {!!workout.remainingExerciseCount && (
-            <View style={[styles.exerciseChip, styles.moreChip]}>
-              <Text style={styles.moreText}>+{workout.remainingExerciseCount}</Text>
-            </View>
-          )}
+      {!!previewNames.length && (
+        <View
+          onLayout={(event) => setPreviewWidth((current) => {
+            const width = event.nativeEvent.layout.width;
+            return current === width ? current : width;
+          })}
+          style={styles.preview}
+        >
+          <View style={styles.previewNames}>
+            {previewNames.slice(0, visibleNameCount).map((name, index) => (
+              <Text key={`${name}-${index}`} style={styles.previewText}>{index ? ' · ' : ''}{name}</Text>
+            ))}
+          </View>
+          {!!remainingExerciseCount && <Text style={styles.moreText}>+{remainingExerciseCount} {t('exercisesShort')}</Text>}
         </View>
       )}
     </Pressable>

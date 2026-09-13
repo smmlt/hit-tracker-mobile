@@ -1,32 +1,28 @@
 import { API_URL } from '../constants/config';
-import { notifyUnauthorized } from './unauthorized';
+import { notifyUnauthorized, refreshAccessToken } from './unauthorized';
 
 /**
  * Універсальна обгортка над стандартним fetch для автоматичного додавання 
  * авторизації, заголовка ngrok та обробки JSON.
  */
 export async function apiFetch(endpoint, options = {}, userToken = null) {
-  const headers = {
-    'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true',
-    ...(options.headers || {}),
+  const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
+  const send = (token) => {
+    const headers = {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+      ...(options.headers || {}),
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(url, { ...options, credentials: 'include', headers });
   };
 
-  if (userToken) {
-    headers['Authorization'] = `Bearer ${userToken}`;
+  let response = await send(userToken);
+  if (response.status === 401 && userToken) {
+    const nextToken = await refreshAccessToken();
+    if (nextToken) response = await send(nextToken);
+    if (!nextToken || response.status === 401) notifyUnauthorized();
   }
-
-  const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
-
-  // Додай цей лог для відладки:
-  // console.log('📡 FETCHING URL:', url);
-
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-
-  if (response.status === 401 && userToken) notifyUnauthorized();
 
   // Якщо сервер повернув порожню відповідь або статус 204
   if (response.status === 204) {
