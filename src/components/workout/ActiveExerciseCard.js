@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { palette } from '../../constants/colors';
+import { translateCatalogName } from '../../localization/catalog';
 import { exercisePlanProgress, isSetDraftValid } from '../../utils/activeWorkout';
 import { RpePicker } from './RpePicker';
 import { createStyles } from './ActiveExerciseCard.styles';
@@ -135,7 +136,7 @@ export function ActiveExerciseCard({
     <Pressable accessibilityRole="button" onPress={onToggle} style={styles.cardHeader}>
       <Ionicons color={theme.textSecondary} name="reorder-three-outline" size={26} />
       <View style={styles.cardTitleBlock}>
-        <Text numberOfLines={1} style={styles.exerciseName}>{item.name}</Text>
+        <Text numberOfLines={1} style={styles.exerciseName}>{translateCatalogName(t, 'exercise', item.name)}</Text>
         <Text style={[styles.planSummary, progress.complete && styles.completeText]}>
           {progress.plannedSets} {t('setsShort')} × {item.reps || '—'} {t('repsShort')}
           {!!progress.actualSets && ` · ${progress.actualReps}/${progress.targetReps || progress.plannedSets}`}

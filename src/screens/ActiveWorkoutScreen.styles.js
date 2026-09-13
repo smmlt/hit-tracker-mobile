@@ -2,8 +2,6 @@ import { StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
 export const createStyles = (theme, compact = false) => StyleSheet.create({
-  addExerciseButton: { alignItems: 'center', borderColor: theme.primary, borderRadius: 8, borderWidth: 1, flexDirection: 'row', minHeight: 40, paddingHorizontal: 10 },
-  addExerciseText: { color: theme.primary, fontFamily: 'Inter-SemiBold', fontSize: 12 },
   cancelButton: { alignItems: 'center', alignSelf: 'center', justifyContent: 'center', minHeight: 44, paddingHorizontal: 16 },
   cancelText: { color: theme.error, fontFamily: 'Inter-SemiBold', fontSize: 13 },
   catalogItem: { borderBottomColor: theme.border, borderBottomWidth: 1, gap: 5, paddingVertical: 14 },
@@ -12,7 +10,7 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   disabled: { opacity: 0.5 },
   empty: { alignItems: 'center', flex: 1, gap: 12, justifyContent: 'center', padding: 28 },
   emptyTitle: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 22 },
-  exerciseCount: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 13, marginTop: 7 },
+  exerciseCount: { color: theme.textSecondary, fontFamily: 'Inter-SemiBold', fontSize: 14, marginTop: 7 },
   exerciseList: { gap: 10 },
   eyebrow: { color: theme.primary, fontFamily: 'Inter-Bold', fontSize: 11, letterSpacing: 1.4 },
   finishButton: { alignItems: 'center', borderColor: theme.textSecondary, borderRadius: 10, borderWidth: 1, justifyContent: 'center', marginTop: 14, minHeight: 48 },
@@ -31,8 +29,8 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   pickerHeader: { alignItems: 'center', borderBottomColor: theme.border, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 16 },
   primaryButton: { alignItems: 'center', backgroundColor: theme.primary, borderRadius: 10, flex: 1, justifyContent: 'center', minHeight: 48, paddingHorizontal: 14 },
   primaryButtonText: { color: palette.whitePure, fontFamily: 'Inter-Bold', fontSize: 14 },
-  programHeader: { alignItems: 'center', flexDirection: 'row', gap: 12, justifyContent: 'space-between', marginBottom: 10, marginTop: 26 },
-  programTitle: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: compact ? 16 : 17 },
+  programHeader: { marginBottom: 10, marginTop: 26 },
+  programTitle: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: compact ? 18 : 19 },
   programTitleBlock: { flex: 1 },
   result: { alignSelf: 'center', gap: 16, maxWidth: 600, padding: 22, width: '100%' },
   resultCard: { backgroundColor: theme.cardBackground, borderColor: theme.border, borderRadius: 14, borderWidth: 1, gap: 13, padding: 16 },
@@ -48,4 +46,5 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   timerActionText: { color: palette.whitePure, fontFamily: 'Inter-Bold', fontSize: compact ? 18 : 20 },
   timerValue: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: compact ? 35 : 39, fontVariant: ['tabular-nums'], marginBottom: 14, marginTop: 8, textAlign: 'center' },
   title: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 27 },
+  workoutNotes: { marginTop: 14 },
 });

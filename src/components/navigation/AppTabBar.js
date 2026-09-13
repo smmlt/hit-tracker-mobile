@@ -13,6 +13,9 @@ export default function AppTabBar({ state, descriptors, navigation }) {
   const { theme } = useTheme();
   const { bottom } = useSafeAreaInsets();
   const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
+  const activeTab = state.routes[state.index];
+  const nestedRoute = activeTab.state?.routes?.[activeTab.state.index]?.name;
+  const showWorkoutBanner = !(activeTab.name === 'ActiveWorkout' && nestedRoute === 'WorkoutSession');
 
   return (
     <View
@@ -20,7 +23,7 @@ export default function AppTabBar({ state, descriptors, navigation }) {
       style={styles.dock}
       onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
     >
-      <ActiveWorkoutBanner navigation={navigation} />
+      {showWorkoutBanner && <ActiveWorkoutBanner navigation={navigation} />}
       <View testID="bottom-tab-bar" style={[styles.bar, { backgroundColor: theme.tabBarBackground, paddingBottom: Math.max(bottom, 8) }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];

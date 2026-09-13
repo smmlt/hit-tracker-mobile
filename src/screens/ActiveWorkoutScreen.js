@@ -18,6 +18,7 @@ import { AuthContext } from '../context/AuthContext';
 import { WorkoutContext } from '../context/WorkoutContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
+import { translateCatalogName } from '../localization/catalog';
 import { apiFetch } from '../services/api';
 import { exercisePlanProgress, replaceRecordedSet } from '../utils/activeWorkout';
 import { formatTimer } from '../utils/formatters';
@@ -63,7 +64,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
   const styles = createStyles(theme, compact);
-  const [catalog, setCatalog] = useState([]);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState(null);
   const [finishedPlan, setFinishedPlan] = useState([]);
@@ -72,7 +72,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const [notes, setNotes] = useState('');
   const [now, setNow] = useState(Date.now());
   const [pendingSaves, setPendingSaves] = useState(0);
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [result, setResult] = useState(null);
   const [saveDescription, setSaveDescription] = useState('');
   const [saveName, setSaveName] = useState('');
@@ -84,6 +83,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const title = result
     ? finishedTitle
     : preparedWorkout?.title || activeWorkout?.type || route.params?.program?.name || t('workout');
+  const displayTitle = translateCatalogName(t, 'program', title);
   const scheduleId = preparedWorkout?.scheduleId || route.params?.assignment?.id;
   const paused = activeWorkout?.status === 'paused';
   const elapsed = activeSeconds(activeWorkout, now);
@@ -109,12 +109,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     title: current?.title || title,
     exercises: typeof change === 'function' ? change(current?.exercises || plan) : change,
   }));
-
-  useEffect(() => {
-    apiFetch('/exercises', {}, userToken).then((response) => {
-      if (response.ok) setCatalog(response.data);
-    });
-  }, [userToken]);
 
   useEffect(() => {
     if (preparedWorkout && result) setResult(null);
@@ -203,20 +197,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       totalTime,
       volume: loggedSets.reduce((sum, set) => sum + set.weight * set.reps, 0),
     });
-  };
-
-  const addExercise = (exercise) => {
-    if (!plan.some((item) => item.id === exercise.id)) {
-      setPlan((current) => [...current, {
-        exercise,
-        id: exercise.id,
-        name: exercise.name,
-        reps: 10,
-        sets: 3,
-        weight: 0,
-      }]);
-    }
-    setPickerOpen(false);
   };
 
   const removeExercise = (id) => {
@@ -332,13 +312,9 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
 
       <View style={styles.programHeader}>
         <View style={styles.programTitleBlock}>
-          <Text numberOfLines={2} style={styles.programTitle}>{title}</Text>
+          <Text numberOfLines={2} style={styles.programTitle}>{displayTitle}</Text>
           <Text style={styles.exerciseCount}>{t('exercises')} ({plan.length})</Text>
         </View>
-        <Pressable accessibilityRole="button" onPress={() => setPickerOpen(true)} style={styles.addExerciseButton}>
-          <Ionicons color={theme.primary} name="add" size={18} />
-          <Text style={styles.addExerciseText}>{t('add')}</Text>
-        </Pressable>
       </View>
 
       <View style={styles.exerciseList}>
@@ -364,7 +340,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         onChangeText={setNotes}
         placeholder={t('workoutNotes')}
         placeholderTextColor={theme.textSecondary}
-        style={styles.notes}
+        style={[styles.notes, styles.workoutNotes]}
         value={notes}
       />}
 
@@ -388,20 +364,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       </Pressable>
     </ScrollView>
 
-    <Modal animationType="slide" onRequestClose={() => setPickerOpen(false)} presentationStyle="pageSheet" visible={pickerOpen}>
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.pickerHeader}>
-          <Text style={styles.sectionTitle}>{t('addExercise')}</Text>
-          <Pressable onPress={() => setPickerOpen(false)}><Text style={styles.link}>{t('close')}</Text></Pressable>
-        </View>
-        <ScrollView contentContainerStyle={styles.pickerContent}>
-          {catalog.map((exercise) => <Pressable key={exercise.id} onPress={() => addExercise(exercise)} style={styles.catalogItem}>
-            <Text style={styles.catalogName}>{exercise.name}</Text>
-            <Text numberOfLines={2} style={styles.muted}>{exercise.description || t('noDescription')}</Text>
-          </Pressable>)}
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
     <ExerciseDetailsModal exercise={selectedExercise} onClose={() => setSelectedExercise(null)} visible={!!selectedExercise} />
     <ConfirmDialog
       cancelLabel={t('keepTraining')}
