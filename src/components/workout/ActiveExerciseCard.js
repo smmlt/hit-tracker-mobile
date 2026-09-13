@@ -118,7 +118,6 @@ export function ActiveExerciseCard({
   index,
   item,
   onDetails,
-  onRemove,
   onSave,
   onToggle,
   recordingDisabled,
@@ -182,9 +181,6 @@ export function ActiveExerciseCard({
         style={[styles.addSet, recordingDisabled && styles.disabled]}
       >
         <Text style={styles.addSetText}>+ {t('addExtraSet')}</Text>
-      </Pressable>
-      <Pressable accessibilityRole="button" onPress={() => onRemove(item.id)} style={styles.removeButton}>
-        <Text style={styles.removeText}>{t('removeExercise')}</Text>
       </Pressable>
     </View>}
   </View>;

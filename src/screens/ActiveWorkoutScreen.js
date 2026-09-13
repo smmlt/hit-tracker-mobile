@@ -121,12 +121,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     return `${t('finishIncompleteIntro')}\n${rows.join('\n')}\n\n${t('finishIncompleteContinue')}`;
   }, [plan, setsFor, t]);
 
-  const setPlan = (change) => prepareWorkout((current) => ({
-    ...current,
-    title: current?.title || title,
-    exercises: typeof change === 'function' ? change(current?.exercises || plan) : change,
-  }));
-
   useEffect(() => {
     if (preparedWorkout && result) setResult(null);
   }, [preparedWorkout, result]);
@@ -214,11 +208,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       totalTime,
       volume: loggedSets.reduce((sum, set) => sum + set.weight * set.reps, 0),
     });
-  };
-
-  const removeExercise = (id) => {
-    setPlan((current) => current.filter((item) => item.id !== id));
-    if (expandedExerciseId === id) setExpandedExerciseId(null);
   };
 
   const saveAsPersonalProgram = async () => {
@@ -342,7 +331,6 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           item={item}
           key={item.id}
           onDetails={setSelectedExercise}
-          onRemove={removeExercise}
           onSave={saveSet}
           onToggle={() => setExpandedExerciseId((current) => current === item.id ? null : item.id)}
           recordingDisabled={!activeWorkout}

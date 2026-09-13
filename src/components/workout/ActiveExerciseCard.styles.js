@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { palette } from '../../constants/colors';
 
 export const createStyles = (theme, compact = false) => StyleSheet.create({
-  addSet: { backgroundColor: theme.surfaceElevated, borderRadius: 8, justifyContent: 'center', minHeight: 44, paddingHorizontal: 12 },
+  addSet: { alignItems: 'center', alignSelf: 'center', borderColor: theme.secondary, borderRadius: 8, borderWidth: 1, justifyContent: 'center', minHeight: 40, paddingHorizontal: 16 },
   addSetText: { color: theme.secondary, fontFamily: 'Inter-SemiBold', fontSize: 13 },
   card: { backgroundColor: theme.cardBackground, borderRadius: 9, borderWidth: 1, overflow: 'hidden' },
   cardBody: { gap: 10, padding: 10, paddingTop: 0 },
@@ -25,8 +25,6 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   metricHeader: { width: compact ? 55 : 58 },
   planSummary: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 11, marginTop: 2 },
   readyToConfirm: { borderColor: theme.primary, borderWidth: 2 },
-  removeButton: { alignSelf: 'center', justifyContent: 'center', minHeight: 38 },
-  removeText: { color: theme.error, fontFamily: 'Inter-SemiBold', fontSize: 12 },
   rowError: { color: theme.error, fontFamily: 'Inter', fontSize: 11, marginLeft: compact ? 29 : 36, marginTop: 3 },
   rpeHeader: { width: compact ? 55 : 58 },
   setNumber: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 12, textAlign: 'center', width: compact ? 29 : 36 },
