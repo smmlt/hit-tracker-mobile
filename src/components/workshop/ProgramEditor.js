@@ -8,7 +8,7 @@ import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "./u
 import { useTheme } from "../../context/ThemeContext";
 
 import { createStyles } from './ProgramEditor.styles';
-export function ProgramEditor({ program, official = false, onClose, onSaved }) {
+export function ProgramEditor({ initialValues, program, official = false, onClose, onSaved }) {
     const { theme } = useTheme();
     const styles = createStyles(theme);
     const s = useWorkshopStyles();
@@ -16,18 +16,18 @@ export function ProgramEditor({ program, official = false, onClose, onSaved }) {
     const library = useLibrary();
     const w = useWords();
 
-    const [name, setName] = useState(program?.name || "");
-    const [description, setDescription] = useState(program?.description || "");
+    const [name, setName] = useState(program?.name || initialValues?.name || "");
+    const [description, setDescription] = useState(program?.description || initialValues?.description || "");
 
     const [rows, setRows] = useState(
-        (program?.schedule || [])
-            .filter((row) => row.exercise?.id)
+        (program?.schedule || initialValues?.exercises || [])
+            .filter((row) => row.exercise?.id || row.exerciseId)
             .map((row) => ({
-                exerciseId: row.exercise.id,
-                sets: String(row.setsCount),
-                reps: String(row.targetReps ?? ""),
+                exerciseId: row.exercise?.id || row.exerciseId,
+                sets: String(row.setsCount ?? row.sets ?? 1),
+                reps: String(row.targetReps ?? row.reps ?? ""),
                 // Preserve legacy metadata on edits; it is not a workout date or prescribed load.
-                weight: String(row.plannedWeight ?? 0),
+                weight: String(row.plannedWeight ?? row.weight ?? 0),
                 week: String(row.week || 1),
                 weekDay: String(row.weekDay ?? 0),
             })),
