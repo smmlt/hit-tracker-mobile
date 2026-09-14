@@ -12,6 +12,8 @@ export const createStyles = (theme) => StyleSheet.create({
     justifyContent: 'space-between',
     borderTopWidth: 1,
     borderTopColor: theme.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.primary,
   },
   leftContainer: {
     flexDirection: 'row',
