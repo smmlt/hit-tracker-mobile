@@ -398,6 +398,8 @@ export const translations = {
     deleteNamedUser: 'Delete {name}?',
     deleteUserMessage: 'This permanently deletes the account and its related personal data. This cannot be undone.',
     deleting: 'Deleting…',
+
+    analytics: 'Analytics',
   },
   uk: {
     signIn: 'Увійти',
@@ -798,5 +800,9 @@ export const translations = {
     deleteNamedUser: 'Видалити {name}?',
     deleteUserMessage: 'Це назавжди видалить акаунт і пов’язані особисті дані. Дію неможливо скасувати.',
     deleting: 'Видалення…',
+
+
+    analytics: 'Аналітика',
+
   },
 };

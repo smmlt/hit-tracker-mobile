@@ -31,6 +31,9 @@ import TrainingScreen from '../screens/TrainingScreen';
 import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 import SharedExerciseScreen from '../screens/SharedExerciseScreen';
 import SharedProgramScreen from '../screens/SharedProgramScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
+
+import { LoadSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
 
 import { palette } from '../constants/colors';
 import { createStyles } from './AppNavigator.styles';
@@ -115,7 +118,7 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="Analytics" 
-        component={AnalyticsPlaceholder} 
+        component={AnalyticsScreen} 
         options={{ title: t('analytics') }} 
       />
       <Tab.Screen 
@@ -151,7 +154,37 @@ export default function AppNavigator() {
     && window.location.pathname.toLowerCase().startsWith('/admin'));
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
 
-  if (isInitializing) {
+  const [isSkiaReady, setIsSkiaReady] = React.useState(Platform.OS !== 'web');
+
+  const [isAdminRoute] = React.useState(() =>
+    Platform.OS === 'web'
+      && typeof window !== 'undefined'
+      && window.location.pathname.toLowerCase().startsWith('/admin')
+  );
+
+  React.useEffect(() => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+
+    let mounted = true;
+
+    LoadSkiaWeb()
+      .then(() => {
+        if (mounted) {
+          setIsSkiaReady(true);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load Skia on web:', error);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!isSkiaReady || isInitializing) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={theme.primary} />
@@ -172,30 +205,30 @@ export default function AppNavigator() {
         >
           {userToken === null ? (
             <>
-              <Stack.Screen 
-                name="Login" 
-                component={LoginScreen} 
-                options={{ headerShown: false }} 
+              <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                options={{ headerShown: false }}
               />
-              <Stack.Screen 
-                name="Register" 
-                component={RegisterScreen} 
-                options={{ headerShown: false }} 
+              <Stack.Screen
+                name="Register"
+                component={RegisterScreen}
+                options={{ headerShown: false }}
               />
               <Stack.Screen
                 name="VerifyEmail"
                 component={VerifyEmailScreen}
                 options={{ headerShown: false }}
               />
-              <Stack.Screen 
-                name="ForgotPassword" 
-                component={ForgotPasswordScreen} 
-                options={{ headerShown: false }} 
+              <Stack.Screen
+                name="ForgotPassword"
+                component={ForgotPasswordScreen}
+                options={{ headerShown: false }}
               />
-              <Stack.Screen 
-                name="ResetPassword" 
-                component={ResetPasswordScreen} 
-                options={{ headerShown: false }} 
+              <Stack.Screen
+                name="ResetPassword"
+                component={ResetPasswordScreen}
+                options={{ headerShown: false }}
               />
             </>
           ) : isAdminRoute && canOpenAdmin ? (
@@ -205,10 +238,10 @@ export default function AppNavigator() {
               options={{ headerShown: false }}
             />
           ) : (
-            <Stack.Screen 
-              name="MainApp" 
-              component={MainTabs} 
-              options={{ headerShown: false }} 
+            <Stack.Screen
+              name="MainApp"
+              component={MainTabs}
+              options={{ headerShown: false }}
             />
           )}
           <Stack.Screen
