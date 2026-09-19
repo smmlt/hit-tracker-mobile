@@ -68,9 +68,56 @@ export function useProfile(autoLoad = false) {
     }
   }, [logout, updateUserData, userToken]);
 
+  const uploadAvatar = useCallback(async (asset) => {
+    setIsLoading(true);
+    setError(null);
+    const mutationVersion = profileRequestGuard.beginMutation();
+    try {
+      const profile = await profileService.uploadAvatar(asset, userToken);
+      if (profileRequestGuard.completeMutation(mutationVersion)) {
+        await updateUserData(profile);
+      }
+      return profile;
+    } catch (requestError) {
+      if (requestError.status === 401) await logout();
+      else setError(requestError.message);
+      throw requestError;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [logout, updateUserData, userToken]);
+
+  const removeAvatar = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    const mutationVersion = profileRequestGuard.beginMutation();
+    try {
+      const profile = await profileService.removeAvatar(userToken);
+      if (profileRequestGuard.completeMutation(mutationVersion)) {
+        await updateUserData(profile);
+      }
+      return profile;
+    } catch (requestError) {
+      if (requestError.status === 401) await logout();
+      else setError(requestError.message);
+      throw requestError;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [logout, updateUserData, userToken]);
+
   useEffect(() => {
     if (autoLoad) refresh();
   }, [autoLoad, refresh]);
 
-  return { error, isLoading, profile: userData, refresh, save, saveUsername };
+  return {
+    error,
+    isLoading,
+    profile: userData,
+    refresh,
+    removeAvatar,
+    save,
+    saveUsername,
+    uploadAvatar,
+  };
 }

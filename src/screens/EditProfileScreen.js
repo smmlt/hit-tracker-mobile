@@ -1,6 +1,8 @@
-import React, { useContext } from 'react';
-import { Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { ConfirmDialog } from '../components/feedback';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { useProfile } from '../hooks/useProfile';
@@ -17,8 +19,33 @@ const Field = ({ label, value, onChangeText, theme, keyboardType = 'default' }) 
 export default function EditProfileScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
-  const { error, isLoading, profile, save } = useProfile(true);
+  const { error, isLoading, profile, removeAvatar, save, uploadAvatar } = useProfile(true);
   const { form, setField, submit } = useProfileForm(profile, save);
+  const [pickerError, setPickerError] = useState('');
+  const [removeAvatarOpen, setRemoveAvatarOpen] = useState(false);
+
+  const pickAvatar = async () => {
+    setPickerError('');
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
+      if (!result.canceled) await uploadAvatar(result.assets[0]);
+    } catch (requestError) {
+      setPickerError(requestError.message || t('avatarPickerError'));
+    }
+  };
+
+  const confirmRemoveAvatar = async () => {
+    if (isLoading) return;
+    try {
+      await removeAvatar();
+      setRemoveAvatarOpen(false);
+    } catch (_) {}
+  };
   const handleSave = async () => {
     try {
       await submit();
@@ -36,6 +63,36 @@ export default function EditProfileScreen({ navigation }) {
         <View style={styles.headerButton} />
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.avatarSection}>
+          <View style={[styles.avatar, { backgroundColor: theme.mediaPlaceholder }]}>
+            {profile?.avatarUrl ? (
+              <Image accessibilityLabel={t('profilePhoto')} source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
+            ) : (
+              <Ionicons color={theme.textSecondary} name="person" size={50} />
+            )}
+            {isLoading ? <ActivityIndicator color={theme.primary} size="large" style={[styles.avatarLoading, { backgroundColor: theme.overlay }]} /> : null}
+          </View>
+          <Pressable
+            accessibilityLabel={t('changePhoto')}
+            accessibilityRole="button"
+            disabled={isLoading}
+            onPress={pickAvatar}
+            style={[styles.avatarButton, { borderColor: theme.primary }, isLoading && styles.disabled]}
+          >
+            <Ionicons color={theme.primary} name="images-outline" size={19} />
+            <Text style={[styles.avatarButtonText, { color: theme.primary }]}>{t('changePhoto')}</Text>
+          </Pressable>
+          {profile?.avatarUrl ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={isLoading}
+              onPress={() => setRemoveAvatarOpen(true)}
+              style={styles.removeAvatarButton}
+            >
+              <Text style={[styles.removeAvatarText, { color: theme.error }]}>{t('removePhoto')}</Text>
+            </Pressable>
+          ) : null}
+        </View>
         <Field label={t('name')} value={form.displayName} onChangeText={setField('displayName')} theme={theme} />
         <Pressable accessibilityRole="button" onPress={() => navigation.push('UsernameSettings')} style={styles.usernameRow}>
           <View style={styles.usernameContent}>
@@ -56,11 +113,20 @@ export default function EditProfileScreen({ navigation }) {
             </Pressable>
           ))}
         </View>
-        {error ? <Text accessibilityRole="alert" style={[styles.error, { color: theme.error }]}>{error}</Text> : null}
+        {error || pickerError ? <Text accessibilityRole="alert" style={[styles.error, { color: theme.error }]}>{error || pickerError}</Text> : null}
         <Pressable accessibilityRole="button" disabled={isLoading} onPress={handleSave} style={[styles.save, { borderColor: theme.textPrimary }, isLoading && styles.disabled]}>
           <Text style={[styles.saveText, { color: theme.textPrimary }]}>{isLoading ? t('saving') : t('confirmChanges')}</Text>
         </Pressable>
       </ScrollView>
+      <ConfirmDialog
+        visible={removeAvatarOpen}
+        title={t('removePhotoTitle')}
+        message={t('removePhotoMessage')}
+        confirmLabel={t('remove')}
+        cancelLabel={t('cancel')}
+        onCancel={() => !isLoading && setRemoveAvatarOpen(false)}
+        onConfirm={confirmRemoveAvatar}
+      />
     </SafeAreaView>
   );
 }

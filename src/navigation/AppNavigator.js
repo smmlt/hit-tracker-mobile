@@ -149,9 +149,6 @@ export default function AppNavigator() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const { isInitializing, userData, userToken } = useContext(AuthContext);
-  const [isAdminRoute] = React.useState(() => Platform.OS === 'web'
-    && typeof window !== 'undefined'
-    && window.location.pathname.toLowerCase().startsWith('/admin'));
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
 
   const [isSkiaReady, setIsSkiaReady] = React.useState(Platform.OS !== 'web');

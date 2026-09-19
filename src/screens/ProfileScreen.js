@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
@@ -39,7 +39,13 @@ export default function ProfileScreen({ navigation }) {
             </Pressable>
           </View>
           <View style={styles.content}>
-            <View style={[styles.avatar, { backgroundColor: theme.mediaPlaceholder }]} />
+            <View style={[styles.avatar, { backgroundColor: theme.mediaPlaceholder }]}>
+              {userData?.avatarUrl ? (
+                <Image accessibilityLabel={t('profilePhoto')} source={{ uri: userData.avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <Ionicons color={theme.textSecondary} name="person" size={84} />
+              )}
+            </View>
             <Text style={[styles.name, { color: theme.textPrimary }]}>{name}</Text>
             <Pressable accessibilityLabel={t('username')} accessibilityRole="button" disabled={!userData?.username} onPress={() => setMenuVisible(true)} style={styles.usernameButton}>
               <Text style={[styles.username, { color: theme.textSecondary }]}>{username}</Text>
