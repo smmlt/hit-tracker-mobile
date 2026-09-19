@@ -28,6 +28,14 @@
       "expo-secure-store",
       "expo-status-bar",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Hit Tracker to choose your profile photo.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",

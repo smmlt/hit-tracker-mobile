@@ -1,4 +1,5 @@
 import { API_URL } from '../constants/config';
+import { isMultipartBody } from '../utils/requestBody';
 import { notifyUnauthorized, refreshAccessToken } from './unauthorized';
 
 /**
@@ -8,8 +9,9 @@ import { notifyUnauthorized, refreshAccessToken } from './unauthorized';
 export async function apiFetch(endpoint, options = {}, userToken = null) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
   const send = (token) => {
+    const isMultipart = isMultipartBody(options.body);
     const headers = {
-      'Content-Type': 'application/json',
+      ...(!isMultipart && { 'Content-Type': 'application/json' }),
       'ngrok-skip-browser-warning': 'true',
       ...(options.headers || {}),
     };
