@@ -7,6 +7,7 @@ import { adminService } from "../services/adminService";
 import { AuthContext } from "../context/AuthContext";
 import { LanguageContext } from "../localization/LanguageContext";
 import { ContentManagement } from "../components/admin/ContentManagement";
+import { AdminUserDetails } from "../components/admin/AdminUserDetails";
 import { ConfirmDialog } from "../components/feedback";
 import { Button, Feedback, Field, Sheet, useWorkshopStyles } from "../components/workshop/ui";
 import { useTheme } from "../context/ThemeContext";
@@ -48,6 +49,8 @@ export default function AdminScreen() {
   const [role, setRole] = useState("user");
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [detailUser, setDetailUser] = useState(null);
+  const [detailsRevision, setDetailsRevision] = useState(0);
   const canContent = ["moderator", "admin", "super_admin"].includes(
     profile?.role,
   );
@@ -89,6 +92,8 @@ export default function AdminScreen() {
     try {
       await adminService.updateRole(selected.id, role, userToken);
       await loadUsers(page);
+      setDetailUser((current) => current?.id === selected.id ? { ...current, role } : current);
+      setDetailsRevision((current) => current + 1);
       setSelected(null);
       setMessage(t('roleUpdated'));
     } catch (e) {
@@ -104,6 +109,7 @@ export default function AdminScreen() {
     try {
       await adminService.deleteUser(selected.id, userToken);
       setConfirmDelete(false);
+      setDetailUser((current) => current?.id === selected.id ? null : current);
       setSelected(null);
       await loadUsers(users.length === 1 && page > 1 ? page - 1 : page);
       setMessage(t('userDeleted'));
@@ -128,6 +134,11 @@ export default function AdminScreen() {
       </View>
     );
   const totalPages = Math.max(1, Math.ceil(total / 25));
+  const openManage = (user) => {
+    setSelected(user);
+    setRole(user.role);
+    setError("");
+  };
   return (
     <SafeAreaView style={s.screen}>
       <ScrollView contentContainerStyle={styles.page}>
@@ -157,6 +168,7 @@ export default function AdminScreen() {
               style={[styles.tab, section === item && styles.activeTab]}
               onPress={() => {
                 setSection(item);
+                setDetailUser(null);
                 setMessage("");
                 setError("");
               }}
@@ -172,7 +184,15 @@ export default function AdminScreen() {
             </Pressable>
           ))}
         </View>
-        {section === "users" ? (
+        {detailUser ? (
+          <AdminUserDetails
+            userId={detailUser.id}
+            revision={detailsRevision}
+            onBack={() => setDetailUser(null)}
+            onManage={openManage}
+            manageDisabled={detailUser.id === profile.id || (!isSuper && detailUser.role === "super_admin")}
+          />
+        ) : section === "users" ? (
           <View style={styles.usersSection}>
             <View style={s.header}>
               <View>
@@ -212,7 +232,12 @@ export default function AdminScreen() {
                   user.id === profile.id ||
                   (!isSuper && user.role === "super_admin");
                 return (
-                  <View key={user.id} style={styles.userCard}>
+                  <Pressable
+                    accessibilityRole="button"
+                    key={user.id}
+                    onPress={() => setDetailUser(user)}
+                    style={({ pressed }) => [styles.userCard, pressed && styles.userCardPressed]}
+                  >
                     <View style={s.header}>
                       <View style={styles.avatar}>
                         <Text style={styles.avatarText}>
@@ -250,16 +275,15 @@ export default function AdminScreen() {
                       <Button
                         secondary
                         disabled={protectedUser}
-                        onPress={() => {
-                          setSelected(user);
-                          setRole(user.role);
-                          setError("");
+                        onPress={(event) => {
+                          event?.stopPropagation?.();
+                          openManage(user);
                         }}
                       >
                         {t('manage')}
                       </Button>
                     </View>
-                  </View>
+                  </Pressable>
                 );
               })}
             </View>
