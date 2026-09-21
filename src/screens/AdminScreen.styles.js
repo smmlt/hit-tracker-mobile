@@ -62,6 +62,7 @@ export const createStyles = (theme) => StyleSheet.create({
     padding: 18,
     gap: 12,
   },
+  userCardPressed: { opacity: 0.82, borderColor: theme.primary },
   avatar: {
     width: 44,
     height: 44,

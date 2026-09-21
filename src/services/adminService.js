@@ -6,6 +6,18 @@ export const adminService = {
     {},
     token, 'Admin request failed',
   ),
+  getUserDetails: (id, token) => apiRequest(
+    `/admin/users/${id}`,
+    {},
+    token,
+    'Could not load user details',
+  ),
+  getUserActivity: (id, page, token) => apiRequest(
+    `/admin/users/${id}/activity?${new URLSearchParams({ page: String(page), limit: '25' })}`,
+    {},
+    token,
+    'Could not load user activity',
+  ),
   updateRole: (id, role, token) => apiRequest(`/admin/users/${id}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),

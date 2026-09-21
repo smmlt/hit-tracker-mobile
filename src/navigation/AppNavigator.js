@@ -166,7 +166,7 @@ export default function AppNavigator() {
 
     let mounted = true;
 
-    LoadSkiaWeb()
+    LoadSkiaWeb({ locateFile: () => '/canvaskit.wasm' })
       .then(() => {
         if (mounted) {
           setIsSkiaReady(true);
