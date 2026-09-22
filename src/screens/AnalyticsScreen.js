@@ -59,6 +59,7 @@ export default function AnalyticsScreen() {
         }
 
         const payload = Array.isArray(response.data) ? response.data : (response.data?.exerciseIds || []);
+        console.log(payload)
         const normalized = payload.map((item) => {
           if (typeof item === 'object' && item !== null) {
             return {
