@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "hit-tracker-mobile",
+    "name": "Hit Tracker",
     "slug": "hit-tracker-mobile",
     "version": "1.0.0",
     "scheme": "hit-tracker-mobile",
@@ -9,14 +9,14 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.hittrackermobile"
+      "bundleIdentifier": "com.auraxa.hittracker"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.hittrackermobile"
+      "package": "com.auraxa.hittracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,6 +43,12 @@
           "backgroundColor": "#ffffff"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "66730f2f-78b1-4e76-9521-90409d69dbc4"
+      }
+    },
+    "owner": "auraxa"
   }
 }
