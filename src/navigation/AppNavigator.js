@@ -33,9 +33,8 @@ import SharedExerciseScreen from '../screens/SharedExerciseScreen';
 import SharedProgramScreen from '../screens/SharedProgramScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 
-import { LoadSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
-
 import { palette } from '../constants/colors';
+import { WEB_APP_URL } from '../utils/shareLinks';
 import { createStyles } from './AppNavigator.styles';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -131,7 +130,7 @@ function MainTabs() {
 }
 
 const linking = {
-  prefixes: [Linking.createURL('/'), 'http://localhost:5173', 'https://app.hit-tracker.com'],
+  prefixes: [Linking.createURL('/'), 'http://localhost:5173', WEB_APP_URL],
   config: {
     screens: {
       Login: { path: 'login', alias: ['auth/google/callback'] },
@@ -151,37 +150,13 @@ export default function AppNavigator() {
   const { isInitializing, userData, userToken } = useContext(AuthContext);
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
 
-  const [isSkiaReady, setIsSkiaReady] = React.useState(Platform.OS !== 'web');
-
   const [isAdminRoute] = React.useState(() =>
     Platform.OS === 'web'
       && typeof window !== 'undefined'
       && window.location.pathname.toLowerCase().startsWith('/admin')
   );
 
-  React.useEffect(() => {
-    if (Platform.OS !== 'web') {
-      return;
-    }
-
-    let mounted = true;
-
-    LoadSkiaWeb({ locateFile: () => '/canvaskit.wasm' })
-      .then(() => {
-        if (mounted) {
-          setIsSkiaReady(true);
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to load Skia on web:', error);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (!isSkiaReady || isInitializing) {
+  if (isInitializing) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={theme.primary} />
