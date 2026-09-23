@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './SettingsScreen.styles.js';
 import { AuthContext } from '../context/AuthContext';

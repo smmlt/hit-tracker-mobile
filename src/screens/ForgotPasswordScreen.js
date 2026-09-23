@@ -1,5 +1,6 @@
 import React, { useContext, useState, useRef } from 'react';
-import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Animated } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { createStyles } from './ForgotPasswordScreen.styles.js';
 import { Ionicons } from '@expo/vector-icons';
 import { isValidEmail } from '../utils/validation';

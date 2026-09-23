@@ -3,13 +3,13 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   View,
   useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { ActiveExerciseCard } from '../components/workout/ActiveExerciseCard';
 import { ExerciseDetailsModal } from '../components/exercise/ExerciseDetailsModal';

@@ -1,5 +1,6 @@
 import React, { useContext, useState, useRef } from 'react';
-import { View, Text, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { createStyles } from './ResetPasswordScreen.styles.js';
 import { Ionicons } from '@expo/vector-icons';
 import { BackButton, CustomInput, PrimaryButton } from '../components/auth';

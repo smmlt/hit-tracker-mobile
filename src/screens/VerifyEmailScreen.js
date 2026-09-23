@@ -1,5 +1,6 @@
 import React, { useContext, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { createStyles } from './VerifyEmailScreen.styles.js';
 import { BackButton } from '../components/auth';
 import { CustomToast } from '../components/feedback';

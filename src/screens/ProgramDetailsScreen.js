@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './ProgramDetailsScreen.styles.js';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../context/AuthContext';
