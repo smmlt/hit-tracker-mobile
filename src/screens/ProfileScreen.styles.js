@@ -19,6 +19,8 @@ export const styles = StyleSheet.create({
   goalText: { fontFamily: 'Inter-Bold', fontSize: 14, lineHeight: 20, textAlign: 'center' },
   goalTrack: { borderRadius: 2, height: 4, marginTop: 7, overflow: 'hidden' },
   goalProgress: { borderRadius: 2, height: 4, width: '34%' },
+  bodyMetricsButton: { alignItems: 'center', borderRadius: 11, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', marginTop: 18, paddingHorizontal: 14, paddingVertical: 13, width: 279 },
+  bodyMetricsButtonText: { fontSize: 14, fontWeight: '800' },
   outlineButton: { alignItems: 'center', borderRadius: 12, borderWidth: 1, justifyContent: 'center', marginTop: 104, minHeight: 44, width: '100%' },
   buttonText: { fontFamily: 'Inter', fontSize: 16 },
   toast: { alignSelf: 'center', borderRadius: 8, bottom: 20, fontFamily: 'Inter', fontSize: 13, paddingHorizontal: 16, paddingVertical: 10, position: 'absolute' },
