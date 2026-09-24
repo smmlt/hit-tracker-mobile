@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-gifted-charts';
@@ -12,11 +11,12 @@ import { bodyMetricsService } from '../services/bodyMetricsService';
 import {
   BODY_METRIC_KEYS,
   BODY_METRICS,
+  chartLabelPositions,
+  chartLayout,
   chartPoints,
   dateKey,
   formatMetric,
   formatMetricDelta,
-  formatMetricValue,
   formatRangeLabel,
   measurementList,
   metricState,
@@ -39,11 +39,13 @@ const metricLabelKeys = {
   waistCircumference: 'bodyMetricsWaist',
 };
 
-const metricCardKeys = {
-  weight: 'bodyMetricsWeight',
-  bodyFatPercentage: 'bodyMetricsFat',
-  muscleMass: 'bodyMetricsMuscle',
-  waistCircumference: 'bodyMetricsWaist',
+const CHART_LABEL_WIDTH = 56;
+
+const metricTitleKeys = {
+  weight: 'bodyMetricsDynamicsWeight',
+  bodyFatPercentage: 'bodyMetricsDynamicsFat',
+  muscleMass: 'bodyMetricsDynamicsMuscle',
+  waistCircumference: 'bodyMetricsDynamicsWaist',
 };
 
 const addDays = (date, amount) => {
@@ -69,7 +71,6 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
   const styles = createStyles(theme);
-  const tabBarHeight = useBottomTabBarHeight();
   const requestId = useRef(0);
   const [period, setPeriod] = useState(route.params?.period || '7');
   const [customRange, setCustomRange] = useState({ start: null, end: null });
@@ -79,7 +80,8 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
   const [activeMetric, setActiveMetric] = useState('weight');
   const [payload, setPayload] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
+  const [chartBoxWidth, setChartBoxWidth] = useState(0);
 
   const range = useMemo(
     () => periodToDateRange(period === 'custom' ? customRange : period),
@@ -90,13 +92,13 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
     if (!userToken) return;
     const id = ++requestId.current;
     setLoading(true);
-    setError('');
+    setError(null);
     try {
       const next = await bodyMetricsService.get(userToken, range);
       if (id !== requestId.current) return;
       setPayload(next);
     } catch (requestError) {
-      if (id === requestId.current) setError(requestError.message || t('bodyMetricsLoadFailed'));
+      if (id === requestId.current) setError(requestError);
     } finally {
       if (id === requestId.current) setLoading(false);
     }
@@ -119,11 +121,14 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
   const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
   const currentMonthKey = `${new Date().getFullYear()}-${new Date().getMonth()}`;
   const canMoveNext = monthKey < currentMonthKey;
-  const chartWidth = Math.max(220, Math.min(width, 800) - 68);
+  // Measured card width; the window-based value only covers the first frame.
+  const chartWidth = chartBoxWidth || Math.max(220, Math.min(width, 800) - 64);
   const selectedValue = metric.current?.value ?? metric.latest?.value;
   const list = measurementList(metric);
   const listWithOutside = list.length ? list : metric.latest ? [{ ...metric.latest, delta: null, outside: true }] : [];
   const points = chartPoints(metric, locale);
+  const layout = points.length > 1 ? chartLayout(points, chartWidth) : null;
+  const chartLabels = layout ? chartLabelPositions(points, layout, chartWidth, CHART_LABEL_WIDTH) : [];
 
   const openCalendar = () => {
     const start = customRange.start || range.start;
@@ -140,11 +145,9 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
     setCalendarOpen(false);
   };
 
-  const showMetricTitle = t(metricCardKeys[activeMetric]);
-
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 96 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 96 }]} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable accessibilityLabel={t('back')} accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons color={theme.textPrimary} name="arrow-back" size={24} />
@@ -177,13 +180,12 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
           <View style={styles.emptyState}>
             <Ionicons color={theme.textSecondary} name="alert-circle-outline" size={38} />
             <Text style={styles.emptyTitle}>{t('bodyMetricsLoadFailed')}</Text>
-            <Text style={styles.emptyHint}>{error}</Text>
             <Pressable accessibilityRole="button" onPress={load} style={styles.retryButton}><Text style={styles.retryText}>{t('retry')}</Text></Pressable>
           </View>
         ) : (
           <>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{t('bodyMetricsDynamics', { metric: showMetricTitle.toLowerCase() })}</Text>
+              <Text style={styles.cardTitle}>{t(metricTitleKeys[activeMetric])}</Text>
               {selectedValue === undefined || selectedValue === null ? (
                 <View style={styles.cardEmpty}>
                   <Text style={styles.emptyTitle}>{t('bodyMetricsNever')}</Text>
@@ -191,33 +193,44 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
                 </View>
               ) : (
                 <>
-                  <Text style={styles.currentValue}>{formatMetric(selectedValue, activeMetric, locale)}</Text>
+                  <Text style={styles.currentValue}>{formatMetric(selectedValue, activeMetric, locale, t)}</Text>
                   {state.status === 'chart' ? (
                     <>
-                      <Text style={styles.metaText}>{t('bodyMetricsChange', { value: formatMetricDelta(metric.change, activeMetric, locale) })}</Text>
-                      <Text style={styles.metaText}>{t('bodyMetricsAtStart', { value: formatMetric(metric.first?.value, activeMetric, locale) })}</Text>
+                      <Text style={styles.metaText}>{t('bodyMetricsChange', { value: formatMetricDelta(metric.change, activeMetric, locale, t) })}</Text>
+                      <Text style={styles.metaText}>{t('bodyMetricsAtStart', { value: formatMetric(metric.first?.value, activeMetric, locale, t) })}</Text>
+                      <View onLayout={(event) => setChartBoxWidth(Math.floor(event.nativeEvent.layout.width))} style={styles.chartBox}>
                       <LineChart
                         areaChart
-                        curved
-                        data={points}
+                        data={points.map(({ value }) => ({ value }))}
                         endFillColor={theme.bodyMetricsChartFill}
                         endOpacity={0.02}
                         height={150}
                         hideRules
-                        initialSpacing={12}
-                        maxValue={Math.max(...points.map((point) => point.value)) * 1.02}
+                        endSpacing={layout.endSpacing}
+                        hideYAxisText
+                        initialSpacing={layout.initialSpacing}
+                        maxValue={layout.maxValue}
                         noOfSections={3}
                         startFillColor={theme.bodyMetricsChartFill}
                         startOpacity={0.24}
                         thickness={2}
+                        spacing={layout.spacing}
                         width={chartWidth}
-                        xAxisColor={theme.border}
-                        xAxisLabelTextStyle={styles.chartLabel}
+                        yAxisLabelWidth={0}
+                        yAxisOffset={layout.yAxisOffset}
+                        xAxisColor={theme.bodyMetricsChartAxis}
+                        xAxisThickness={0}
+                        xAxisLabelsHeight={0}
                         yAxisColor={theme.bodyMetricsChartAxis}
-                        yAxisTextStyle={{ color: theme.bodyMetricsChartAxis }}
                         color={theme.bodyMetricsChartLine}
                         dataPointsColor={theme.textSecondary}
                       />
+                      <View style={[styles.chartLabels, { width: chartWidth }]}>
+                        {chartLabels.map(({ index, left, label }) => (
+                          <Text key={points[index].recordedAt} numberOfLines={1} style={[styles.chartLabel, styles.chartLabelItem, { left, width: CHART_LABEL_WIDTH }]}>{label}</Text>
+                        ))}
+                      </View>
+                      </View>
                     </>
                   ) : state.status === 'single' ? (
                     <Text style={styles.metaText}>{t('bodyMetricsNeedTwo')}</Text>
@@ -234,8 +247,8 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
               {listWithOutside.length ? listWithOutside.map((item, index) => (
                 <View key={`${item.recordedAt}-${index}`} style={styles.measurementRow}>
                   <Text style={styles.dateText}>{item.outside ? t('bodyMetricsLatestOutside') : new Date(item.recordedAt).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' })}</Text>
-                  <Text style={styles.measurementValue}>{formatMetric(item.value, activeMetric, locale)}</Text>
-                  <Text style={styles.deltaText}>{item.delta === null ? '—' : formatMetricDelta(item.delta, activeMetric, locale)}</Text>
+                  <Text style={styles.measurementValue}>{formatMetric(item.value, activeMetric, locale, t)}</Text>
+                  <Text style={styles.deltaText}>{item.delta === null ? '—' : formatMetricDelta(item.delta, activeMetric, locale, t)}</Text>
                 </View>
               )) : <Text style={styles.metaText}>{t('bodyMetricsNoData')}</Text>}
             </View>
@@ -243,7 +256,7 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
         )}
       </ScrollView>
 
-      <View style={[styles.ctaDock, { bottom: tabBarHeight }]}>
+      <View style={styles.ctaDock}>
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AddBodyMeasurement', { returnRoute: 'BodyMetricsDetails' })} style={({ focused, hovered, pressed }) => [styles.ctaButton, (focused || hovered) && styles.interactive, pressed && styles.pressed]}>
           <Text style={styles.ctaText}>{t('addMeasurement')}</Text>
         </Pressable>

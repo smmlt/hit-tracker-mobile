@@ -7,7 +7,7 @@ import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { CustomToast } from '../components/feedback';
 import { bodyMetricsService } from '../services/bodyMetricsService';
-import { dateInputToIso, dateKey, validateBodyMeasurement } from '../utils/bodyMetrics';
+import { BODY_METRIC_RANGES, dateInputToIso, dateKey, validateBodyMeasurement } from '../utils/bodyMetrics';
 import { createStyles } from './AddBodyMeasurementScreen.styles';
 
 const FIELDS = [
@@ -80,7 +80,10 @@ export default function AddBodyMeasurementScreen({ navigation }) {
     if (!validation.valid) {
       if (validation.errors.required) return setError(t('bodyMetricRequired'));
       if (validation.errors.futureDate) return setError(t('bodyMetricFutureDate'));
-      return setError(t('bodyMetricInvalid'));
+      const messages = FIELDS.filter(([key]) => validation.errors[key]).map(([key, labelKey]) => (
+        t('bodyMetricOutOfRange', { field: t(labelKey), min: BODY_METRIC_RANGES[key][0], max: BODY_METRIC_RANGES[key][1] })
+      ));
+      return setError(messages.length ? messages.join('\n') : t('bodyMetricInvalid'));
     }
     setLoading(true);
     setError('');

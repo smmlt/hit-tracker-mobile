@@ -66,12 +66,12 @@ export default function ProfileScreen({ navigation }) {
               <Text style={[styles.bodyMetricsButtonText, { color: theme.textPrimary }]}>{t('addMeasurement')}</Text>
               <Ionicons color={theme.primary} name="add-circle-outline" size={22} />
             </Pressable>
+          </View>
           <Pressable accessibilityRole="button" onPress={() => navigation.navigate('EditProfile')} style={[styles.outlineButton, { borderColor: theme.textPrimary }]}>
             <Text style={[styles.buttonText, { color: theme.textPrimary }]}>{t('editProfile')}</Text>
           </Pressable>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
       {!!copyMessage && <Text accessibilityRole="alert" style={[styles.toast, { backgroundColor: theme.surfaceElevated, color: theme.textPrimary }]}>{copyMessage}</Text>}
       <UsernameActionsMenu
         isOwner

@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { BubbleChart } from 'react-native-gifted-charts';
 
 import { AuthContext } from '../context/AuthContext';
@@ -50,7 +51,8 @@ export default function AnalyticsScreen({ navigation }) {
     return exerciseIds.find((item) => item.id === selectedExerciseId || item.exerciseId === selectedExerciseId) || null;
   }, [exerciseIds, selectedExerciseId]);
 
-  useEffect(() => {
+  // Refetch on focus so the preview reflects a measurement added on the details screen.
+  useFocusEffect(useCallback(() => {
     if (!userToken) return undefined;
     const id = ++bodyMetricsRequestId.current;
     setBodyMetricsLoading(true);
@@ -62,7 +64,7 @@ export default function AnalyticsScreen({ navigation }) {
       if (id === bodyMetricsRequestId.current) setBodyMetricsLoading(false);
     });
     return () => { bodyMetricsRequestId.current += 1; };
-  }, [userToken]);
+  }, [userToken]));
 
   useEffect(() => {
     const loadExerciseIds = async () => {
@@ -212,8 +214,8 @@ export default function AnalyticsScreen({ navigation }) {
                 const item = bodyMetrics?.metrics?.[key];
                 return <View key={key} style={styles.bodyMetricsItem}>
                   <Text style={styles.bodyMetricsLabel}>{t(labelKey)}</Text>
-                  <Text style={styles.bodyMetricsValue}>{item?.latest ? formatMetric(item.latest.value, key, locale) : '—'}</Text>
-                  <Text style={styles.bodyMetricsDelta}>{item?.change === null || item?.change === undefined ? '—' : formatMetricDelta(item.change, key, locale)}</Text>
+                  <Text style={styles.bodyMetricsValue}>{item?.latest ? formatMetric(item.latest.value, key, locale, t) : '—'}</Text>
+                  <Text style={styles.bodyMetricsDelta}>{item?.change === null || item?.change === undefined ? '—' : formatMetricDelta(item.change, key, locale, t)}</Text>
                 </View>;
               })}
             </View>
