@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BubbleChart } from 'react-native-gifted-charts';
 
@@ -7,6 +7,8 @@ import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
+import { bodyMetricsService } from '../services/bodyMetricsService';
+import { formatMetric, formatMetricDelta, periodToDateRange } from '../utils/bodyMetrics';
 import { createStyles } from './AnalyticsScreen.styles.js';
 
 
@@ -27,10 +29,10 @@ const getBestFitLine = (data) => {
   return { slope, intercept };
 };
 
-export default function AnalyticsScreen() {
+export default function AnalyticsScreen({ navigation }) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const { t } = useContext(LanguageContext);
+  const { locale, t } = useContext(LanguageContext);
   const { userToken } = useContext(AuthContext);
 
   const [exerciseIds, setExerciseIds] = useState([]);
@@ -40,10 +42,27 @@ export default function AnalyticsScreen() {
   const [loadingSets, setLoadingSets] = useState(false);
   const [error, setError] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [bodyMetrics, setBodyMetrics] = useState(null);
+  const [bodyMetricsLoading, setBodyMetricsLoading] = useState(true);
+  const bodyMetricsRequestId = useRef(0);
 
   const selectedExercise = useMemo(() => {
     return exerciseIds.find((item) => item.id === selectedExerciseId || item.exerciseId === selectedExerciseId) || null;
   }, [exerciseIds, selectedExerciseId]);
+
+  useEffect(() => {
+    if (!userToken) return undefined;
+    const id = ++bodyMetricsRequestId.current;
+    setBodyMetricsLoading(true);
+    bodyMetricsService.get(userToken, periodToDateRange('7')).then((data) => {
+      if (id === bodyMetricsRequestId.current) setBodyMetrics(data);
+    }).catch(() => {
+      if (id === bodyMetricsRequestId.current) setBodyMetrics(null);
+    }).finally(() => {
+      if (id === bodyMetricsRequestId.current) setBodyMetricsLoading(false);
+    });
+    return () => { bodyMetricsRequestId.current += 1; };
+  }, [userToken]);
 
   useEffect(() => {
     const loadExerciseIds = async () => {
@@ -176,6 +195,30 @@ export default function AnalyticsScreen() {
           <Text style={[styles.title, { color: theme.textPrimary }]}>{t('analytics')}</Text>
           <Text style={styles.subtitle}>Exercise analytics</Text>
         </View>
+
+        <Pressable accessibilityRole="button" accessibilityLabel={t('bodyMetricsPreview')} onPress={() => navigation.navigate('BodyMetricsDetails', { period: '7' })} style={styles.bodyMetricsCard}>
+          <View style={styles.bodyMetricsHeader}>
+            <Text style={styles.bodyMetricsTitle}>{t('bodyMetricsPreview')}</Text>
+            <Text style={styles.bodyMetricsLink}>{t('bodyMetrics')}</Text>
+          </View>
+          {bodyMetricsLoading ? <Text style={styles.bodyMetricsMuted}>{t('loading')}</Text> : (
+            <View style={styles.bodyMetricsGrid}>
+              {[
+                ['weight', 'bodyMetricsWeight'],
+                ['bodyFatPercentage', 'bodyMetricsFat'],
+                ['muscleMass', 'bodyMetricsMuscle'],
+                ['waistCircumference', 'bodyMetricsWaist'],
+              ].map(([key, labelKey]) => {
+                const item = bodyMetrics?.metrics?.[key];
+                return <View key={key} style={styles.bodyMetricsItem}>
+                  <Text style={styles.bodyMetricsLabel}>{t(labelKey)}</Text>
+                  <Text style={styles.bodyMetricsValue}>{item?.latest ? formatMetric(item.latest.value, key, locale) : '—'}</Text>
+                  <Text style={styles.bodyMetricsDelta}>{item?.change === null || item?.change === undefined ? '—' : formatMetricDelta(item.change, key, locale)}</Text>
+                </View>;
+              })}
+            </View>
+          )}
+        </Pressable>
 
         <View style={styles.selectorWrap}>
           <TouchableOpacity
