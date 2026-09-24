@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start --web --port 5173",
     "android": "expo run:android",
+    "build:apk": "powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1",
     "ios": "expo start --ios",
     "web": "expo start --web --port 5173"
   },
