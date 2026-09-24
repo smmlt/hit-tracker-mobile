@@ -12,6 +12,21 @@ export const createStyles = (theme) => StyleSheet.create({
   header: {
     marginBottom: 16,
   },
+  bodyMetricsCard: {
+    backgroundColor: theme.cardBackground,
+    borderRadius: 16,
+    marginBottom: 16,
+    padding: 14,
+  },
+  bodyMetricsHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  bodyMetricsTitle: { color: theme.textPrimary, fontSize: 16, fontWeight: '800' },
+  bodyMetricsLink: { color: theme.primary, fontSize: 12, fontWeight: '800' },
+  bodyMetricsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 14 },
+  bodyMetricsItem: { marginBottom: 10, width: '50%' },
+  bodyMetricsLabel: { color: theme.textSecondary, fontSize: 12 },
+  bodyMetricsValue: { color: theme.textPrimary, fontSize: 18, fontWeight: '800', marginTop: 3 },
+  bodyMetricsDelta: { color: theme.textSecondary, fontSize: 11, minHeight: 14 },
+  bodyMetricsMuted: { color: theme.textSecondary, fontSize: 13, marginTop: 12 },
   title: {
     fontSize: 28,
     fontWeight: '700',

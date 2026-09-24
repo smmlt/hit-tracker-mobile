@@ -62,6 +62,10 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               </View>
             </View>
+            <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AddBodyMeasurement')} style={[styles.bodyMetricsButton, { borderColor: theme.border }]}>
+              <Text style={[styles.bodyMetricsButtonText, { color: theme.textPrimary }]}>{t('addMeasurement')}</Text>
+              <Ionicons color={theme.primary} name="add-circle-outline" size={22} />
+            </Pressable>
           </View>
           <Pressable accessibilityRole="button" onPress={() => navigation.navigate('EditProfile')} style={[styles.outlineButton, { borderColor: theme.textPrimary }]}>
             <Text style={[styles.buttonText, { color: theme.textPrimary }]}>{t('editProfile')}</Text>

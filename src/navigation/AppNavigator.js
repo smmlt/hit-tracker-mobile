@@ -32,6 +32,8 @@ import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 import SharedExerciseScreen from '../screens/SharedExerciseScreen';
 import SharedProgramScreen from '../screens/SharedProgramScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
+import BodyMetricsDetailsScreen from '../screens/BodyMetricsDetailsScreen';
+import AddBodyMeasurementScreen from '../screens/AddBodyMeasurementScreen';
 
 import { palette } from '../constants/colors';
 import { WEB_APP_URL } from '../utils/shareLinks';
@@ -42,6 +44,7 @@ const ProfileStackNavigator = createNativeStackNavigator();
 const TrainingStackNavigator = createNativeStackNavigator();
 const WorkshopStackNavigator = createNativeStackNavigator();
 const HistoryStackNavigator = createNativeStackNavigator();
+const AnalyticsStackNavigator = createNativeStackNavigator();
 
 function HistoryStack() {
   return (
@@ -49,6 +52,18 @@ function HistoryStack() {
       <HistoryStackNavigator.Screen name="HistoryHome" component={HistoryScreen} />
       <HistoryStackNavigator.Screen name="HistoryDetails" component={HistoryDetailsScreen} />
     </HistoryStackNavigator.Navigator>
+  );
+}
+
+function AnalyticsStack() {
+  const tabBarHeight = useBottomTabBarHeight();
+  const { theme } = useTheme();
+  return (
+    <AnalyticsStackNavigator.Navigator screenOptions={{ headerShown: false, contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }}>
+      <AnalyticsStackNavigator.Screen name="AnalyticsHome" component={AnalyticsScreen} />
+      <AnalyticsStackNavigator.Screen name="BodyMetricsDetails" component={BodyMetricsDetailsScreen} />
+      <AnalyticsStackNavigator.Screen name="AddBodyMeasurement" component={AddBodyMeasurementScreen} />
+    </AnalyticsStackNavigator.Navigator>
   );
 }
 
@@ -87,6 +102,7 @@ function ProfileStack() {
       <ProfileStackNavigator.Screen name="Settings" component={SettingsScreen} />
       <ProfileStackNavigator.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNavigator.Screen name="UsernameSettings" component={UsernameSettingsScreen} />
+      <ProfileStackNavigator.Screen name="AddBodyMeasurement" component={AddBodyMeasurementScreen} />
     </ProfileStackNavigator.Navigator>
   );
 }
@@ -117,7 +133,7 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="Analytics" 
-        component={AnalyticsScreen} 
+        component={AnalyticsStack}
         options={{ title: t('analytics') }} 
       />
       <Tab.Screen 

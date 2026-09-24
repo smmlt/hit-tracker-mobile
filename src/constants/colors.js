@@ -122,6 +122,9 @@ export const themes = {
     surfaceElevated: palette.surface,
     mediaPlaceholder: palette.surfacePlaceholder,
     onPrimary: '#FFFFFF',
+    bodyMetricsChartLine: palette.accent,
+    bodyMetricsChartFill: palette.accent,
+    bodyMetricsChartAxis: palette.transparent,
   },
   light: {
     background: '#FFFFFF',
@@ -155,5 +158,8 @@ export const themes = {
     surfaceElevated: '#FFFFFF',
     mediaPlaceholder: palette.slate300,
     onPrimary: '#FFFFFF',
+    bodyMetricsChartLine: palette.accent,
+    bodyMetricsChartFill: palette.accent,
+    bodyMetricsChartAxis: palette.transparent,
   },
 };
