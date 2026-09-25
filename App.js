@@ -25,7 +25,7 @@ export default function App() {
   useEffect(() => {
     if (Platform.OS !== 'web' && (fontsLoaded || fontError)) {
       SplashScreen.hide();
-      const timer = setTimeout(() => setShowBrandSplash(false), 1500);
+      const timer = setTimeout(() => setShowBrandSplash(false), 800);
       return () => clearTimeout(timer);
     }
   }, [fontsLoaded, fontError]);
