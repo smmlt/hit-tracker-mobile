@@ -34,6 +34,23 @@ test('media images cover fixed containers and fall back after load errors', () =
   assert.match(workshopStyles, /aspectRatio: 333 \/ 226/);
 });
 
+test('exercise video and image media stay in separate visual areas', () => {
+  const exerciseDetails = source('src/screens/ExerciseDetailsScreen.js');
+  assert.match(exerciseDetails, /const \[videoFailed, setVideoFailed\] = useState\(false\)/);
+  assert.match(exerciseDetails, /exercise\.videoUrl && !videoFailed \? \(/);
+  assert.match(exerciseDetails, /<ExerciseVideoPlayer[\s\S]*?style=\{s\.media\}/);
+  assert.match(exerciseDetails, /setVideoFailed\(true\)/);
+  assert.match(exerciseDetails, /\) : \(\s*<MediaImage accessibilityLabel=\{w\.noMedia\} source=\{null\} style=\{s\.media\}/);
+  assert.match(exerciseDetails, /<MediaImage[\s\S]*?source=\{exercise\.imageUrl\}[\s\S]*?style=\{styles\.muscleImage\}/);
+  assert.doesNotMatch(exerciseDetails, /\) : <MediaImage[\s\S]*?source=\{exercise\.imageUrl\}[\s\S]*?style=\{s\.media\}/);
+});
+
+test('program image and video choices use the shared adaptive media container', () => {
+  const programDetails = source('src/screens/LibraryProgramScreen.js');
+  assert.match(programDetails, /<ExerciseVideoPlayer source=\{program\.videoUrl\} style=\{s\.media\} \/>/);
+  assert.match(programDetails, /<MediaImage[\s\S]*?source=\{program\.imageUrl\}[\s\S]*?style=\{s\.media\}/);
+});
+
 test('admin navigation is role-gated and the screen revalidates a fresh profile', () => {
   const navigator = source('src/navigation/AppNavigator.js');
   assert.match(navigator, /\{canOpenAdmin && \(/);
@@ -44,4 +61,12 @@ test('admin navigation is role-gated and the screen revalidates a fresh profile'
   assert.match(admin, /const freshProfile = await refreshProfile\(\)/);
   assert.match(admin, /includes\(verifiedRole\)/);
   assert.match(admin, /accessState !== "allowed"/);
+});
+
+test('exercise image saves preserve an existing video unless the video field is edited', () => {
+  const editor = source('src/components/admin/ExerciseEditor.js');
+  assert.match(editor, /const \[videoChanged, setVideoChanged\] = useState\(false\)/);
+  assert.match(editor, /\.\.\.\(videoChanged \|\| !exercise \? \{ videoUrl: video\.trim\(\) \|\| undefined \} : \{\}\)/);
+  assert.match(editor, /if \(image\) await contentMediaService\.uploadExerciseImage\(targetId, image, userToken\)/);
+  assert.match(editor, /setVideoChanged\(true\)/);
 });

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hit Tracker",
     "slug": "hit-tracker-mobile",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "scheme": "hit-tracker-mobile",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,7 +12,7 @@
       "bundleIdentifier": "com.auraxa.hittracker"
     },
     "android": {
-      "versionCode": 6,
+      "versionCode": 7,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

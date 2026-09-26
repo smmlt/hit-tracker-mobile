@@ -16,6 +16,7 @@ export function ExerciseEditor({ exercise, onClose }) {
   const [name, setName] = useState(exercise?.name || "");
   const [description, setDescription] = useState(exercise?.description || "");
   const [video, setVideo] = useState(exercise?.videoUrl || "");
+  const [videoChanged, setVideoChanged] = useState(false);
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
   const [muscles, setMuscles] = useState(
     exercise?.muscles?.map((m) => m.id) || [],
@@ -41,7 +42,7 @@ export function ExerciseEditor({ exercise, onClose }) {
             body: JSON.stringify({
               name: name.trim(),
               description: description.trim(),
-              videoUrl: video.trim() || (exercise ? "" : undefined),
+              ...(videoChanged || !exercise ? { videoUrl: video.trim() || undefined } : {}),
               difficulty,
               muscleIds: muscles,
             }),
@@ -90,7 +91,10 @@ export function ExerciseEditor({ exercise, onClose }) {
       <Field
         label={w.video}
         value={video}
-        onChangeText={setVideo}
+        onChangeText={(value) => {
+          setVideoChanged(true);
+          setVideo(value);
+        }}
         autoCapitalize="none"
         maxLength={2048}
       />

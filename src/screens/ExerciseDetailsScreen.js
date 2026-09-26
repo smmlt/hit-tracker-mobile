@@ -28,6 +28,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   const { addWorkoutExercises, preparedWorkout, activeWorkout } =
     useContext(WorkoutContext);
   const [error, setError] = useState("");
+  const [videoFailed, setVideoFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const added = preparedWorkout?.exercises?.some(
     (item) => item.id === exercise.id,
@@ -54,13 +55,18 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   };
   return (
     <View style={styles.contentBlock}>
-      {exercise.videoUrl ? (
+      {exercise.videoUrl && !videoFailed ? (
         <ExerciseVideoPlayer
           source={exercise.videoUrl}
           style={s.media}
-          onError={() => setError(t('videoLoadFailed'))}
+          onError={() => {
+            setVideoFailed(true);
+            setError(t('videoLoadFailed'));
+          }}
         />
-      ) : <MediaImage accessibilityLabel={w.noMedia} source={exercise.imageUrl} style={s.media} />}
+      ) : (
+        <MediaImage accessibilityLabel={w.noMedia} source={null} style={s.media} />
+      )}
       <View style={styles.summary}>
         <Text style={s.title}>{exercise.displayName || exercise.name}</Text>
         <Text style={s.muted}>
@@ -70,7 +76,11 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       </View>
       <Text style={s.heading}>{w.muscles}</Text>
       <View style={styles.musclePanel}>
-        <View style={styles.muscleImage} />
+        <MediaImage
+          accessibilityLabel={exercise.imageUrl ? exercise.displayName || exercise.name : w.noMedia}
+          source={exercise.imageUrl}
+          style={styles.muscleImage}
+        />
         <View style={styles.muscleList}>
           {exercise.muscles?.length ? (
             exercise.muscles.map((muscle) => (
