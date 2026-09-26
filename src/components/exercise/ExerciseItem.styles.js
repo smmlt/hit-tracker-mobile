@@ -10,7 +10,7 @@ export const createStyles = (theme) => StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-  image: { width: 90, height: 90, borderRadius: 8, backgroundColor: theme.border },
+  image: { width: 90, height: 90, borderRadius: 8 },
   info: { flex: 1, minWidth: 0, gap: 4, paddingVertical: 8 },
   title: { color: theme.textPrimary, fontFamily: "Inter-Bold", fontSize: 16, lineHeight: 23 },
   muscleRow: { flexDirection: "row", gap: 5 },

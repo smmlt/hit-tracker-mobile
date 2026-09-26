@@ -6,6 +6,8 @@ import { useLibrary } from "../../context/LibraryContext";
 import { apiRequest } from "../../services/api";
 import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "./ui";
 import { useTheme } from "../../context/ThemeContext";
+import { ImagePickerField } from "../media/ImagePickerField";
+import { contentMediaService } from "../../services/contentMediaService";
 
 import { createStyles } from './ProgramEditor.styles';
 export function ProgramEditor({ initialValues, program, official = false, onClose, onSaved }) {
@@ -18,6 +20,10 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
 
     const [name, setName] = useState(program?.name || initialValues?.name || "");
     const [description, setDescription] = useState(program?.description || initialValues?.description || "");
+    const [mediaType, setMediaType] = useState(program?.videoUrl ? "video" : "image");
+    const [videoUrl, setVideoUrl] = useState(program?.videoUrl || "");
+    const [image, setImage] = useState(null);
+    const [savedProgram, setSavedProgram] = useState(null);
 
     const [rows, setRows] = useState(
         (program?.schedule || initialValues?.exercises || [])
@@ -50,6 +56,14 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
     const save = async () => {
         if (!name.trim() || !rows.length) {
             setError(w.required);
+            return;
+        }
+        if (official && mediaType === "video" && !videoUrl.trim()) {
+            setError(w.videoRequired);
+            return;
+        }
+        if (official && mediaType === "image" && program?.videoUrl && !image) {
+            setError(w.imageRequired);
             return;
         }
 
@@ -100,25 +114,36 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                         ? "/workout-programs/official"
                         : "/workout-programs";
 
-            const result = await apiRequest(
-                path,
-                {
-                    method: updating ? "PATCH" : "POST",
-                    body: JSON.stringify({
-                        name: name.trim(),
-                        description: description.trim(),
-                        exercises: rows.map((row) => ({
-                            ...row,
-                            sets: Number(row.sets),
-                            reps: row.reps ? Number(row.reps) : undefined,
-                            weight: Number(row.weight),
-                            week: Number(row.week),
-                            weekDay: Number(row.weekDay),
-                        })),
-                    }),
-                },
-                userToken,
-            );
+            let result = savedProgram;
+            if (!result) {
+                const videoValue = official && mediaType === "video"
+                    ? videoUrl.trim()
+                    : undefined;
+                result = await apiRequest(
+                    path,
+                    {
+                        method: updating ? "PATCH" : "POST",
+                        body: JSON.stringify({
+                            name: name.trim(),
+                            description: description.trim(),
+                            ...(videoValue !== undefined ? { videoUrl: videoValue } : {}),
+                            exercises: rows.map((row) => ({
+                                ...row,
+                                sets: Number(row.sets),
+                                reps: row.reps ? Number(row.reps) : undefined,
+                                weight: Number(row.weight),
+                                week: Number(row.week),
+                                weekDay: Number(row.weekDay),
+                            })),
+                        }),
+                    },
+                    userToken,
+                );
+                setSavedProgram(result);
+            }
+            if (official && mediaType === "image" && image) {
+                result = await contentMediaService.uploadProgramImage(result.id, image, userToken);
+            }
 
             await library.refresh();
             onSaved?.(result);
@@ -155,6 +180,35 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                 multiline
                 maxLength={2000}
             />
+
+            {official && (
+                <View style={{ gap: 10 }}>
+                    <Text style={s.heading}>{w.media}</Text>
+                    <View style={s.row}>
+                        <Button secondary={mediaType !== "image"} onPress={() => setMediaType("image")}>{w.image}</Button>
+                        <Button secondary={mediaType !== "video"} onPress={() => { setMediaType("video"); setImage(null); }}>{w.video}</Button>
+                    </View>
+                    {mediaType === "image" ? (
+                        <ImagePickerField
+                            aspect={[333, 226]}
+                            disabled={saving}
+                            imageUri={image?.uri || program?.imageUrl}
+                            label={w.chooseImage}
+                            onChange={setImage}
+                            onError={(pickerError) => setError(pickerError.message || w.imagePickerError)}
+                            previewStyle={styles.mediaPreview}
+                        />
+                    ) : (
+                        <Field
+                            label={w.youtubeUrl}
+                            value={videoUrl}
+                            onChangeText={setVideoUrl}
+                            autoCapitalize="none"
+                            maxLength={2048}
+                        />
+                    )}
+                </View>
+            )}
 
             <View style={s.header}>
                 <Text style={s.heading}>

@@ -9,6 +9,8 @@ import Plus from "../../assets/workshop/Plus.svg";
 
 import { palette } from '../../constants/colors';
 import { useTheme } from '../../context/ThemeContext';
+import { MediaImage } from '../media/MediaImage';
+import { getYouTubeThumbnailUrl } from '../../utils/media';
 export function ProgramBadges({ program }) {
   const w = useWords();
   const s = useWorkshopStyles();
@@ -59,6 +61,11 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
         </Text>
         <ProgramBadges program={program} />
         <View style={styles.preview}>
+          <MediaImage
+            accessibilityLabel={program.imageUrl || program.videoUrl ? program.displayName || program.name : w.noMedia}
+            source={program.imageUrl || getYouTubeThumbnailUrl(program.videoUrl)}
+            style={styles.image}
+          />
           <View style={styles.info}>
             {rows.slice(0, 5).map((row) => (
               <Text

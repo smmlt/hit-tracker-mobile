@@ -4,11 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { styles } from './ExerciseVideoPlayer.native.styles.js';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import YoutubePlayer from 'react-native-youtube-iframe';
-
-const getYouTubeId = (url) => {
-  const match = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/);
-  return match?.[1];
-};
+import { getYouTubeVideoId } from '../../utils/media';
 
 function NativeVideo({ source, onError }) {
   const player = useVideoPlayer(source, (video) => {
@@ -24,7 +20,7 @@ function NativeVideo({ source, onError }) {
 }
 
 export function ExerciseVideoPlayer({ source, onError, style }) {
-  const videoId = getYouTubeId(source);
+  const videoId = getYouTubeVideoId(source);
   const [size, setSize] = useState({ height: 0, width: 0 });
   const onLayout = ({ nativeEvent: { layout } }) => {
     if (layout.width !== size.width || layout.height !== size.height) {

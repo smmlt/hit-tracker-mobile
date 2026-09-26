@@ -7,6 +7,7 @@ import { WorkoutContext } from "../context/WorkoutContext";
 import { LanguageContext } from "../localization/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { ExerciseVideoPlayer } from "../components/media";
+import { MediaImage } from "../components/media/MediaImage";
 import {
   Button,
   DetailHeader,
@@ -59,11 +60,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
           style={s.media}
           onError={() => setError(t('videoLoadFailed'))}
         />
-      ) : (
-        <View style={s.media}>
-          <Text style={styles.noMedia}>{w.noMedia}</Text>
-        </View>
-      )}
+      ) : <MediaImage accessibilityLabel={w.noMedia} source={exercise.imageUrl} style={s.media} />}
       <View style={styles.summary}>
         <Text style={s.title}>{exercise.displayName || exercise.name}</Text>
         <Text style={s.muted}>

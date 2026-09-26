@@ -5,6 +5,8 @@ import { useLibrary } from "../../context/LibraryContext";
 import { apiRequest } from "../../services/api";
 import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "../workshop/ui";
 import { DifficultyIndicator } from "../exercise/DifficultyIndicator";
+import { ImagePickerField } from "../media/ImagePickerField";
+import { contentMediaService } from "../../services/contentMediaService";
 
 export function ExerciseEditor({ exercise, onClose }) {
   const s = useWorkshopStyles();
@@ -20,6 +22,8 @@ export function ExerciseEditor({ exercise, onClose }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [image, setImage] = useState(null);
+  const [savedId, setSavedId] = useState(null);
   const save = async () => {
     if (!name.trim()) {
       setError(`${w.name}: required`);
@@ -28,20 +32,26 @@ export function ExerciseEditor({ exercise, onClose }) {
     setSaving(true);
     setError("");
     try {
-      await apiRequest(
-        exercise ? `/exercises/${exercise.id}` : "/exercises",
-        {
-          method: exercise ? "PATCH" : "POST",
-          body: JSON.stringify({
-            name: name.trim(),
-            description: description.trim(),
-            videoUrl: video.trim() || (exercise ? "" : undefined),
-            difficulty,
-            muscleIds: muscles,
-          }),
-        },
-        userToken,
-      );
+      let targetId = savedId;
+      if (!targetId) {
+        const result = await apiRequest(
+          exercise ? `/exercises/${exercise.id}` : "/exercises",
+          {
+            method: exercise ? "PATCH" : "POST",
+            body: JSON.stringify({
+              name: name.trim(),
+              description: description.trim(),
+              videoUrl: video.trim() || (exercise ? "" : undefined),
+              difficulty,
+              muscleIds: muscles,
+            }),
+          },
+          userToken,
+        );
+        targetId = result.id;
+        setSavedId(targetId);
+      }
+      if (image) await contentMediaService.uploadExerciseImage(targetId, image, userToken);
       await library.refresh();
       onClose();
     } catch (e) {
@@ -60,6 +70,15 @@ export function ExerciseEditor({ exercise, onClose }) {
         value={name}
         onChangeText={setName}
         maxLength={100}
+      />
+      <ImagePickerField
+        aspect={[1, 1]}
+        disabled={saving}
+        imageUri={image?.uri || exercise?.imageUrl}
+        label={w.chooseImage}
+        onChange={setImage}
+        onError={(pickerError) => setError(pickerError.message || w.imagePickerError)}
+        previewStyle={{ width: 160, height: 160, borderRadius: 8, alignSelf: "center" }}
       />
       <Field
         label={w.description}
