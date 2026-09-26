@@ -37,6 +37,7 @@ export const createStyles = (theme) => StyleSheet.create({
     padding: 12,
     borderRadius: 10,
   },
+  topActions: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 10 },
   dot: { width: 7, height: 7, borderRadius: 4 },
   tabs: {
     flexDirection: "row",

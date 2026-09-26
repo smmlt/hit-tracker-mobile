@@ -29,6 +29,7 @@ export const createStyles = (theme) => StyleSheet.create({
     gap: 8,
     paddingVertical: 4,
   },
+  image: { width: 90, height: 90, borderRadius: 8, flexShrink: 0 },
   exercise: { color: theme.textSecondary, fontFamily: "Inter", fontSize: 13, lineHeight: 19 },
   actions: { alignItems: "center", width: 58 },
   like: { flexDirection: "row", alignItems: "center", minHeight: 34, gap: 2 },

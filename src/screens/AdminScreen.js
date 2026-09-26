@@ -22,7 +22,7 @@ const colors = {
   super_admin: palette.accent,
 };
 
-export default function AdminScreen() {
+export default function AdminScreen({ navigation }) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const s = useWorkshopStyles();
@@ -34,7 +34,9 @@ export default function AdminScreen() {
     isLoading: profileLoading,
     error: profileError,
     refresh: refreshProfile,
-  } = useProfile(true);
+  } = useProfile(false);
+  const [accessState, setAccessState] = useState("checking");
+  const [verifiedRole, setVerifiedRole] = useState(null);
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -51,20 +53,32 @@ export default function AdminScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [detailUser, setDetailUser] = useState(null);
   const [detailsRevision, setDetailsRevision] = useState(0);
-  const canContent = ["moderator", "admin", "super_admin"].includes(
-    profile?.role,
-  );
-  const canUsers = ["admin", "super_admin"].includes(profile?.role);
-  const isSuper = profile?.role === "super_admin";
+  const canContent = ["moderator", "admin", "super_admin"].includes(verifiedRole);
+  const canUsers = ["admin", "super_admin"].includes(verifiedRole);
+  const isSuper = verifiedRole === "super_admin";
   const sections = canUsers
     ? ["users", "programs", "exercises"]
     : ["programs", "exercises"];
+  const verifyAccess = useCallback(async () => {
+    setAccessState("checking");
+    const freshProfile = await refreshProfile();
+    const nextRole = freshProfile?.role || null;
+    setVerifiedRole(nextRole);
+    setAccessState(
+      ["moderator", "admin", "super_admin"].includes(nextRole)
+        ? "allowed"
+        : "denied",
+    );
+  }, [refreshProfile]);
+  useEffect(() => {
+    verifyAccess();
+  }, [verifyAccess]);
   useEffect(() => {
     if (!canUsers && section === "users") setSection("programs");
   }, [canUsers, section]);
   const loadUsers = useCallback(
     async (targetPage = 1) => {
-      if (!canUsers) return;
+      if (accessState !== "allowed" || !canUsers) return;
       setLoading(true);
       setError("");
       try {
@@ -81,7 +95,7 @@ export default function AdminScreen() {
         setLoading(false);
       }
     },
-    [canUsers, onlineOnly, search, userToken],
+    [accessState, canUsers, onlineOnly, search, userToken],
   );
   useEffect(() => {
     loadUsers();
@@ -120,17 +134,17 @@ export default function AdminScreen() {
       setBusy(false);
     }
   };
-  if (profileLoading && !profile)
+  if (accessState === "checking" || (profileLoading && !profile))
     return (
       <View style={[s.screen, styles.center]}>
         <ActivityIndicator color={palette.accent} />
       </View>
     );
-  if (!canContent)
+  if (accessState !== "allowed" || !canContent)
     return (
       <View style={[s.screen, styles.center]}>
         <Text style={s.title}>{t('accessDenied')}</Text>
-        <Feedback error={profileError} onRetry={refreshProfile} />
+        <Feedback error={profileError} onRetry={verifyAccess} />
       </View>
     );
   const totalPages = Math.max(1, Math.ceil(total / 25));
@@ -150,13 +164,16 @@ export default function AdminScreen() {
               {t('manageCommunity')}
             </Text>
           </View>
-          <View style={styles.identity}>
-            <View
-              style={[styles.dot, { backgroundColor: colors[profile.role] }]}
-            />
-            <Text style={s.muted}>
-              {t('signedInAs', { role: roleLabel(profile.role) })}
-            </Text>
+          <View style={styles.topActions}>
+            <Button secondary onPress={() => navigation.replace('MainApp')}>{t('backToApp')}</Button>
+            <View style={styles.identity}>
+              <View
+              style={[styles.dot, { backgroundColor: colors[verifiedRole] }]}
+              />
+              <Text style={s.muted}>
+                {t('signedInAs', { role: roleLabel(verifiedRole) })}
+              </Text>
+            </View>
           </View>
         </View>
         <View style={styles.tabs}>

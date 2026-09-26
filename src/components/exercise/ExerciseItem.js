@@ -10,6 +10,7 @@ import { useLibrary } from "../../context/LibraryContext";
 import { useWords } from "../workshop/ui";
 import { ExerciseDetailsModal } from "./ExerciseDetailsModal";
 import { useTheme } from '../../context/ThemeContext';
+import { MediaImage } from '../media/MediaImage';
 
 export function ExerciseItem({
   exercise,
@@ -36,7 +37,11 @@ export function ExerciseItem({
         onPress={() => (onPress ? onPress(current) : setOpen(true))}
         style={({ pressed }) => [styles.body, pressed && { opacity: 0.7 }]}
       >
-        <View accessibilityLabel={w.noMedia} style={styles.image} />
+        <MediaImage
+          accessibilityLabel={current.imageUrl ? current.displayName || current.name : w.noMedia}
+          source={current.imageUrl}
+          style={styles.image}
+        />
         <View style={styles.info}>
           <Text numberOfLines={1} style={styles.title}>
             {current.displayName || current.name}

@@ -18,6 +18,8 @@ import { LanguageContext } from "../localization/LanguageContext";
 import { translateCatalogName } from "../localization/catalog";
 import { programShareUrl } from "../utils/shareLinks";
 import { createStyles } from './LibraryProgramScreen.styles';
+import { ExerciseVideoPlayer } from "../components/media";
+import { MediaImage } from "../components/media/MediaImage";
 import {
   Button,
   DetailHeader,
@@ -41,9 +43,11 @@ export function ProgramDetailsContent({ program, onExercise, onEdit, showProgram
   const difficulty = showProgramDifficulty ? programDifficulty(schedule) : null;
   return (
     <View style={styles.contentBlock}>
-      <View style={s.media}>
-        <Text style={styles.noMedia}>{w.noMedia}</Text>
-      </View>
+      {program.videoUrl ? (
+        <ExerciseVideoPlayer source={program.videoUrl} style={s.media} />
+      ) : (
+        <MediaImage accessibilityLabel={w.noMedia} source={program.imageUrl} style={s.media} />
+      )}
       <View style={styles.summary}>
         <Text style={s.heading}>{(program.displayName || program.name).toUpperCase()}</Text>
         <ProgramBadges program={program} />

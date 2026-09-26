@@ -18,5 +18,14 @@ module.exports = ({ config }) => {
     }
   }
 
-  return config;
+  if (!config.android && !process.env.GOOGLE_SERVICES_JSON) return config;
+
+  return {
+    ...config,
+    android: {
+      ...config.android,
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_JSON || config.android?.googleServicesFile,
+    },
+  };
 };

@@ -75,7 +75,8 @@ if (-not $appGradleContent.Contains('buildStagingDirectory')) {
     }
 
 '@
-    $appGradleContent = $appGradleContent.Replace("android {`r`n", "android {`r`n$cmakeConfig")
+    $androidBlock = [regex]'android \{\r?\n'
+    $appGradleContent = $androidBlock.Replace($appGradleContent, "android {`r`n$cmakeConfig", 1)
 }
 
 if (-not $appGradleContent.Contains('HITTRACKER_KEYSTORE_FILE')) {

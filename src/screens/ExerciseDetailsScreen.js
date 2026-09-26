@@ -7,6 +7,7 @@ import { WorkoutContext } from "../context/WorkoutContext";
 import { LanguageContext } from "../localization/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { ExerciseVideoPlayer } from "../components/media";
+import { MediaImage } from "../components/media/MediaImage";
 import {
   Button,
   DetailHeader,
@@ -27,6 +28,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   const { addWorkoutExercises, preparedWorkout, activeWorkout } =
     useContext(WorkoutContext);
   const [error, setError] = useState("");
+  const [videoFailed, setVideoFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const added = preparedWorkout?.exercises?.some(
     (item) => item.id === exercise.id,
@@ -53,16 +55,17 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   };
   return (
     <View style={styles.contentBlock}>
-      {exercise.videoUrl ? (
+      {exercise.videoUrl && !videoFailed ? (
         <ExerciseVideoPlayer
           source={exercise.videoUrl}
           style={s.media}
-          onError={() => setError(t('videoLoadFailed'))}
+          onError={() => {
+            setVideoFailed(true);
+            setError(t('videoLoadFailed'));
+          }}
         />
       ) : (
-        <View style={s.media}>
-          <Text style={styles.noMedia}>{w.noMedia}</Text>
-        </View>
+        <MediaImage accessibilityLabel={w.noMedia} source={null} style={s.media} />
       )}
       <View style={styles.summary}>
         <Text style={s.title}>{exercise.displayName || exercise.name}</Text>
@@ -73,7 +76,11 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       </View>
       <Text style={s.heading}>{w.muscles}</Text>
       <View style={styles.musclePanel}>
-        <View style={styles.muscleImage} />
+        <MediaImage
+          accessibilityLabel={exercise.imageUrl ? exercise.displayName || exercise.name : w.noMedia}
+          source={exercise.imageUrl}
+          style={styles.muscleImage}
+        />
         <View style={styles.muscleList}>
           {exercise.muscles?.length ? (
             exercise.muscles.map((muscle) => (

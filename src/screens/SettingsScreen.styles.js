@@ -21,6 +21,8 @@ export const styles = StyleSheet.create({
   reminderValue: { fontFamily: 'Inter', fontSize: 16 },
   save: { alignItems: 'center', borderRadius: 12, borderWidth: 1, justifyContent: 'center', marginTop: 58, minHeight: 44 },
   saveText: { fontFamily: 'Inter', fontSize: 16 },
+  admin: { alignItems: 'center', borderRadius: 12, borderWidth: 1, flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 24, minHeight: 44 },
+  adminText: { fontFamily: 'Inter-SemiBold', fontSize: 14 },
   logout: { alignItems: 'center', justifyContent: 'center', marginTop: 14, minHeight: 44 },
   logoutText: { fontFamily: 'Inter', fontSize: 14, fontWeight: '700' },
 });

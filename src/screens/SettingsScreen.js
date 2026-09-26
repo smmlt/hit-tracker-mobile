@@ -29,12 +29,13 @@ const Choice = ({ options, value, onChange, theme }) => (
 );
 
 export default function SettingsScreen({ navigation }) {
-  const { logout } = useContext(AuthContext);
+  const { logout, userData } = useContext(AuthContext);
   const { theme, themeName, toggleTheme } = useTheme();
   const { changeLanguage, locale, t } = useContext(LanguageContext);
   const [notifications, setNotifications] = useState({ general: true, workout: true, measurements: false, achievements: true, news: true });
   const [weightUnit, setWeightUnit] = useState('kg');
   const [heightUnit, setHeightUnit] = useState('cm');
+  const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
   const setNotification = (key) => (value) => setNotifications((current) => ({ ...current, [key]: value }));
 
   return (
@@ -69,6 +70,12 @@ export default function SettingsScreen({ navigation }) {
         <Choice options={[{ value: 'kg', label: t('kilograms') }, { value: 'lb', label: t('pounds') }]} value={weightUnit} onChange={setWeightUnit} theme={theme} />
         <Text style={[styles.label, { color: theme.textSecondary }]}>{t('height')}</Text>
         <Choice options={[{ value: 'cm', label: t('centimeters') }, { value: 'ft', label: t('feet') }]} value={heightUnit} onChange={setHeightUnit} theme={theme} />
+        {canOpenAdmin ? (
+          <Pressable accessibilityRole="button" onPress={() => navigation.navigate('Admin')} style={[styles.admin, { borderColor: theme.primary }]}>
+            <Ionicons color={theme.primary} name="shield-checkmark-outline" size={21} />
+            <Text style={[styles.adminText, { color: theme.textPrimary }]}>{t('openAdminPanel')}</Text>
+          </Pressable>
+        ) : null}
         <Pressable accessibilityRole="button" onPress={() => navigation.goBack()} style={[styles.save, { borderColor: theme.primary }]}><Text style={[styles.saveText, { color: theme.textPrimary }]}>{t('save')}</Text></Pressable>
         <Pressable accessibilityRole="button" onPress={logout} style={styles.logout}><Text style={[styles.logoutText, { color: theme.primary }]}>{t('logout')}</Text></Pressable>
       </ScrollView>

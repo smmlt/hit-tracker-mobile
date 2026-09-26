@@ -156,6 +156,7 @@ const linking = {
       ResetPassword: 'reset-password',
       SharedExercise: 'share/exercises/:exerciseId',
       SharedProgram: 'share/programs/:token',
+      Admin: 'admin',
     },
   },
 };
@@ -219,18 +220,21 @@ export default function AppNavigator() {
                 options={{ headerShown: false }}
               />
             </>
-          ) : isAdminRoute && canOpenAdmin ? (
-            <Stack.Screen
-              name="Admin"
-              component={AdminScreen}
-              options={{ headerShown: false }}
-            />
           ) : (
-            <Stack.Screen
-              name="MainApp"
-              component={MainTabs}
-              options={{ headerShown: false }}
-            />
+            <>
+              <Stack.Screen
+                name="MainApp"
+                component={MainTabs}
+                options={{ headerShown: false }}
+              />
+              {canOpenAdmin && (
+                <Stack.Screen
+                  name="Admin"
+                  component={AdminScreen}
+                  options={{ headerShown: false }}
+                />
+              )}
+            </>
           )}
           <Stack.Screen
             name="SharedExercise"
