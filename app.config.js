@@ -1,22 +1,13 @@
-module.exports = ({ config }) => {
-  const releaseBuild = ['preview', 'production'].includes(process.env.EAS_BUILD_PROFILE)
-    || process.env.RELEASE_BUILD === '1';
+const appConfig = require('./app.json');
 
-  if (releaseBuild) {
-    for (const name of ['EXPO_PUBLIC_API_URL', 'EXPO_PUBLIC_WEB_URL']) {
-      const value = process.env[name];
-      let url;
-      try {
-        url = new URL(value);
-      } catch {
-        throw new Error(`${name} must be a public HTTPS origin for release builds.`);
-      }
-      const isPlaceholder = url.hostname === 'example.com' || url.hostname.endsWith('.example.com');
-      if (url.protocol !== 'https:' || url.origin !== value.replace(/\/$/, '') || url.hostname === 'localhost' || isPlaceholder) {
-        throw new Error(`${name} must be a public HTTPS origin for release builds.`);
-      }
-    }
-  }
-
-  return config;
+module.exports = {
+  ...appConfig,
+  expo: {
+    ...appConfig.expo,
+    android: {
+      ...appConfig.expo.android,
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_JSON || appConfig.expo.android.googleServicesFile,
+    },
+  },
 };
