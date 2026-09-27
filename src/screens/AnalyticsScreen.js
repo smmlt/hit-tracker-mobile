@@ -10,7 +10,7 @@ import { analyticsService } from '../services/analyticsService';
 import { bodyMetricsService } from '../services/bodyMetricsService';
 import { useLibraryStore } from '../stores/libraryStore';
 import { useWorkoutStore } from '../stores/workoutStore';
-import { exerciseName, isUpdatingStatistics, volumeDelta } from '../utils/analytics';
+import { exerciseName, isUpdatingStatistics, summaryVolumeDelta } from '../utils/analytics';
 import { formatMetric, formatMetricDelta, periodToDateRange } from '../utils/bodyMetrics';
 import { createStyles } from './AnalyticsScreen.styles';
 
@@ -122,11 +122,12 @@ export default function AnalyticsScreen({ navigation }) {
   const refresh = () => { void load(true); void loadBodyMetrics(); };
   const number = (value) => Number(value || 0).toLocaleString(locale === 'uk' ? 'uk-UA' : 'en-US', { maximumFractionDigits: 1 });
   const date = (value) => value ? new Date(value).toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-US') : '—';
-  const delta = summary ? volumeDelta(summary.thisWeek.volumeKg, summary.lastWeek.volumeKg) : null;
+  const delta = summary ? summaryVolumeDelta(summary) : null;
   const chartWidth = Math.max(270, width - 84);
   const weekBars = weeks.map((week, index) => ({ value: Number(week.volumeKg) || 0, label: index % 2 === 0 ? week.isoWeekStart.slice(5) : '', frontColor: theme.primary }));
-  const selectedName = selectedExerciseId == null ? '' : exerciseName(exercises, selectedExerciseId, t('exerciseUnknown', { id: selectedExerciseId }));
+  const selectedName = selectedExerciseId == null ? '' : exerciseName(t, exercises, selectedExerciseId, t('exerciseUnknown', { id: selectedExerciseId }));
   const chartSummary = t('analyticsWeeklyChartSummary', { weeks: weeks.length, volume: number(weeks.reduce((total, week) => total + Number(week.volumeKg || 0), 0)) });
+  const progressChartSummary = progress.length ? t('analyticsProgressChartSummary', { count: progress.length, weight: number(progress.at(-1).topSetWeightKg), e1rm: number(progress.at(-1).e1rmKg) }) : '';
 
   return <SafeAreaView style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}>
@@ -158,7 +159,7 @@ export default function AnalyticsScreen({ navigation }) {
         <View style={styles.card}>
           <Text style={styles.heading}>{t('analyticsPersonalRecords')}</Text>
           {records.length ? records.map((record) => {
-            const name = exerciseName(exercises, record.exerciseId, t('exerciseUnknown', { id: record.exerciseId }));
+            const name = exerciseName(t, exercises, record.exerciseId, t('exerciseUnknown', { id: record.exerciseId }));
             return <Pressable key={record.exerciseId} accessibilityRole="button" accessibilityLabel={t('analyticsOpenProgress', { name })} style={styles.record} onPress={() => setSelectedExerciseId(record.exerciseId)}>
               <Text style={styles.recordName}>{name}</Text>
               <Text style={styles.muted}>{number(record.bestWeightKg)} {t('kgShort')} × {record.bestRepsAtWeight} · {date(record.achievedAt)}</Text>
@@ -167,10 +168,10 @@ export default function AnalyticsScreen({ navigation }) {
         </View>
         {selectedExerciseId != null ? <View style={styles.card}>
           <Text style={styles.heading}>{t('analyticsProgress', { name: selectedName })}</Text>
-          {progressLoading ? <ActivityIndicator color={theme.primary} /> : progressError ? <Pressable accessibilityRole="button" accessibilityLabel={t('retry')} onPress={() => setProgressRevision((value) => value + 1)}><Text style={styles.retryText}>{t('analyticsLoadFailed')} {t('retry')}</Text></Pressable> : progress.length ? <>
-            <Text style={styles.muted} accessibilityLabel={t('analyticsProgressChartSummary', { count: progress.length, weight: number(progress.at(-1).topSetWeightKg), e1rm: number(progress.at(-1).e1rmKg) })}>{t('analyticsTopSet')} · {t('analyticsE1rm')} · {progress.length} {t('analyticsSessions')}</Text>
+          {progressLoading ? <ActivityIndicator color={theme.primary} /> : progressError ? <Pressable accessibilityRole="button" accessibilityLabel={t('retry')} onPress={() => setProgressRevision((value) => value + 1)}><Text style={styles.retryText}>{t('analyticsLoadFailed')} {t('retry')}</Text></Pressable> : progress.length ? <View accessible accessibilityLabel={progressChartSummary}>
+            <Text style={styles.muted}>{t('analyticsTopSet')} · {t('analyticsE1rm')} · {progress.length} {t('analyticsSessions')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}><LineChart data={progress.map((point) => ({ value: Number(point.topSetWeightKg) || 0, label: point.date?.slice(5) }))} data2={progress.map((point) => ({ value: Number(point.e1rmKg) || 0 }))} width={Math.max(chartWidth, progress.length * 44)} height={180} color={theme.primary} color2={theme.textSecondary} yAxisTextStyle={{ color: theme.textSecondary }} xAxisLabelTextStyle={{ color: theme.textSecondary }} yAxisColor={theme.border} xAxisColor={theme.border} /></ScrollView>
-          </> : <Text style={styles.muted}>{t('analyticsNoProgress')}</Text>}
+          </View> : <Text style={styles.muted}>{t('analyticsNoProgress')}</Text>}
         </View> : null}</> : null}
       </> : null}
       <Pressable accessibilityRole="button" accessibilityLabel={t('bodyMetricsPreview')} onPress={() => navigation.navigate('BodyMetricsDetails', { period: '7' })} style={styles.card}>

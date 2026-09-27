@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { transformSync } from '@babel/core';
-import { exerciseName, isUpdatingStatistics, volumeDelta } from '../src/utils/analytics.js';
+import { exerciseName, isUpdatingStatistics, summaryVolumeDelta, volumeDelta } from '../src/utils/analytics.js';
 import { translations } from '../src/localization/translations.js';
 
 test('analytics service builds read-model requests and preserves normalized API errors', async () => {
@@ -39,8 +39,19 @@ test('volume delta, update signal, and exercise names cover empty data', () => {
   assert.equal(isUpdatingStatistics(9, { lastWorkout: { workoutId: 8 } }), true);
   assert.equal(isUpdatingStatistics(9, { lastWorkout: { workoutId: 9 } }), false);
   assert.equal(isUpdatingStatistics(null, { lastWorkout: null }), false);
-  assert.equal(exerciseName([{ id: 3, displayName: 'Squat' }], '3', 'Exercise #3'), 'Squat');
-  assert.equal(exerciseName([], 3, 'Exercise #3'), 'Exercise #3');
+  const t = (key) => (key === 'catalog_exercise_squat' ? 'Присідання' : key);
+  assert.equal(exerciseName(t, [{ id: 3, displayName: 'Squat' }], '3', 'Exercise #3'), 'Присідання');
+  assert.equal(exerciseName(t, [{ id: 4, name: 'Bench Press' }], 4, 'Exercise #4'), 'Bench Press');
+  assert.equal(exerciseName(t, [], 3, 'Exercise #3'), 'Exercise #3');
+});
+
+test('summary volume delta prefers the server-computed value and falls back locally', () => {
+  // Newer backend: field present (even when null) wins over the local computation.
+  assert.equal(summaryVolumeDelta({ volumeChangePercent: 12.5, thisWeek: { volumeKg: 999 }, lastWeek: { volumeKg: 1 } }), 12.5);
+  assert.equal(summaryVolumeDelta({ volumeChangePercent: null, thisWeek: { volumeKg: 999 }, lastWeek: { volumeKg: 1 } }), null);
+  // Older backend: field absent, fall back to the local calculation.
+  assert.equal(summaryVolumeDelta({ thisWeek: { volumeKg: 150 }, lastWeek: { volumeKg: 100 } }), 50);
+  assert.equal(summaryVolumeDelta({ thisWeek: { volumeKg: 20 }, lastWeek: { volumeKg: 0 } }), null);
 });
 
 test('analytics strings are localized', () => {
