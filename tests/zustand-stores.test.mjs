@@ -57,6 +57,7 @@ test('workout actions preserve lifecycle and only persist workout data', async (
   assert.deepEqual(Array.from(store.getState().loggedSets, (set) => set.id), [1]);
   await store.getState().finishWorkout('done');
   assert.equal(store.getState().activeWorkout, null);
+  assert.equal(store.getState().lastFinishedWorkoutId, 5);
   assert.equal(store.getState().preparedWorkout, null);
   assert.equal(store.getState().historyRevision, 1);
   assert.deepEqual(paths, ['/workouts/start', '/workouts/5/pause', '/workouts/5/finish']);
@@ -76,6 +77,7 @@ test('persisted workout rehydrates and logout prevents another user seeing it', 
   restarted.getState().reset();
   restarted.getState().setSession(8, 'token-b');
   assert.equal(restarted.getState().activeWorkout, null);
+  assert.equal(restarted.getState().lastFinishedWorkoutId, null);
   assert.equal(restarted.getState().preparedWorkout, null);
   assert.equal(JSON.parse(storageItems.get('workout-state')).state.activeWorkout, null);
   assert.equal(JSON.parse(storageItems.get('workout-state')).state.preparedWorkout, null);

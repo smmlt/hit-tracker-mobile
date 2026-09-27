@@ -1,299 +1,187 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { BubbleChart } from 'react-native-gifted-charts';
-
+import { BarChart, LineChart } from 'react-native-gifted-charts';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
-import { apiFetch } from '../services/api';
+import { analyticsService } from '../services/analyticsService';
 import { bodyMetricsService } from '../services/bodyMetricsService';
+import { useLibraryStore } from '../stores/libraryStore';
+import { useWorkoutStore } from '../stores/workoutStore';
+import { exerciseName, isUpdatingStatistics, volumeDelta } from '../utils/analytics';
 import { formatMetric, formatMetricDelta, periodToDateRange } from '../utils/bodyMetrics';
-import { createStyles } from './AnalyticsScreen.styles.js';
-
-
-const getBestFitLine = (data) => {
-  const n = data.length;
-
-  const sumX = data.reduce((sum, p) => sum + p.x, 0);
-  const sumY = data.reduce((sum, p) => sum + p.y, 0);
-  const sumXY = data.reduce((sum, p) => sum + p.x * p.y, 0);
-  const sumX2 = data.reduce((sum, p) => sum + p.x * p.x, 0);
-
-  const slope =
-    (n * sumXY - sumX * sumY) /
-    (n * sumX2 - sumX * sumX);
-
-  const intercept = (sumY - slope * sumX) / n;
-
-  return { slope, intercept };
-};
+import { createStyles } from './AnalyticsScreen.styles';
 
 export default function AnalyticsScreen({ navigation }) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const { locale, t } = useContext(LanguageContext);
   const { userToken } = useContext(AuthContext);
-
-  const [exerciseIds, setExerciseIds] = useState([]);
+  const exercises = useLibraryStore((state) => state.exercises);
+  const lastFinishedWorkoutId = useWorkoutStore((state) => state.lastFinishedWorkoutId);
+  const { width } = useWindowDimensions();
+  const requestId = useRef(0);
+  const progressRequestId = useRef(0);
+  const delay = useRef(null);
+  const [summary, setSummary] = useState(null);
+  const [weeks, setWeeks] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState(null);
-  const [chartData, setChartData] = useState([]);
-  const [loadingIds, setLoadingIds] = useState(false);
-  const [loadingSets, setLoadingSets] = useState(false);
-  const [error, setError] = useState('');
-  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [progress, setProgress] = useState([]);
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [progressError, setProgressError] = useState(false);
+  const [progressRevision, setProgressRevision] = useState(0);
   const [bodyMetrics, setBodyMetrics] = useState(null);
   const [bodyMetricsLoading, setBodyMetricsLoading] = useState(true);
-  const bodyMetricsRequestId = useRef(0);
-
-  const selectedExercise = useMemo(() => {
-    return exerciseIds.find((item) => item.id === selectedExerciseId || item.exerciseId === selectedExerciseId) || null;
-  }, [exerciseIds, selectedExerciseId]);
-
-  // Refetch on focus so the preview reflects a measurement added on the details screen.
-  useFocusEffect(useCallback(() => {
-    if (!userToken) return undefined;
-    const id = ++bodyMetricsRequestId.current;
-    setBodyMetricsLoading(true);
-    bodyMetricsService.get(userToken, periodToDateRange('7')).then((data) => {
-      if (id === bodyMetricsRequestId.current) setBodyMetrics(data);
-    }).catch(() => {
-      if (id === bodyMetricsRequestId.current) setBodyMetrics(null);
-    }).finally(() => {
-      if (id === bodyMetricsRequestId.current) setBodyMetricsLoading(false);
-    });
-    return () => { bodyMetricsRequestId.current += 1; };
-  }, [userToken]));
+  const [bodyMetricsError, setBodyMetricsError] = useState(false);
 
   useEffect(() => {
-    const loadExerciseIds = async () => {
-      if (!userToken) return;
-
-      setLoadingIds(true);
-      setError('');
-
-      try {
-        const response = await apiFetch('/workouts/exercise-ids', {}, userToken);
-        // console.log(response);
-        if (!response.ok) {
-          throw new Error(response.data?.message || 'Failed to load exercises');
-        }
-
-        const payload = Array.isArray(response.data) ? response.data : (response.data?.exerciseIds || []);
-        console.log(payload)
-        const normalized = payload.map((item) => {
-          if (typeof item === 'object' && item !== null) {
-            return {
-              id: item.id ?? item.exerciseId ?? item.exercise_id,
-              exerciseId: item.exerciseId ?? item.id ?? item.exercise_id,
-              name: item.name ?? item.exerciseName ?? item.title ?? `Exercise ${item.id ?? item.exerciseId ?? item.exercise_id}`,
-            };
-          }
-          return { id: item, exerciseId: item, name: `Exercise ${item}` };
-        });
-
-        setExerciseIds(normalized);
-        if (normalized.length > 0) {
-          setSelectedExerciseId(normalized[0].exerciseId);
-        } else {
-          setSelectedExerciseId(null);
-        }
-      } catch (caught) {
-        setError(caught.message || 'Failed to load exercises');
-      } finally {
-        setLoadingIds(false);
-      }
-    };
-
-    loadExerciseIds();
+    setSummary(null);
+    setWeeks([]);
+    setRecords([]);
+    setSelectedExerciseId(null);
+    setBodyMetrics(null);
   }, [userToken]);
 
-  let maxY = 0
+  const load = useCallback(async (pull = false) => {
+    if (!userToken) return;
+    const id = ++requestId.current;
+    if (delay.current) { clearTimeout(delay.current.timer); delay.current.resolve(); delay.current = null; }
+    if (pull) setRefreshing(true); else setLoading(true);
+    setError(null);
+    try {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const [nextSummary, nextWeeks, nextRecords] = await Promise.all([
+          analyticsService.summary(userToken), analyticsService.weeklyVolume(userToken), analyticsService.personalRecords(userToken),
+        ]);
+        if (id !== requestId.current) return;
+        setSummary(nextSummary);
+        setWeeks(nextWeeks.weeks || []);
+        setRecords(nextRecords.records || []);
+        setProgressRevision((value) => value + 1);
+        const pending = isUpdatingStatistics(lastFinishedWorkoutId, nextSummary);
+        setUpdating(pending);
+        if (!pending || attempt === 2) break;
+        await new Promise((resolve) => { delay.current = { timer: setTimeout(resolve, 700 * (2 ** attempt)), resolve }; });
+        delay.current = null;
+        if (id !== requestId.current) return;
+      }
+    } catch (caught) {
+      if (id === requestId.current) setError(caught);
+    } finally {
+      if (id === requestId.current) { setLoading(false); setRefreshing(false); }
+    }
+  }, [userToken, lastFinishedWorkoutId]);
+
+  const loadBodyMetrics = useCallback(async () => {
+    if (!userToken) return;
+    const id = requestId.current;
+    setBodyMetricsLoading(true);
+    setBodyMetricsError(false);
+    try {
+      const data = await bodyMetricsService.get(userToken, periodToDateRange('7'));
+      if (id === requestId.current) setBodyMetrics(data);
+    } catch {
+      if (id === requestId.current) setBodyMetricsError(true);
+    } finally {
+      if (id === requestId.current) setBodyMetricsLoading(false);
+    }
+  }, [userToken]);
+
+  useFocusEffect(useCallback(() => {
+    void load();
+    void loadBodyMetrics();
+    return () => {
+      requestId.current += 1;
+      progressRequestId.current += 1;
+      if (delay.current) { clearTimeout(delay.current.timer); delay.current.resolve(); delay.current = null; }
+    };
+  }, [load, loadBodyMetrics]));
 
   useEffect(() => {
-    const loadSets = async () => {
-      if (!selectedExerciseId || !userToken) {
-        setChartData([]);
-        return;
-      }
+    if (!selectedExerciseId || !userToken) { setProgress([]); return undefined; }
+    const id = ++progressRequestId.current;
+    setProgressLoading(true);
+    setProgressError(false);
+    analyticsService.exerciseProgress(userToken, selectedExerciseId).then((data) => {
+      if (id === progressRequestId.current) setProgress(data.points || []);
+    }).catch(() => {
+      if (id === progressRequestId.current) setProgressError(true);
+    }).finally(() => {
+      if (id === progressRequestId.current) setProgressLoading(false);
+    });
+    return () => { progressRequestId.current += 1; };
+  }, [selectedExerciseId, userToken, progressRevision]);
 
-      setLoadingSets(true);
-      setError('');
+  const refresh = () => { void load(true); void loadBodyMetrics(); };
+  const number = (value) => Number(value || 0).toLocaleString(locale === 'uk' ? 'uk-UA' : 'en-US', { maximumFractionDigits: 1 });
+  const date = (value) => value ? new Date(value).toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-US') : '—';
+  const delta = summary ? volumeDelta(summary.thisWeek.volumeKg, summary.lastWeek.volumeKg) : null;
+  const chartWidth = Math.max(270, width - 84);
+  const weekBars = weeks.map((week, index) => ({ value: Number(week.volumeKg) || 0, label: index % 2 === 0 ? week.isoWeekStart.slice(5) : '', frontColor: theme.primary }));
+  const selectedName = selectedExerciseId == null ? '' : exerciseName(exercises, selectedExerciseId, t('exerciseUnknown', { id: selectedExerciseId }));
+  const chartSummary = t('analyticsWeeklyChartSummary', { weeks: weeks.length, volume: number(weeks.reduce((total, week) => total + Number(week.volumeKg || 0), 0)) });
 
-      let dataToSet = []
-
-      
-
-      try {
-        const response = await apiFetch(`/workouts/exercise/${selectedExerciseId}/sets`, {}, userToken);
-        if (!response.ok) {
-          throw new Error(response.data?.message || 'Failed to load sets');
-        }
-
-        const rawSets = Array.isArray(response.data) ? response.data : (response.data?.sets || []);
-        const dedupedByWeight = new Map();
-        const dedupedByReps = new Map();
-
-        for (const set of rawSets) {
-          const weight = Number(set.weight ?? 0);
-          const reps = Number(set.reps ?? 0);
-          if (!Number.isFinite(weight) || !Number.isFinite(reps)) continue;
-
-          const byWeightKey = String(weight);
-          const bestByWeight = dedupedByWeight.get(byWeightKey);
-          if (!bestByWeight || reps > Number(bestByWeight.reps)) {
-            dedupedByWeight.set(byWeightKey, { weight, reps });
-          }
-
-          const byRepsKey = String(reps);
-          const bestByReps = dedupedByReps.get(byRepsKey);
-          if (!bestByReps || weight > Number(bestByReps.weight)) {
-            dedupedByReps.set(byRepsKey, { weight, reps });
-          }
-        }
-
-        const points = new Map();
-        Array.from(dedupedByWeight.values()).forEach((row) => {
-          points.set(`${row.weight}-${row.reps}`, { weight: row.weight, reps: row.reps });
-        });
-        Array.from(dedupedByReps.values()).forEach((row) => {
-          points.set(`${row.weight}-${row.reps}`, { weight: row.weight, reps: row.reps });
-        });
-
-        const plotted = Array.from(points.values());
-        // setChartData(plotted.map((row) => ({ x: row.weight, y: row.reps, r: 7 })));
-        dataToSet = plotted.map((row) => ({ x: row.weight, y: row.reps, r: 7 }));
-      } catch (caught) {
-        setError(caught.message || 'Failed to load sets');
-      } finally {
-        setLoadingSets(false);
-      }
-
-      let lineOfBestFit = getBestFitLine(dataToSet);
-      // reps = slope * weight + intercept
-      // therefore weight = (reps - intercept) / slope
-      let oneRepMaxWeight = (1 - lineOfBestFit.intercept) / lineOfBestFit.slope;
-      dataToSet = [...dataToSet, {x: oneRepMaxWeight, y: 1, bubbleColor: '#ffb700', r: 7, label: `1RM*: ${oneRepMaxWeight.toFixed(1)}kg` }];
-
-      maxY = Math.ceil(Math.max(...dataToSet.map(item => item.y)) / 100) * 100 + 100;
-      setChartData(dataToSet);
-    };
-
-   
-
-    
-
-    loadSets();
-  }, [selectedExerciseId, userToken]);
-
-  // const font = useFont(InterRegular, 12);
-
-  console.log(chartData)
-  return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.textPrimary }]}>{t('analytics')}</Text>
-          <Text style={styles.subtitle}>Exercise analytics</Text>
+  return <SafeAreaView style={styles.screen}>
+    <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}>
+      <Text style={styles.title}>{t('analytics')}</Text>
+      {loading && !summary ? <ActivityIndicator accessibilityLabel={t('loading')} color={theme.primary} /> : null}
+      {error ? <View style={styles.card}>
+        <Text style={styles.muted}>{error.status === 503 && error.details?.code === 'ANALYTICS_UNAVAILABLE' ? t('analyticsUnavailable') : t('analyticsLoadFailed')}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('retry')} style={styles.retry} onPress={() => load()}><Text style={styles.retryText}>{t('retry')}</Text></Pressable>
+      </View> : null}
+      {summary && !error ? <>
+        {updating ? <Text style={styles.hint} accessibilityRole="status">{t('analyticsUpdating')}</Text> : null}
+        {summary.lastWorkout ? <View style={styles.card}>
+          <Text style={styles.heading}>{t('analyticsSummary')}</Text>
+          <Text style={styles.large}>{number(summary.thisWeek.volumeKg)} {t('kgShort')}</Text>
+          <Text style={styles.muted}>{t('analyticsThisWeek')} · {summary.thisWeek.workouts} {t('analyticsWorkouts')}</Text>
+          <Text style={styles.muted}>{t('analyticsLastWeek')}: {number(summary.lastWeek.volumeKg)} {t('kgShort')} · {summary.lastWeek.workouts} {t('analyticsWorkouts')}</Text>
+          <Text style={styles.muted}>{delta == null ? t('analyticsNoComparison') : `${delta > 0 ? '+' : ''}${delta}%`}</Text>
+          <Text style={styles.muted}>{t('analyticsStreak', { current: summary.streak.currentDays, longest: summary.streak.longestDays })}</Text>
+          <Text style={styles.muted}>{t('analyticsRecordCount', { count: summary.personalRecordCount })}</Text>
+          <Text style={styles.muted}>{t('analyticsLastWorkout')}: {date(summary.lastWorkout.finishedAt)} · {number(summary.lastWorkout.volumeKg)} {t('kgShort')}</Text>
+        </View> : updating ? null : <View style={styles.card}><Text style={styles.heading}>{t('analyticsEmpty')}</Text><Text style={styles.muted}>{t('analyticsEmptyHint')}</Text></View>}
+        {summary.lastWorkout ? <><View style={styles.card} accessible accessibilityLabel={chartSummary}>
+          <Text style={styles.heading}>{t('analyticsWeeklyVolume')}</Text>
+          <Text style={styles.muted}>{chartSummary}</Text>
+          {weekBars.some((bar) => bar.value > 0) ? <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <BarChart data={weekBars} width={chartWidth} barWidth={16} spacing={12} height={170} yAxisTextStyle={{ color: theme.textSecondary }} xAxisLabelTextStyle={{ color: theme.textSecondary }} yAxisColor={theme.border} xAxisColor={theme.border} noOfSections={4} />
+          </ScrollView> : <Text style={styles.muted}>{t('analyticsNoWeeklyVolume')}</Text>}
         </View>
-
-        <Pressable accessibilityRole="button" accessibilityLabel={t('bodyMetricsPreview')} onPress={() => navigation.navigate('BodyMetricsDetails', { period: '7' })} style={styles.bodyMetricsCard}>
-          <View style={styles.bodyMetricsHeader}>
-            <Text style={styles.bodyMetricsTitle}>{t('bodyMetricsPreview')}</Text>
-            <Text style={styles.bodyMetricsLink}>{t('bodyMetrics')}</Text>
-          </View>
-          {bodyMetricsLoading ? <Text style={styles.bodyMetricsMuted}>{t('loading')}</Text> : (
-            <View style={styles.bodyMetricsGrid}>
-              {[
-                ['weight', 'bodyMetricsWeight'],
-                ['bodyFatPercentage', 'bodyMetricsFat'],
-                ['muscleMass', 'bodyMetricsMuscle'],
-                ['waistCircumference', 'bodyMetricsWaist'],
-              ].map(([key, labelKey]) => {
-                const item = bodyMetrics?.metrics?.[key];
-                return <View key={key} style={styles.bodyMetricsItem}>
-                  <Text style={styles.bodyMetricsLabel}>{t(labelKey)}</Text>
-                  <Text style={styles.bodyMetricsValue}>{item?.latest ? formatMetric(item.latest.value, key, locale, t) : '—'}</Text>
-                  <Text style={styles.bodyMetricsDelta}>{item?.change === null || item?.change === undefined ? '—' : formatMetricDelta(item.change, key, locale, t)}</Text>
-                </View>;
-              })}
-            </View>
-          )}
-        </Pressable>
-
-        <View style={styles.selectorWrap}>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Exercise analytics selector"
-            activeOpacity={0.9}
-            style={styles.dropdownButton}
-            onPress={() => setDropdownVisible((visible) => !visible)}
-          >
-            <Text style={styles.dropdownButtonText}>
-              {selectedExercise?.name || (loadingIds ? 'Loading exercises...' : 'Select exercise')}
-            </Text>
-          </TouchableOpacity>
-
-          {dropdownVisible && (
-            <View style={styles.dropdownList}>
-              {exerciseIds.map((exercise) => (
-                <TouchableOpacity
-                  key={exercise.exerciseId ?? exercise.id}
-                  activeOpacity={0.85}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedExerciseId(exercise.exerciseId ?? exercise.id);
-                    setDropdownVisible(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{exercise.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+        <View style={styles.card}>
+          <Text style={styles.heading}>{t('analyticsPersonalRecords')}</Text>
+          {records.length ? records.map((record) => {
+            const name = exerciseName(exercises, record.exerciseId, t('exerciseUnknown', { id: record.exerciseId }));
+            return <Pressable key={record.exerciseId} accessibilityRole="button" accessibilityLabel={t('analyticsOpenProgress', { name })} style={styles.record} onPress={() => setSelectedExerciseId(record.exerciseId)}>
+              <Text style={styles.recordName}>{name}</Text>
+              <Text style={styles.muted}>{number(record.bestWeightKg)} {t('kgShort')} × {record.bestRepsAtWeight} · {date(record.achievedAt)}</Text>
+            </Pressable>;
+          }) : <Text style={styles.muted}>{t('analyticsNoRecords')}</Text>}
         </View>
-
-        <View style={styles.chartCard}>
-          <Text style={styles.chartTitle}>
-            {selectedExercise?.name ? `${selectedExercise.name} sets` : 'Set chart'}
-          </Text>
-          {loadingIds || loadingSets ? (
-            <Text style={styles.loadingText}>Loading...</Text>
-          ) : error ? (
-            <Text style={styles.emptyText}>{error}</Text>
-          ) : chartData.length === 0 ? (
-            <Text style={styles.emptyText}>No set data available</Text>
-          ) : (
-            <View style={styles.chartFrame}>
-              <Text style={styles.yAxisTitle}>Reps</Text>
-              <BubbleChart
-                data={chartData}
-                scatterChart
-                height={250}
-                width={400}
-                endSpacing={20}
-                yNoOfSections={5}
-                xNoOfSections={5}
-                
-                yAxisColor={theme.border}
-                xAxisColor={theme.border}
-                rulesColor={theme.border}
-                yAxisTextStyle={{ color: theme.textSecondary }}
-                xAxisLabelTextStyle={{ color: theme.textSecondary }}
-                bubblesColor={theme.primary}
-                formatXLabel={(label) => String(label)}
-                formatYLabel={(label) => String(label)}
-                // maxValue={maxY}
-                // yAxisOffset={0}
-                // xAxisOffset={0}
-                labelTextStyle={{ color: 'white' }}
-              />
-              <Text style={styles.xAxisTitle}>Weight</Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+        {selectedExerciseId != null ? <View style={styles.card}>
+          <Text style={styles.heading}>{t('analyticsProgress', { name: selectedName })}</Text>
+          {progressLoading ? <ActivityIndicator color={theme.primary} /> : progressError ? <Pressable accessibilityRole="button" accessibilityLabel={t('retry')} onPress={() => setProgressRevision((value) => value + 1)}><Text style={styles.retryText}>{t('analyticsLoadFailed')} {t('retry')}</Text></Pressable> : progress.length ? <>
+            <Text style={styles.muted} accessibilityLabel={t('analyticsProgressChartSummary', { count: progress.length, weight: number(progress.at(-1).topSetWeightKg), e1rm: number(progress.at(-1).e1rmKg) })}>{t('analyticsTopSet')} · {t('analyticsE1rm')} · {progress.length} {t('analyticsSessions')}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}><LineChart data={progress.map((point) => ({ value: Number(point.topSetWeightKg) || 0, label: point.date?.slice(5) }))} data2={progress.map((point) => ({ value: Number(point.e1rmKg) || 0 }))} width={Math.max(chartWidth, progress.length * 44)} height={180} color={theme.primary} color2={theme.textSecondary} yAxisTextStyle={{ color: theme.textSecondary }} xAxisLabelTextStyle={{ color: theme.textSecondary }} yAxisColor={theme.border} xAxisColor={theme.border} /></ScrollView>
+          </> : <Text style={styles.muted}>{t('analyticsNoProgress')}</Text>}
+        </View> : null}</> : null}
+      </> : null}
+      <Pressable accessibilityRole="button" accessibilityLabel={t('bodyMetricsPreview')} onPress={() => navigation.navigate('BodyMetricsDetails', { period: '7' })} style={styles.card}>
+        <Text style={styles.heading}>{t('bodyMetricsPreview')}</Text>
+        {bodyMetricsLoading ? <Text style={styles.muted}>{t('loading')}</Text> : bodyMetricsError ? <Text style={styles.muted}>{t('bodyMetricsLoadFailed')}</Text> : <View style={styles.metricsGrid}>
+          {[['weight', 'bodyMetricsWeight'], ['bodyFatPercentage', 'bodyMetricsFat'], ['muscleMass', 'bodyMetricsMuscle'], ['waistCircumference', 'bodyMetricsWaist']].map(([key, label]) => {
+            const metric = bodyMetrics?.metrics?.[key];
+            return <View key={key} style={styles.metric}><Text style={styles.muted}>{t(label)}</Text><Text style={styles.metricValue}>{metric?.latest ? formatMetric(metric.latest.value, key, locale, t) : '—'}</Text><Text style={styles.muted}>{metric?.change == null ? '—' : formatMetricDelta(metric.change, key, locale, t)}</Text></View>;
+          })}
+        </View>}
+      </Pressable>
+    </ScrollView>
+  </SafeAreaView>;
 }
