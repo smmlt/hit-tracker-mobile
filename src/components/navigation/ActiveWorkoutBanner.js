@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { Animated, View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { WorkoutContext } from '../../context/WorkoutContext';
+import { useWorkout } from '../../context/WorkoutContext';
+import { useShallow } from 'zustand/react/shallow';
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 import { translateCatalogName } from '../../localization/catalog';
@@ -10,7 +11,7 @@ import { createStyles } from './ActiveWorkoutBanner.styles.js';
 export function ActiveWorkoutBanner({ navigation: tabNavigation }) {
   const fallbackNavigation = useNavigation();
   const navigation = tabNavigation || fallbackNavigation;
-  const { activeWorkout, preparedWorkout } = useContext(WorkoutContext);
+  const { activeWorkout, preparedWorkout } = useWorkout(useShallow((state) => ({ activeWorkout: state.activeWorkout, preparedWorkout: state.preparedWorkout })));
   const { t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const styles = createStyles(theme);

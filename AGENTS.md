@@ -7,7 +7,7 @@ Scope: the Expo SDK 57 / React Native application for web, Android, and iOS. Use
 - Entry/composition is `index.js` → `App.js` providers → `src/navigation/AppNavigator.js`.
 - Screen orchestration belongs in `src/screens/`; reusable UI belongs in `src/components/<domain>/`; shared behavior belongs in `src/hooks/`, `src/services/`, `src/utils/`, and contexts.
 - The project is organized around screens/components, not a `features/` tree. Do not introduce a parallel feature architecture for one task.
-- Global state is held by `AuthContext`, `WorkoutContext`, `LibraryContext`, `ThemeContext`, and `LanguageContext`. Keep local UI/form state on the screen unless multiple consumers need it.
+- Auth, theme, and language stay in `AuthContext`, `ThemeContext`, and `LanguageContext`; workout and library state live in `src/stores/` with Zustand. Keep local UI/form state on the screen unless multiple consumers need it.
 
 ## Navigation and user flows
 

@@ -15,7 +15,7 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
     const styles = createStyles(theme);
     const s = useWorkshopStyles();
     const { userToken, userData } = useContext(AuthContext);
-    const library = useLibrary();
+    const library = useLibrary(['exercises', 'errors', 'refresh']);
     const w = useWords();
 
     const [name, setName] = useState(program?.name || initialValues?.name || "");

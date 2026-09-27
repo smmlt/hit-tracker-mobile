@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './ProgramDetailsScreen.styles.js';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../context/AuthContext';
-import { WorkoutContext } from '../context/WorkoutContext';
+import { useWorkout } from '../context/WorkoutContext';
+import { useShallow } from 'zustand/react/shallow';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch, apiRequest } from '../services/api';
@@ -18,7 +19,7 @@ export default function ProgramDetailsScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { assignment } = route.params;
   const { userToken } = useContext(AuthContext);
-  const { prepareWorkout, activeWorkout } = useContext(WorkoutContext);
+  const { prepareWorkout, activeWorkout } = useWorkout(useShallow((state) => ({ prepareWorkout: state.prepareWorkout, activeWorkout: state.activeWorkout })));
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';

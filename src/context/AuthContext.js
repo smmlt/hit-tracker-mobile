@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { authService } from '../services/authService';
 import { apiFetch } from '../services/api';
+import { useWorkoutStore } from '../stores/workoutStore';
+import { useLibraryStore } from '../stores/libraryStore';
 import {
   refreshAccessToken,
   setRefreshHandler,
@@ -29,18 +31,25 @@ export const AuthProvider = ({ children }) => {
 
   const saveAuthToken = useCallback(async (token) => {
     await persistAuthToken(token);
+    useWorkoutStore.getState().reset();
+    useLibraryStore.getState().setSession(null, null);
     setUserToken(token);
   }, []);
 
   const clearAuth = useCallback(async () => {
     sessionEpoch.current += 1;
-    await Promise.all([
-      removeAuthToken(),
-      removeRefreshToken(),
-      AsyncStorage.removeItem('userData'),
-    ]);
-    setUserToken(null);
-    setUserData(null);
+    useWorkoutStore.getState().reset();
+    useLibraryStore.getState().setSession(null, null);
+    try {
+      await Promise.all([
+        removeAuthToken(),
+        removeRefreshToken(),
+        AsyncStorage.removeItem('userData'),
+      ]);
+    } finally {
+      setUserToken(null);
+      setUserData(null);
+    }
   }, []);
 
   const applySession = useCallback(async (data) => {
@@ -52,6 +61,10 @@ export const AuthProvider = ({ children }) => {
         ? AsyncStorage.setItem('userData', JSON.stringify(data.user))
         : Promise.resolve(),
     ]);
+    if (data.user && useWorkoutStore.persist.hasHydrated() && useWorkoutStore.getState().userId !== data.user.id) {
+      useWorkoutStore.getState().reset();
+      useLibraryStore.getState().setSession(null, null);
+    }
     setUserToken(accessToken);
     if (data.user) setUserData(data.user);
     return accessToken;
@@ -236,11 +249,14 @@ export const AuthProvider = ({ children }) => {
     sessionEpoch.current += 1;
     try {
       await authService.logout(await loadRefreshToken());
-      await clearAuth();
     } catch (error) {
       console.error('Failed to revoke the session during logout:', error);
     } finally {
-      setIsLoading(false);
+      try {
+        await clearAuth();
+      } finally {
+        setIsLoading(false);
+      }
     }
   }, [clearAuth]);
 

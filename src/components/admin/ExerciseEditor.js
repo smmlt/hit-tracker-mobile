@@ -11,7 +11,7 @@ import { contentMediaService } from "../../services/contentMediaService";
 export function ExerciseEditor({ exercise, onClose }) {
   const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
-  const library = useLibrary();
+  const library = useLibrary(['muscles', 'errors', 'refresh']);
   const w = useWords();
   const [name, setName] = useState(exercise?.name || "");
   const [description, setDescription] = useState(exercise?.description || "");

@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { WorkoutContext } from '../context/WorkoutContext';
+import { useWorkout } from '../context/WorkoutContext';
+import { useShallow } from 'zustand/react/shallow';
 import { apiFetch } from '../services/api';
 
 export function useActiveWorkout(navigation, showToast) {
@@ -12,7 +13,14 @@ export function useActiveWorkout(navigation, showToast) {
     startWorkout: contextStartWorkout,
     finishWorkout: contextFinishWorkout,
     isLoading: contextLoading,
-  } = useContext(WorkoutContext);
+  } = useWorkout(useShallow((state) => ({
+    activeWorkout: state.activeWorkout,
+    loggedSets: state.loggedSets,
+    setLoggedSets: state.setLoggedSets,
+    startWorkout: state.startWorkout,
+    finishWorkout: state.finishWorkout,
+    isLoading: state.isLoading,
+  })));
 
   const workoutId = activeWorkout?.id || null;
 

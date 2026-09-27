@@ -3,7 +3,8 @@ import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useLibrary } from "../context/LibraryContext";
-import { WorkoutContext } from "../context/WorkoutContext";
+import { useWorkout } from "../context/WorkoutContext";
+import { useShallow } from 'zustand/react/shallow';
 import { LanguageContext } from "../localization/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { ExerciseVideoPlayer } from "../components/media";
@@ -26,7 +27,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   const w = useWords();
   const { t } = useContext(LanguageContext);
   const { addWorkoutExercises, preparedWorkout, activeWorkout } =
-    useContext(WorkoutContext);
+    useWorkout(useShallow((state) => ({ addWorkoutExercises: state.addWorkoutExercises, preparedWorkout: state.preparedWorkout, activeWorkout: state.activeWorkout })));
   const [error, setError] = useState("");
   const [videoFailed, setVideoFailed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -137,7 +138,7 @@ export default function ExerciseDetailsScreen({ navigation, route }) {
   const s = useWorkshopStyles();
   const tabBarHeight = useBottomTabBarHeight();
   const w = useWords();
-  const library = useLibrary();
+  const library = useLibrary(['exercises', 'errors', 'loading', 'refresh']);
   const exercise = library.exercises.find(
     (item) => item.id === Number(route.params?.exerciseId),
   );

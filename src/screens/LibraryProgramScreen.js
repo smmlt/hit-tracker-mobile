@@ -3,7 +3,8 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { AuthContext } from "../context/AuthContext";
-import { WorkoutContext } from "../context/WorkoutContext";
+import { useWorkout } from "../context/WorkoutContext";
+import { useShallow } from 'zustand/react/shallow';
 import { useLibrary } from "../context/LibraryContext";
 import { apiRequest } from "../services/api";
 import { programDifficulty, programExercises } from "../utils/library";
@@ -32,7 +33,7 @@ export function ProgramDetailsContent({ program, onExercise, onEdit, showProgram
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const s = useWorkshopStyles();
-  const library = useLibrary();
+  const library = useLibrary(['exercises']);
   const w = useWords();
   const schedule = (program.schedule || []).map((row) => ({
     ...row,
@@ -97,8 +98,8 @@ export default function LibraryProgramScreen({ navigation, route }) {
   const s = useWorkshopStyles();
   const tabBarHeight = useBottomTabBarHeight();
   const { userToken, userData } = useContext(AuthContext);
-  const { addWorkoutExercises, activeWorkout } = useContext(WorkoutContext);
-  const library = useLibrary();
+  const { addWorkoutExercises, activeWorkout } = useWorkout(useShallow((state) => ({ addWorkoutExercises: state.addWorkoutExercises, activeWorkout: state.activeWorkout })));
+  const library = useLibrary(['exercises', 'errors']);
   const w = useWords();
   const { t } = useContext(LanguageContext);
   const id = Number(route.params?.programId);
