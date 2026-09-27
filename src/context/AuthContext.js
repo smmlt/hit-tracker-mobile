@@ -252,6 +252,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to revoke the session during logout:', error);
     } finally {
+      // Always clear local auth/store state even if the server-side revoke above failed
+      // (e.g. offline): leaving stale tokens/workout data on this device so the user stays
+      // "logged in" is worse than a session that outlives its (already best-effort) server logout.
       try {
         await clearAuth();
       } finally {

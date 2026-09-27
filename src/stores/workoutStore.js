@@ -12,6 +12,10 @@ const initial = {
   historyRevision: 0,
   userId: null,
   userToken: null,
+  // Not persisted (see partialize below): true once checkActiveWorkout has settled for the
+  // current session, so UI can avoid flashing a stale rehydrated activeWorkout before the
+  // server has confirmed whether it is still active.
+  activeVerified: false,
 };
 let generation = 0;
 let activeCheck = 0;
@@ -24,7 +28,7 @@ export const useWorkoutStore = create(persist((set, get) => ({
       generation++;
       activeCheck++;
       set({ ...initial, userId, userToken });
-    } else if (get().userToken !== userToken) set({ userToken });
+    } else if (get().userToken !== userToken) set({ userToken, activeVerified: false });
   },
   reset: () => {
     generation++;
@@ -53,7 +57,9 @@ export const useWorkoutStore = create(persist((set, get) => ({
     } catch (error) {
       console.error('Error checking active workout:', error);
     } finally {
-      if (current === generation && request === activeCheck) set({ isLoading: false });
+      // Mark verified on both success and failure so gated UI (e.g. the active-workout banner)
+      // stops waiting; a stale/superseded call (guarded below) must not verify the new session.
+      if (current === generation && request === activeCheck) set({ isLoading: false, activeVerified: true });
     }
   },
   startWorkout: async (type = 'HIT Session', scheduleId = null, prepared = null) => {
@@ -155,12 +161,16 @@ export const useWorkoutStore = create(persist((set, get) => ({
   addWorkoutExercises: async (items, title = 'Workout', programId = null) => {
     const { activeWorkout, preparedWorkout, userToken } = get();
     const current = generation;
+    // Read activeCheck without bumping it: a finish/cancel/start (which do bump it) must be able
+    // to cancel this pending restore, but this restore must not cancel unrelated concurrent reads
+    // (e.g. an in-flight checkActiveWorkout) just because it also touches the workout store.
+    const request = activeCheck;
     let restored = null;
     if (!preparedWorkout && activeWorkout?.programId) {
       const program = await apiRequest(`/workout-programs/${activeWorkout.programId}`, {}, userToken);
-      if (current !== generation) return;
       restored = { title: program.name, programId: program.id, exercises: programExercises(program) };
     }
+    if (current !== generation || request !== activeCheck) return;
     set((state) => {
       const base = state.preparedWorkout || restored || { title: state.activeWorkout?.type || title, exercises: [] };
       return { preparedWorkout: { ...base, programId: base.programId || programId || null, exercises: mergeWorkoutExercises(base.exercises || [], items) } };

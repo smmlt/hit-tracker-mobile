@@ -126,6 +126,92 @@ test('late active lookup cannot erase a newly started workout', async () => {
   assert.equal(store.getState().activeWorkout.id, 5);
 });
 
+test('addWorkoutExercises resolving after finish/cancel does not resurrect preparedWorkout', async () => {
+  storageItems.clear();
+  let finishProgramLookup;
+  const api = {
+    apiFetch: async (path) => {
+      if (path.endsWith('/finish')) return { ok: true, data: { workout: { id: 5 } } };
+      if (path.endsWith('/cancel')) return { ok: true, data: null };
+      return { ok: true, data: null };
+    },
+    apiRequest: (path) => path.startsWith('/workout-programs/')
+      ? new Promise((resolve) => { finishProgramLookup = resolve; })
+      : Promise.resolve({}),
+  };
+  const { useWorkoutStore: store } = loadStore('workoutStore.js', api);
+  store.getState().setSession(7, 'token');
+  store.getState().setActiveWorkout({ id: 5, status: 'active', programId: 3 });
+
+  const addition = store.getState().addWorkoutExercises([{ id: 9, sets: 1 }]);
+  assert.equal(store.getState().preparedWorkout, null);
+  await store.getState().finishWorkout('done');
+  assert.equal(store.getState().activeWorkout, null);
+  assert.equal(store.getState().preparedWorkout, null);
+
+  finishProgramLookup({ id: 3, name: 'Legs', schedule: [] });
+  await addition;
+  assert.equal(store.getState().preparedWorkout, null);
+
+  const persisted = JSON.parse(storageItems.get('workout-state'));
+  assert.equal(persisted.state.preparedWorkout, null);
+});
+
+test('addWorkoutExercises resolving after cancelWorkout does not resurrect preparedWorkout', async () => {
+  storageItems.clear();
+  let finishProgramLookup;
+  const api = {
+    apiFetch: async () => ({ ok: true, data: null }),
+    apiRequest: (path) => path.startsWith('/workout-programs/')
+      ? new Promise((resolve) => { finishProgramLookup = resolve; })
+      : Promise.resolve({}),
+  };
+  const { useWorkoutStore: store } = loadStore('workoutStore.js', api);
+  store.getState().setSession(7, 'token');
+  store.getState().setActiveWorkout({ id: 5, status: 'active', programId: 3 });
+
+  const addition = store.getState().addWorkoutExercises([{ id: 9, sets: 1 }]);
+  await store.getState().cancelWorkout();
+  assert.equal(store.getState().activeWorkout, null);
+  assert.equal(store.getState().preparedWorkout, null);
+
+  finishProgramLookup({ id: 3, name: 'Legs', schedule: [] });
+  await addition;
+  assert.equal(store.getState().preparedWorkout, null);
+});
+
+test('activeVerified is unpersisted and only settles once checkActiveWorkout finishes', async () => {
+  storageItems.clear();
+  let resolveLookup;
+  let rejectLookup;
+  const api = {
+    apiFetch: (path) => path === '/workouts/active'
+      ? new Promise((resolve, reject) => { resolveLookup = resolve; rejectLookup = reject; })
+      : Promise.resolve({ ok: true, data: null }),
+    apiRequest: async () => ({}),
+  };
+  const { useWorkoutStore: store } = loadStore('workoutStore.js', api);
+
+  store.getState().setSession(7, 'token');
+  assert.equal(store.getState().activeVerified, false);
+
+  const first = store.getState().checkActiveWorkout();
+  assert.equal(store.getState().activeVerified, false);
+  resolveLookup({ ok: true, data: { workout: { id: 1, status: 'active' } } });
+  await first;
+  assert.equal(store.getState().activeVerified, true);
+  assert.equal(JSON.parse(storageItems.get('workout-state')).state.activeVerified, undefined);
+
+  // Re-authenticating (even same-ish session churn) must re-gate the UI until re-verified.
+  store.getState().setSession(7, 'token-b');
+  assert.equal(store.getState().activeVerified, false);
+
+  const second = store.getState().checkActiveWorkout();
+  rejectLookup(new Error('network down'));
+  await second;
+  assert.equal(store.getState().activeVerified, true);
+});
+
 test('library refresh and reaction update only the matching item', async () => {
   const store = loadStore('libraryStore.js', {
     apiRequest: async (path) => {
