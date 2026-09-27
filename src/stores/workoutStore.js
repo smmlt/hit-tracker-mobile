@@ -10,6 +10,7 @@ const initial = {
   preparedWorkout: null,
   isLoading: false,
   historyRevision: 0,
+  lastFinishedWorkoutId: null,
   userId: null,
   userToken: null,
   // Not persisted (see partialize below): true once checkActiveWorkout has settled for the
@@ -106,7 +107,7 @@ export const useWorkoutStore = create(persist((set, get) => ({
       const res = await apiFetch(`/workouts/${activeWorkout.id}/finish`, { method: 'POST', body: JSON.stringify({ notes: notes || '' }) }, userToken);
       if (current !== generation) return false;
       if (res.ok) {
-        set((state) => ({ activeWorkout: null, loggedSets: [], preparedWorkout: null, historyRevision: state.historyRevision + 1 }));
+        set((state) => ({ activeWorkout: null, loggedSets: [], preparedWorkout: null, historyRevision: state.historyRevision + 1, lastFinishedWorkoutId: activeWorkout.id }));
         return res.data?.workout || true;
       }
     } catch (error) {
