@@ -1,13 +1,13 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Animated, AppState, Easing, Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext, AuthProvider } from './src/context/AuthContext';
-import { WorkoutProvider } from './src/context/WorkoutContext';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/localization/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
-import { LibraryProvider } from './src/context/LibraryContext';
+import { useWorkoutStore } from './src/stores/workoutStore';
+import { useLibraryStore } from './src/stores/libraryStore';
 import { palette } from './src/constants/colors';
 import { useFonts } from 'expo-font';
 
@@ -41,11 +41,7 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <LanguageProvider>
-          <WorkoutProvider>
-            <LibraryProvider>
-              <AppContent fontsReady={fontsLoaded || Boolean(fontError)} />
-            </LibraryProvider>
-          </WorkoutProvider>
+          <AppContent fontsReady={fontsLoaded || Boolean(fontError)} />
         </LanguageProvider>
       </ThemeProvider>
     </AuthProvider>
@@ -53,10 +49,45 @@ export default function App() {
 }
 
 function AppContent({ fontsReady }) {
-  const { isInitializing } = useContext(AuthContext);
+  const { isInitializing, userToken, userData } = useContext(AuthContext);
+  const [storesReady, setStoresReady] = useState(false);
+  const activeId = useWorkoutStore((state) => state.activeWorkout?.id);
+  const activeStatus = useWorkoutStore((state) => state.activeWorkout?.status);
+  const hydration = useRef(null);
   const nativeSplashHidden = useRef(false);
   const [animationStarted, setAnimationStarted] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false);
+
+  useEffect(() => {
+    if (isInitializing) return;
+    let cancelled = false;
+    const sync = async () => {
+      hydration.current ||= useWorkoutStore.persist.rehydrate();
+      await hydration.current;
+      if (cancelled) return;
+      const userId = userToken ? userData?.id ?? null : null;
+      if (!userId || useWorkoutStore.getState().userId !== userId) useWorkoutStore.getState().reset();
+      useWorkoutStore.getState().setSession(userId, userToken);
+      useLibraryStore.getState().setSession(userId, userToken);
+      setStoresReady(true);
+      if (userToken) void useWorkoutStore.getState().checkActiveWorkout();
+    };
+    void sync();
+    return () => { cancelled = true; };
+  }, [isInitializing, userToken, userData?.id]);
+
+  useEffect(() => {
+    if (!storesReady || !userToken || !activeId || activeStatus !== 'active') return undefined;
+    const heartbeat = () => {
+      if (AppState.currentState === 'active') void useWorkoutStore.getState().heartbeatActiveWorkout();
+    };
+    heartbeat();
+    const interval = setInterval(heartbeat, 5 * 60_000);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') heartbeat();
+    });
+    return () => { clearInterval(interval); subscription.remove(); };
+  }, [activeId, activeStatus, storesReady, userToken]);
 
   const handleBrandLayout = useCallback(() => {
     if (nativeSplashHidden.current) return;
@@ -67,10 +98,10 @@ function AppContent({ fontsReady }) {
   const handleAnimationComplete = useCallback(() => setAnimationComplete(true), []);
 
   if (Platform.OS === 'web') {
-    return fontsReady ? <AppNavigator /> : null;
+    return fontsReady && storesReady && !isInitializing ? <AppNavigator /> : null;
   }
 
-  if (fontsReady && animationComplete && !isInitializing) {
+  if (fontsReady && animationComplete && !isInitializing && storesReady) {
     return <AppNavigator />;
   }
 

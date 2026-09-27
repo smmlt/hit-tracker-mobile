@@ -32,7 +32,7 @@ export function ProgramBadges({ program }) {
 export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
   const w = useWords();
   const s = useWorkshopStyles();
-  const library = useLibrary();
+  const library = useLibrary(['react']);
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const Heart = program.isLiked ? HeartFilled : HeartOutline;

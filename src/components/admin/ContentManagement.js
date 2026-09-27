@@ -12,7 +12,7 @@ import { styles } from './ContentManagement.styles';
 
 export function ContentManagement({ section }) {
   const s = useWorkshopStyles();
-  const library = useLibrary();
+  const library = useLibrary(['exercises', 'programs', 'muscles', 'errors', 'loading', 'refresh']);
   const w = useWords();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");

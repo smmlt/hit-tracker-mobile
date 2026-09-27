@@ -10,7 +10,7 @@ const localDate = (date) =>
 export function ScheduleProgramSheet({ program, onClose, onSaved }) {
   const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
-  const library = useLibrary();
+  const library = useLibrary(['refresh']);
   const w = useWords();
   const [date, setDate] = useState(localDate(new Date()));
   const [weekly, setWeekly] = useState(true);

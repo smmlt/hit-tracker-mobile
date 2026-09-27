@@ -20,7 +20,7 @@ export function ExerciseItem({
   children,
 }) {
   const [open, setOpen] = useState(false);
-  const library = useLibrary();
+  const library = useLibrary(['exercises']);
   const w = useWords();
   const { theme } = useTheme();
   const styles = createStyles(theme);
