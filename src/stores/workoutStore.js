@@ -28,7 +28,7 @@ export const useWorkoutStore = create(persist((set, get) => ({
       generation++;
       activeCheck++;
       set({ ...initial, userId, userToken });
-    } else if (get().userToken !== userToken) set({ userToken, activeVerified: false });
+    } else if (get().userToken !== userToken) set({ userToken });
   },
   reset: () => {
     generation++;

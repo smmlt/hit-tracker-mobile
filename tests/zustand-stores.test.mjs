@@ -202,8 +202,13 @@ test('activeVerified is unpersisted and only settles once checkActiveWorkout fin
   assert.equal(store.getState().activeVerified, true);
   assert.equal(JSON.parse(storageItems.get('workout-state')).state.activeVerified, undefined);
 
-  // Re-authenticating (even same-ish session churn) must re-gate the UI until re-verified.
+  // A same-user access-token refresh (e.g. the ~5-minute refresh timer) must not re-hide the
+  // banner: it is still the same verified session, just a new token.
   store.getState().setSession(7, 'token-b');
+  assert.equal(store.getState().activeVerified, true);
+
+  // A different user (real session change) must re-gate the UI until re-verified.
+  store.getState().setSession(8, 'token-c');
   assert.equal(store.getState().activeVerified, false);
 
   const second = store.getState().checkActiveWorkout();
