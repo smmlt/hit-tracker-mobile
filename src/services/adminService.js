@@ -1,4 +1,5 @@
 import { apiRequest } from './api';
+import { normalizeObservability } from '../utils/adminObservability';
 
 export const adminService = {
   listUsers: ({ search, page, online }, token) => apiRequest(
@@ -18,6 +19,9 @@ export const adminService = {
     token,
     'Could not load user activity',
   ),
+  getObservability: async (token) => normalizeObservability(await apiRequest(
+    '/admin/observability', {}, token, 'Could not load system status',
+  )),
   updateRole: (id, role, token) => apiRequest(`/admin/users/${id}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),

@@ -8,6 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 import { LanguageContext } from "../localization/LanguageContext";
 import { ContentManagement } from "../components/admin/ContentManagement";
 import { AdminUserDetails } from "../components/admin/AdminUserDetails";
+import { AdminObservability } from "../components/admin/AdminObservability";
 import { ConfirmDialog } from "../components/feedback";
 import { Button, Feedback, Field, Sheet, useWorkshopStyles } from "../components/workshop/ui";
 import { useTheme } from "../context/ThemeContext";
@@ -57,7 +58,7 @@ export default function AdminScreen({ navigation }) {
   const canUsers = ["admin", "super_admin"].includes(verifiedRole);
   const isSuper = verifiedRole === "super_admin";
   const sections = canUsers
-    ? ["users", "programs", "exercises"]
+    ? ["users", "system", "programs", "exercises"]
     : ["programs", "exercises"];
   const verifyAccess = useCallback(async () => {
     setAccessState("checking");
@@ -74,7 +75,7 @@ export default function AdminScreen({ navigation }) {
     verifyAccess();
   }, [verifyAccess]);
   useEffect(() => {
-    if (!canUsers && section === "users") setSection("programs");
+    if (!canUsers && ["users", "system"].includes(section)) setSection("programs");
   }, [canUsers, section]);
   const loadUsers = useCallback(
     async (targetPage = 1) => {
@@ -327,6 +328,8 @@ export default function AdminScreen({ navigation }) {
               </Button>
             </View>
           </View>
+        ) : section === "system" ? (
+          <AdminObservability userToken={userToken} />
         ) : (
           <ContentManagement key={section} section={section} />
         )}
