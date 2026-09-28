@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+$env:NODE_ENV = 'production'
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $workspaceRoot = Split-Path -Parent $projectRoot
@@ -66,6 +67,16 @@ if (-not (Test-Path $gradle)) {
 
 $appGradle = Join-Path $projectRoot 'android\app\build.gradle'
 $appGradleContent = Get-Content $appGradle -Raw
+$appGradleContent = [regex]::Replace(
+    $appGradleContent,
+    '(?m)^(\s*)versionCode\s+\d+\s*$',
+    "`$1versionCode $versionCode"
+)
+$appGradleContent = [regex]::Replace(
+    $appGradleContent,
+    '(?m)^(\s*)versionName\s+\"[^\"]+\"\s*$',
+    "`$1versionName `"$version`""
+)
 if (-not $appGradleContent.Contains('buildStagingDirectory')) {
     $cmakeConfig = @'
     externalNativeBuild {
