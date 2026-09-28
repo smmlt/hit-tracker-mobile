@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
-import { WorkoutContext } from '../context/WorkoutContext';
+import { useWorkout } from '../context/WorkoutContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { HistoryCard } from '../components/workout';
@@ -38,7 +38,7 @@ const EMPTY_SELECTION = { start: null, end: null };
 
 export default function HistoryScreen({ navigation }) {
   const { userToken } = useContext(AuthContext);
-  const { historyRevision } = useContext(WorkoutContext);
+  const historyRevision = useWorkout((state) => state.historyRevision);
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const styles = createStyles(theme);

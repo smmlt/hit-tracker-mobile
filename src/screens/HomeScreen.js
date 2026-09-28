@@ -24,7 +24,7 @@ import { useTheme } from '../context/ThemeContext';
 export default function HomeScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userData } = useContext(AuthContext);
-  const library = useLibrary();
+  const library = useLibrary(['exercises', 'programs', 'muscles', 'errors', 'loading', 'refresh']);
   const w = useWords();
   const { t } = useContext(LanguageContext);
   const { theme } = useTheme();

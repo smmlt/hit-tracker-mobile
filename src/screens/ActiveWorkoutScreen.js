@@ -15,7 +15,8 @@ import { ActiveExerciseCard } from '../components/workout/ActiveExerciseCard';
 import { ExerciseDetailsModal } from '../components/exercise/ExerciseDetailsModal';
 import { ConfirmDialog } from '../components/feedback';
 import { AuthContext } from '../context/AuthContext';
-import { WorkoutContext } from '../context/WorkoutContext';
+import { useWorkout } from '../context/WorkoutContext';
+import { useShallow } from 'zustand/react/shallow';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { translateCatalogName } from '../localization/catalog';
@@ -61,7 +62,20 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     setActiveWorkout,
     startWorkout,
     togglePauseWorkout,
-  } = useContext(WorkoutContext);
+  } = useWorkout(useShallow((state) => ({
+    activeWorkout: state.activeWorkout,
+    cancelWorkout: state.cancelWorkout,
+    clearPreparedWorkout: state.clearPreparedWorkout,
+    finishWorkout: state.finishWorkout,
+    isLoading: state.isLoading,
+    loggedSets: state.loggedSets,
+    prepareWorkout: state.prepareWorkout,
+    preparedWorkout: state.preparedWorkout,
+    setLoggedSets: state.setLoggedSets,
+    setActiveWorkout: state.setActiveWorkout,
+    startWorkout: state.startWorkout,
+    togglePauseWorkout: state.togglePauseWorkout,
+  })));
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
   const styles = createStyles(theme, compact);

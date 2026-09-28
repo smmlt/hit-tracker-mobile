@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { Animated, View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { WorkoutContext } from '../../context/WorkoutContext';
+import { useWorkout } from '../../context/WorkoutContext';
+import { useShallow } from 'zustand/react/shallow';
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageContext } from '../../localization/LanguageContext';
 import { translateCatalogName } from '../../localization/catalog';
@@ -10,7 +11,11 @@ import { createStyles } from './ActiveWorkoutBanner.styles.js';
 export function ActiveWorkoutBanner({ navigation: tabNavigation }) {
   const fallbackNavigation = useNavigation();
   const navigation = tabNavigation || fallbackNavigation;
-  const { activeWorkout, preparedWorkout } = useContext(WorkoutContext);
+  const { activeWorkout, activeVerified, preparedWorkout } = useWorkout(useShallow((state) => ({
+    activeWorkout: state.activeWorkout,
+    activeVerified: state.activeVerified,
+    preparedWorkout: state.preparedWorkout,
+  })));
   const { t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -25,11 +30,15 @@ export function ActiveWorkoutBanner({ navigation: tabNavigation }) {
     return () => animation.stop();
   }, [pulse]);
 
+  // Until the server has confirmed the rehydrated activeWorkout for this session, treat it as
+  // absent so a workout finished/cancelled elsewhere doesn't flash before checkActiveWorkout
+  // settles. preparedWorkout is purely local (no server contradiction risk), so it is unaffected.
+  const verifiedActiveWorkout = activeVerified ? activeWorkout : null;
   // Якщо немає активного тренування — плашка не відображається
-  const workout = activeWorkout || preparedWorkout;
+  const workout = verifiedActiveWorkout || preparedWorkout;
   if (!workout) return null;
-  const isPrepared = !activeWorkout;
-  const isPaused = activeWorkout?.status === 'paused';
+  const isPrepared = !verifiedActiveWorkout;
+  const isPaused = verifiedActiveWorkout?.status === 'paused';
   const workoutName = workout.title || workout.type;
   const localizedWorkoutName = workoutName
     ? translateCatalogName(t, 'program', workoutName)

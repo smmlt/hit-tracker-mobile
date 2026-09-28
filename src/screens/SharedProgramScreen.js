@@ -14,7 +14,7 @@ import { styles } from './SharedContentScreen.styles';
 export default function SharedProgramScreen({ navigation, route }) {
   const { userToken, userData } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
-  const library = useLibrary();
+  const library = useLibrary(['programs', 'refresh']);
   const workshopStyles = useWorkshopStyles();
   const token = route.params?.token;
   const [program, setProgram] = useState(null);
