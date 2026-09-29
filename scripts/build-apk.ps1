@@ -9,16 +9,16 @@ $versionCode = $config.expo.android.versionCode
 $gradle = Join-Path $projectRoot 'android\gradlew.bat'
 
 $javaCandidates = @(
-    $env:JAVA_HOME,
-    (Join-Path $env:ProgramFiles 'Android\Android Studio\jbr')
+    (Join-Path $env:ProgramFiles 'Android\Android Studio\jbr'),
+    $env:JAVA_HOME
 ) | Where-Object { $_ }
 
 foreach ($javaHome in $javaCandidates) {
     $java = Join-Path $javaHome 'bin\java.exe'
     if (-not (Test-Path $java)) { continue }
     try {
-        & $java -version 2>$null
-        if ($LASTEXITCODE -eq 0) {
+        $javaProcess = Start-Process -FilePath $java -ArgumentList '-version' -NoNewWindow -Wait -PassThru
+        if ($javaProcess.ExitCode -eq 0) {
             $env:JAVA_HOME = $javaHome
             break
         }

@@ -1,5 +1,5 @@
 const componentIds = [
-  'api', 'relay', 'analytics', 'postgres', 'prometheus',
+  'api', 'relay', 'analytics', 'search', 'postgres', 'prometheus',
   'loki', 'jaeger', 'grafana', 'minio', 'event-pipeline',
 ];
 const statuses = new Set(['up', 'down', 'unknown']);
@@ -9,8 +9,8 @@ const metricKeys = [
   'analyticsConsumerLag', 'analyticsRetries5m', 'analyticsDlq5m',
   'postgresConnections', 'postgresDatabaseBytes', 'postgresReplicationLagSeconds',
 ];
-const logServices = ['api', 'relay', 'analytics'];
-const traceServices = new Set(['hit-api', 'hit-relay', 'hit-analytics', 'jaeger-all-in-one']);
+const logServices = ['api', 'relay', 'analytics', 'search-indexer'];
+const traceServices = new Set(['hit-api', 'hit-relay', 'hit-analytics', 'hit-search-indexer', 'jaeger-all-in-one']);
 
 const safeNumber = (value) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;

@@ -26,9 +26,9 @@ import { useWorkout } from '../context/WorkoutContext';
 export default function HomeScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userData } = useContext(AuthContext);
-  const library = useLibrary(['exercises', 'programs', 'muscles', 'errors', 'loading', 'refresh']);
+  const library = useLibrary(['exercises', 'programs', 'muscles', 'errors', 'loading', 'refresh', 'search', 'searchCatalog']);
   const w = useWords();
-  const { t } = useContext(LanguageContext);
+  const { t, locale } = useContext(LanguageContext);
   const { theme } = useTheme();
   const completedWorkoutResult = useWorkout((state) => state.completedWorkoutResult);
   const setCompletedWorkoutResult = useWorkout((state) => state.setCompletedWorkoutResult);
@@ -36,7 +36,7 @@ export default function HomeScreen({ navigation, route }) {
   const [section, setSection] = useState(route.params?.section === 'programs' ? 'programs' : 'exercises');
   const [query, setQuery] = useState(String(route.params?.q || ''));
   const [muscle, setMuscle] = useState(Number(route.params?.muscle) || null);
-  const [sort, setSort] = useState(['alphabetical', 'newest'].includes(route.params?.sort) ? route.params.sort : 'popular');
+  const [sort, setSort] = useState(['relevance', 'alphabetical', 'newest'].includes(route.params?.sort) ? route.params.sort : 'popular');
   const [sortOpen, setSortOpen] = useState(false);
   const [scope, setScope] = useState(['official', 'personal', 'saved'].includes(route.params?.scope) ? route.params.scope : 'all');
   const [creator, setCreator] = useState(false);
@@ -69,7 +69,11 @@ export default function HomeScreen({ navigation, route }) {
       sort: sort === 'popular' ? undefined : sort,
     });
   }, [muscle, navigation, query, scope, section, sort]);
-  const data = library[section]
+  React.useEffect(() => {
+    const timer = setTimeout(() => library.searchCatalog({ q: query.trim(), section, scope, muscle, sort: query.trim() ? sort : 'popular', locale }), 275);
+    return () => clearTimeout(timer);
+  }, [library.searchCatalog, locale, muscle, query, scope, section, sort]);
+  const localData = library[section]
     .filter((item) => {
       if (![item.name, item.displayName].some((name) =>
         name?.toLowerCase().includes(query.trim().toLowerCase()),
@@ -103,6 +107,7 @@ export default function HomeScreen({ navigation, route }) {
           ? b.id - a.id
           : (b.likesCount || 0) - (a.likesCount || 0),
     );
+  const data = library.search?.section === section && library.search?.items ? library.search.items : localData;
   const header = (
     <View>
       <Text style={styles.heading}>{w.workshop}</Text>
@@ -145,7 +150,7 @@ export default function HomeScreen({ navigation, route }) {
       </View>
       {section === "programs" && (
         <View style={styles.scopeRow}>
-          {["all", "official", "personal"].map((key) => (
+          {["all", "official", "personal", "saved"].map((key) => (
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ selected: scope === key }}
@@ -170,6 +175,8 @@ export default function HomeScreen({ navigation, route }) {
         </Pressable>
       )}
       {!!message && <Text style={styles.muted}>{message}</Text>}
+      {library.search?.section === section && library.search?.fallback && <Text style={styles.muted}>{w.searchOffline}</Text>}
+      {library.search?.section === section && !!library.search?.error && !library.search?.fallback && <Text style={styles.muted}>{w.searchFailed}</Text>}
       <Feedback
         error={library.errors[section] || library.errors.muscles}
         onRetry={library.refresh}
@@ -194,7 +201,7 @@ export default function HomeScreen({ navigation, route }) {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.muted}>{library.loading ? w.loading : w.empty}</Text>
+            <Text style={styles.muted}>{library.loading || (library.search?.section === section && library.search?.loading) ? w.loading : (query.trim() ? w.searchEmpty : w.empty)}</Text>
           </View>
         }
         renderItem={({ item }) =>
@@ -219,7 +226,7 @@ export default function HomeScreen({ navigation, route }) {
       />
       {sortOpen && (
         <Sheet title={w.sort} onClose={() => setSortOpen(false)}>
-          {["popular", "alphabetical", "newest"].map((key) => (
+          {["popular", "relevance", "alphabetical", "newest"].map((key) => (
             <Button
               key={key}
               secondary={sort !== key}

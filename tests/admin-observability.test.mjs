@@ -26,7 +26,7 @@ test('admin observability normalizes the server response through allowlists', ()
     tracingServices: ['hit-api', 'internal-secret', 'http://private-host'],
   });
 
-  assert.equal(result.components.length, 10);
+  assert.equal(result.components.length, 11);
   assert.deepEqual(result.components[0], { id: 'api', status: 'up' });
   assert.equal(result.components.find(({ id }) => id === 'grafana').status, 'unknown');
   assert.equal(result.metrics.apiRequestsPerSecond, 2.5);
@@ -48,10 +48,10 @@ test('system tab is visible only in the existing admin-only section set', () => 
   assert.doesNotMatch(dashboard, /Linking|openURL|prometheus:|grafana:|jaeger:|loki:/i);
 });
 
-test('Android 1.1.0 build 8 is configured and the local builder syncs native versions', () => {
+test('Android 1.1.1 build 9 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.1.0');
-  assert.equal(config.expo.android.versionCode, 8);
+  assert.equal(config.expo.version, '1.1.1');
+  assert.equal(config.expo.android.versionCode, 9);
 
   const buildScript = source('scripts/build-apk.ps1');
   assert.match(buildScript, /\[regex\]::Replace/);
