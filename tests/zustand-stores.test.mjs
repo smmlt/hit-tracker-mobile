@@ -70,13 +70,16 @@ test('persisted workout rehydrates and logout prevents another user seeing it', 
   first.getState().setSession(7, 'token-a');
   first.getState().prepareWorkout({ title: 'Draft', exercises: [] });
   first.getState().setActiveWorkout({ id: 10, status: 'active' });
+  first.getState().setCompletedWorkoutResult({ title: 'Previous workout' });
   const restarted = loadStore('workoutStore.js', api).useWorkoutStore;
   await restarted.persist.rehydrate();
   assert.equal(restarted.getState().preparedWorkout.title, 'Draft');
   assert.equal(restarted.getState().activeWorkout.id, 10);
+  assert.equal(restarted.getState().completedWorkoutResult.title, 'Previous workout');
   restarted.getState().reset();
   restarted.getState().setSession(8, 'token-b');
   assert.equal(restarted.getState().activeWorkout, null);
+  assert.equal(restarted.getState().completedWorkoutResult, null);
   assert.equal(restarted.getState().lastFinishedWorkoutId, null);
   assert.equal(restarted.getState().preparedWorkout, null);
   assert.equal(JSON.parse(storageItems.get('workout-state')).state.activeWorkout, null);

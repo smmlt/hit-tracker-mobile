@@ -14,16 +14,20 @@ import { ProgramDetailsContent } from './LibraryProgramScreen';
 import { programExercises } from '../utils/library';
 import { scheduleCardTone } from '../utils/scheduleCard';
 import { palette } from '../constants/colors';
+import { entityId, entityRef } from '../utils/navigationPaths';
 
 export default function ProgramDetailsScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
-  const { assignment } = route.params;
+  const legacyAssignment = route.params?.assignment;
+  const assignmentId = entityId(route.params?.assignmentRef) || legacyAssignment?.id;
+  const scheduledFor = route.params?.date || legacyAssignment?.scheduledFor;
   const { userToken } = useContext(AuthContext);
   const { prepareWorkout, activeWorkout } = useWorkout(useShallow((state) => ({ prepareWorkout: state.prepareWorkout, activeWorkout: state.activeWorkout })));
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
   const [program, setProgram] = useState(null);
+  const [assignment, setAssignment] = useState(legacyAssignment || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [removeOpen, setRemoveOpen] = useState(false);
@@ -32,10 +36,17 @@ export default function ProgramDetailsScreen({ navigation, route }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setProgram(await apiRequest(`/workout-programs/${assignment.programId}`, {}, userToken));
+      let current = legacyAssignment;
+      if (!current && assignmentId && scheduledFor) {
+        const rows = await apiRequest(`/workout-programs/schedule?from=${scheduledFor}&to=${scheduledFor}`, {}, userToken);
+        current = (Array.isArray(rows) ? rows : []).find((item) => item.id === assignmentId);
+      }
+      if (!current) throw new Error(t('programLoadError'));
+      setAssignment(current);
+      setProgram(await apiRequest(`/workout-programs/${current.programId}`, {}, userToken));
       setError(null);
     } catch (e) { setError(e.message); } finally { setLoading(false); }
-  }, [assignment.programId, t, userToken]);
+  }, [assignmentId, legacyAssignment, scheduledFor, t, userToken]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -47,13 +58,13 @@ export default function ProgramDetailsScreen({ navigation, route }) {
       programId: program.id,
       exercises: programExercises(program),
     });
-    navigation.navigate('WorkoutSession');
+    navigation.navigate('WorkoutPreparation');
   };
 
   const openExercise = (item) => {
-    navigation.push('ExerciseDetails', { exerciseId: item.id });
+    navigation.push('ExerciseDetails', { exerciseRef: entityRef(item.name, item.id) });
   };
-  const tone = scheduleCardTone(assignment);
+  const tone = assignment ? scheduleCardTone(assignment) : 'planned';
   const statusColor = {
     planned: palette.accent,
     completed: palette.greenBright,
@@ -62,9 +73,10 @@ export default function ProgramDetailsScreen({ navigation, route }) {
   }[tone];
   const statusLabel = tone === 'completedLate'
     ? `${t('scheduleStatus_completed')} ${new Date(assignment.completedAt).toLocaleDateString(localeTag, { day: 'numeric', month: 'long' })}`
-    : t(`scheduleStatus_${assignment.status}`);
+    : t(`scheduleStatus_${assignment?.status || 'planned'}`);
 
   const removeFromPlan = async () => {
+    if (!assignment) return;
     setRemoving(true);
     const response = await apiFetch(`/workout-programs/schedule/${assignment.id}`, { method: 'DELETE' }, userToken);
     setRemoving(false);
@@ -83,7 +95,7 @@ export default function ProgramDetailsScreen({ navigation, route }) {
       {loading ? <ActivityIndicator color={theme.primary} style={styles.loader} /> : (
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 24 }]}>
           {!!error && <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>}
-          {program && <>
+          {program && assignment && <>
             <Pressable disabled={removing} onPress={() => setRemoveOpen(true)} style={[styles.removeButton, { borderColor: theme.error }]}>
               <Text style={[styles.removeText, { color: theme.error }]}>{removing ? '…' : t('removeFromPlan')}</Text>
             </Pressable>

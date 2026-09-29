@@ -10,6 +10,7 @@ import { useTheme } from '../context/ThemeContext';
 import { workoutsService } from '../services/workoutsService';
 import { dateKey, parseDateKey } from '../utils/history';
 import { createStyles } from './HistoryDetailsScreen.styles';
+import { entityId, entityRef } from '../utils/navigationPaths';
 
 function durationParts(totalSeconds, t) {
   const seconds = Math.max(0, Number(totalSeconds) || 0);
@@ -97,7 +98,7 @@ export default function HistoryDetailsScreen({ navigation, route }) {
   const styles = createStyles(theme);
   const tabBarHeight = useBottomTabBarHeight();
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
-  const workoutId = route.params?.workoutId;
+  const workoutId = entityId(route.params?.workoutRef) || Number(route.params?.workoutId);
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -130,7 +131,7 @@ export default function HistoryDetailsScreen({ navigation, route }) {
     if (!details?.programSource?.available || !details.programSource.id) return;
     navigation.getParent()?.navigate('Home', {
       screen: 'LibraryProgram',
-      params: { programId: details.programSource.id },
+      params: { programRef: entityRef(details.programSource.name, details.programSource.id) },
       initial: false,
     });
   };

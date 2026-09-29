@@ -91,10 +91,11 @@ export default function VerifyEmailScreen({ navigation, route }) {
         verify: verifyRegistration,
         onVerified: async () => {
           setCodeState('success');
+          await AsyncStorage.setItem('recentRegistrationEmail', email);
           await new Promise((resolve) => setTimeout(resolve, 350));
         },
         clearPendingEmail: () => AsyncStorage.removeItem('pendingRegistrationEmail'),
-        navigate: (value) => navigation.replace('Login', { prefilledEmail: value, registered: true }),
+        navigate: () => navigation.replace('Login'),
       });
     } catch (error) {
       if (error.status === 429) {
@@ -179,7 +180,7 @@ export default function VerifyEmailScreen({ navigation, route }) {
                   {t('tooManyCodes').replace('{seconds}', retryAfterSeconds)}
                 </Text>
                 {retryAfterSeconds === 0 && (
-                  <TouchableOpacity onPress={() => navigation.replace('Register', { prefilledEmail: email })}>
+                  <TouchableOpacity onPress={() => navigation.replace('Register')}>
                     <Text style={styles.requestCode}>{t('requestNewCode')}</Text>
                   </TouchableOpacity>
                 )}
@@ -187,7 +188,7 @@ export default function VerifyEmailScreen({ navigation, route }) {
             )}
           </View>
           <TouchableOpacity
-            onPress={() => navigation.replace('Register', { prefilledEmail: email })}
+            onPress={() => navigation.replace('Register')}
             style={styles.bottomLinkContainer}
           >
             <Text style={styles.bottomText}>{t('noEmailAccess')}</Text>

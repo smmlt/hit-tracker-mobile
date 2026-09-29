@@ -10,6 +10,7 @@ import { findMatchingPersonalProgram } from '../utils/sharedLibrary';
 import { Button, DetailHeader, Feedback, useWorkshopStyles } from '../components/workshop/ui';
 import { ProgramDetailsContent } from './LibraryProgramScreen';
 import { styles } from './SharedContentScreen.styles';
+import { entityRef } from '../utils/navigationPaths';
 
 export default function SharedProgramScreen({ navigation, route }) {
   const { userToken, userData } = useContext(AuthContext);
@@ -50,9 +51,9 @@ export default function SharedProgramScreen({ navigation, route }) {
       } : row.exercise,
     })),
   } : null, [program, t]);
-  const openProgram = (programId) => navigation.replace('MainApp', {
+  const openProgram = (programId, name = program?.name) => navigation.replace('MainApp', {
     screen: 'Home',
-    params: { screen: 'LibraryProgram', params: { programId }, initial: false },
+    params: { screen: 'LibraryProgram', params: { programRef: entityRef(name, programId) }, initial: false },
   });
   const matchingProgram = useMemo(() => (
     program?.isPersonal
@@ -65,7 +66,7 @@ export default function SharedProgramScreen({ navigation, route }) {
       return;
     }
     if (!program.isPersonal || matchingProgram) {
-      openProgram(matchingProgram?.id || program.id);
+      openProgram(matchingProgram?.id || program.id, matchingProgram?.name || program.name);
       return;
     }
     setBusy(true);
@@ -77,7 +78,7 @@ export default function SharedProgramScreen({ navigation, route }) {
         userToken,
       );
       await library.refresh();
-      openProgram(result.programId);
+      openProgram(result.programId, program.name);
     } catch (_) {
       setError(t('sharedProgramImportFailed'));
     } finally {

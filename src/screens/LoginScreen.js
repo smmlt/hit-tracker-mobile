@@ -13,6 +13,7 @@ import { createPkcePair } from '../utils/oauthPkce';
 import { LanguageContext } from '../localization/LanguageContext';
 import { createUnknownUserCountdown, isUnknownUserError } from '../utils/authFlow';
 import { useTheme } from '../context/ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation, route }) {
   const { theme } = useTheme();
@@ -69,6 +70,15 @@ export default function LoginScreen({ navigation, route }) {
   }, [route?.params?.prefilledEmail, route?.params?.registered]);
 
   useEffect(() => {
+    AsyncStorage.getItem('recentRegistrationEmail').then((value) => {
+      if (!value) return;
+      setEmail(value);
+      showToast(t('accountCreated'), 'success');
+      void AsyncStorage.removeItem('recentRegistrationEmail');
+    });
+  }, [t]);
+
+  useEffect(() => {
     emailRef.current = email;
   }, [email]);
 
@@ -92,9 +102,8 @@ export default function LoginScreen({ navigation, route }) {
         fadeAnim.stopAnimation();
         fadeAnim.setValue(0);
         setToastVisible(false);
-        navigation.replace('Register', {
-          prefilledEmail: emailRef.current.trim().toLowerCase(),
-        });
+        void AsyncStorage.setItem('pendingRegistrationEmail', emailRef.current.trim().toLowerCase())
+          .finally(() => navigation.replace('Register'));
       },
     });
     return () => {

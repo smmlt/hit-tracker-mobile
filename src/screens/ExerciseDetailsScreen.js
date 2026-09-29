@@ -18,6 +18,7 @@ import {
 } from "../components/workshop/ui";
 import { ShareButton } from "../components/workshop/ShareButton";
 import { exerciseShareUrl } from "../utils/shareLinks";
+import { entityId } from '../utils/navigationPaths';
 
 import { createStyles } from './ExerciseDetailsScreen.styles';
 export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
@@ -140,7 +141,7 @@ export default function ExerciseDetailsScreen({ navigation, route }) {
   const w = useWords();
   const library = useLibrary(['exercises', 'errors', 'loading', 'refresh']);
   const exercise = library.exercises.find(
-    (item) => item.id === Number(route.params?.exerciseId),
+    (item) => item.id === (entityId(route.params?.exerciseRef) || Number(route.params?.exerciseId)),
   );
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={s.screen}>
@@ -149,7 +150,7 @@ export default function ExerciseDetailsScreen({ navigation, route }) {
           <ShareButton
             title={exercise.displayName || exercise.name}
             description={exercise.description}
-            url={exerciseShareUrl(exercise.id)}
+            url={exerciseShareUrl(exercise.id, exercise.name)}
           />
         )}
       </DetailHeader>

@@ -37,7 +37,11 @@ export default function RegisterScreen({ navigation, route }) {
   useEffect(() => {
     if (route?.params?.prefilledEmail) {
       setEmail(route.params.prefilledEmail);
+      return;
     }
+    AsyncStorage.getItem('pendingRegistrationEmail').then((value) => {
+      if (value) setEmail(value);
+    });
   }, [route?.params?.prefilledEmail]);
 
   const showToast = (message, type = 'error') => {
@@ -116,7 +120,7 @@ export default function RegisterScreen({ navigation, route }) {
         password,
         register,
         persistEmail: (value) => AsyncStorage.setItem('pendingRegistrationEmail', value),
-        navigate: (value) => navigation.replace('VerifyEmail', { email: value }),
+        navigate: () => navigation.replace('VerifyEmail'),
       });
     } catch (err) {
       const message = err.message || t('registrationFailed');

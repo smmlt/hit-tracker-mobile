@@ -8,12 +8,13 @@ import { apiRequest } from '../services/api';
 import { Button, DetailHeader, Feedback, useWorkshopStyles } from '../components/workshop/ui';
 import { ExerciseDetailsContent } from './ExerciseDetailsScreen';
 import { styles } from './SharedContentScreen.styles';
+import { entityId, entityRef } from '../utils/navigationPaths';
 
 export default function SharedExerciseScreen({ navigation, route }) {
   const { userToken } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
   const workshopStyles = useWorkshopStyles();
-  const exerciseId = Number(route.params?.exerciseId);
+  const exerciseId = entityId(route.params?.exerciseRef) || Number(route.params?.exerciseId);
   const [exercise, setExercise] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -56,7 +57,7 @@ export default function SharedExerciseScreen({ navigation, route }) {
           <ExerciseDetailsContent allowAdd={false} exercise={localizedExercise} />
           {!!userToken && <Button onPress={() => navigation.replace('MainApp', {
             screen: 'Home',
-            params: { screen: 'ExerciseDetails', params: { exerciseId }, initial: false },
+            params: { screen: 'ExerciseDetails', params: { exerciseRef: entityRef(exercise?.name, exerciseId) }, initial: false },
           })}>{t('openInLibrary')}</Button>}
         </>}
       </ScrollView>

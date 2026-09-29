@@ -34,10 +34,12 @@ import SharedProgramScreen from '../screens/SharedProgramScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import BodyMetricsDetailsScreen from '../screens/BodyMetricsDetailsScreen';
 import AddBodyMeasurementScreen from '../screens/AddBodyMeasurementScreen';
+import NotFoundScreen from '../screens/NotFoundScreen';
 
 import { palette } from '../constants/colors';
 import { WEB_APP_URL } from '../utils/shareLinks';
 import { createStyles } from './AppNavigator.styles';
+import { linkingConfig } from './linkingConfig';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
@@ -86,7 +88,11 @@ function TrainingStack() {
     <TrainingStackNavigator.Navigator screenOptions={{ headerShown: false }}>
       <TrainingStackNavigator.Screen name="TrainingHome" component={TrainingScreen} />
       <TrainingStackNavigator.Screen name="ProgramDetails" component={ProgramDetailsScreen} />
+      <TrainingStackNavigator.Screen name="WorkoutPreparation" component={ActiveWorkoutScreen}
+        options={{ contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }} />
       <TrainingStackNavigator.Screen name="WorkoutSession" component={ActiveWorkoutScreen}
+        options={{ contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }} />
+      <TrainingStackNavigator.Screen name="WorkoutCompleted" component={ActiveWorkoutScreen}
         options={{ contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }} />
       <TrainingStackNavigator.Screen name="ExerciseDetails" component={ExerciseDetailsScreen} />
     </TrainingStackNavigator.Navigator>
@@ -102,7 +108,6 @@ function ProfileStack() {
       <ProfileStackNavigator.Screen name="Settings" component={SettingsScreen} />
       <ProfileStackNavigator.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNavigator.Screen name="UsernameSettings" component={UsernameSettingsScreen} />
-      <ProfileStackNavigator.Screen name="AddBodyMeasurement" component={AddBodyMeasurementScreen} />
     </ProfileStackNavigator.Navigator>
   );
 }
@@ -147,18 +152,7 @@ function MainTabs() {
 
 const linking = {
   prefixes: [Linking.createURL('/'), 'http://localhost:5173', WEB_APP_URL],
-  config: {
-    screens: {
-      Login: { path: 'login', alias: ['auth/google/callback'] },
-      Register: 'register',
-      VerifyEmail: 'verify-email',
-      ForgotPassword: 'forgot-password',
-      ResetPassword: 'reset-password',
-      SharedExercise: 'share/exercises/:exerciseId',
-      SharedProgram: 'share/programs/:token',
-      Admin: 'admin',
-    },
-  },
+  config: linkingConfig,
 };
 
 export default function AppNavigator() {
@@ -244,6 +238,11 @@ export default function AppNavigator() {
           <Stack.Screen
             name="SharedProgram"
             component={SharedProgramScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NotFound"
+            component={NotFoundScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
