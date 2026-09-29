@@ -48,10 +48,10 @@ test('system tab is visible only in the existing admin-only section set', () => 
   assert.doesNotMatch(dashboard, /Linking|openURL|prometheus:|grafana:|jaeger:|loki:/i);
 });
 
-test('Android 1.1.0 build 8 is configured and the local builder syncs native versions', () => {
+test('Android 1.1.1 build 9 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.1.0');
-  assert.equal(config.expo.android.versionCode, 8);
+  assert.equal(config.expo.version, '1.1.1');
+  assert.equal(config.expo.android.versionCode, 9);
 
   const buildScript = source('scripts/build-apk.ps1');
   assert.match(buildScript, /\[regex\]::Replace/);
