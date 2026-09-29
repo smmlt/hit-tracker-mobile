@@ -15,7 +15,10 @@ export default function AppTabBar({ state, descriptors, navigation }) {
   const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
   const activeTab = state.routes[state.index];
   const nestedRoute = activeTab.state?.routes?.[activeTab.state.index]?.name;
-  const showWorkoutBanner = !(activeTab.name === 'ActiveWorkout' && nestedRoute === 'WorkoutSession');
+  const showWorkoutBanner = !(
+    activeTab.name === 'ActiveWorkout'
+    && ['WorkoutPreparation', 'WorkoutSession'].includes(nestedRoute)
+  );
 
   return (
     <View

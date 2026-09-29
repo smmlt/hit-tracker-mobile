@@ -29,7 +29,7 @@ function calendarDays(month) {
   return Array.from({ length: 42 }, (_, index) => addDays(start, index));
 }
 
-export default function AddBodyMeasurementScreen({ navigation }) {
+export default function AddBodyMeasurementScreen({ navigation, route }) {
   const { userToken } = useContext(AuthContext);
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
@@ -50,6 +50,11 @@ export default function AddBodyMeasurementScreen({ navigation }) {
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
   const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
   const currentMonthKey = `${today.getFullYear()}-${today.getMonth()}`;
+  const goBack = () => {
+    if (route.params?.from !== 'profile') return navigation.goBack();
+    navigation.popToTop();
+    return navigation.getParent()?.navigate('Profile');
+  };
 
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
@@ -92,7 +97,7 @@ export default function AddBodyMeasurementScreen({ navigation }) {
     try {
       await bodyMetricsService.add(userToken, data);
       showToast(t('measurementSaved'));
-      setTimeout(() => navigation.goBack(), 700);
+      setTimeout(goBack, 700);
     } catch (requestError) {
       setError(serverErrorMessage(requestError));
     } finally {
@@ -104,7 +109,7 @@ export default function AddBodyMeasurementScreen({ navigation }) {
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={[styles.content, { paddingHorizontal: width < 390 ? 14 : 20 }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable accessibilityLabel={t('back')} accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.backButton}><Ionicons color={theme.textPrimary} name="arrow-back" size={24} /></Pressable>
+          <Pressable accessibilityLabel={t('back')} accessibilityRole="button" onPress={goBack} style={styles.backButton}><Ionicons color={theme.textPrimary} name="arrow-back" size={24} /></Pressable>
           <Text accessibilityRole="header" style={styles.title}>{t('addMeasurement')}</Text>
           <View style={styles.backButton} />
         </View>

@@ -29,6 +29,7 @@ import {
 } from '../utils/history';
 import { palette } from '../constants/colors';
 import { createStyles } from './HistoryScreen.styles';
+import { entityRef, isoDate } from '../utils/navigationPaths';
 
 const weekDays = {
   en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -36,7 +37,7 @@ const weekDays = {
 };
 const EMPTY_SELECTION = { start: null, end: null };
 
-export default function HistoryScreen({ navigation }) {
+export default function HistoryScreen({ navigation, route }) {
   const { userToken } = useContext(AuthContext);
   const historyRevision = useWorkout((state) => state.historyRevision);
   const { locale, t } = useContext(LanguageContext);
@@ -54,10 +55,13 @@ export default function HistoryScreen({ navigation }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [pageError, setPageError] = useState('');
-  const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [activePreset, setActivePreset] = useState('all');
-  const [selection, setSelection] = useState(EMPTY_SELECTION);
+  const initialSelection = route.params?.from
+    ? { start: route.params.from, end: route.params.to || route.params.from }
+    : EMPTY_SELECTION;
+  const [query, setQuery] = useState(String(route.params?.q || ''));
+  const [debouncedQuery, setDebouncedQuery] = useState(String(route.params?.q || ''));
+  const [activePreset, setActivePreset] = useState(String(route.params?.preset || 'all'));
+  const [selection, setSelection] = useState(initialSelection);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [pendingSelection, setPendingSelection] = useState(EMPTY_SELECTION);
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -67,6 +71,15 @@ export default function HistoryScreen({ navigation }) {
     const timeout = setTimeout(() => setDebouncedQuery(query.trim()), 350);
     return () => clearTimeout(timeout);
   }, [query]);
+
+  useEffect(() => {
+    navigation.setParams({
+      from: selection.start || undefined,
+      preset: activePreset === 'all' ? undefined : activePreset,
+      q: debouncedQuery || undefined,
+      to: selection.end || undefined,
+    });
+  }, [activePreset, debouncedQuery, navigation, selection.end, selection.start]);
 
   const singleDay = !!selection.start && selection.start === selection.end;
   const filters = useMemo(() => ({
@@ -300,7 +313,10 @@ export default function HistoryScreen({ navigation }) {
         onEndReachedThreshold={0.35}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadFirstPage(true)} tintColor={theme.primary} />}
         renderItem={({ item }) => (
-          <HistoryCard workout={item} onPress={() => navigation.navigate('HistoryDetails', { workoutId: item.id })} />
+          <HistoryCard workout={item} onPress={() => navigation.navigate('HistoryDetails', {
+            date: isoDate(item.finishedAt || item.createdAt),
+            workoutRef: entityRef(item.programName || item.title || 'workout', item.id),
+          })} />
         )}
         showsVerticalScrollIndicator={false}
       />

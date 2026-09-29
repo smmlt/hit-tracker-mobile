@@ -21,6 +21,8 @@ import {
 
 import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import { entityRef } from '../utils/navigationPaths';
+import { useWorkout } from '../context/WorkoutContext';
 export default function HomeScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userData } = useContext(AuthContext);
@@ -28,13 +30,15 @@ export default function HomeScreen({ navigation, route }) {
   const w = useWords();
   const { t } = useContext(LanguageContext);
   const { theme } = useTheme();
+  const completedWorkoutResult = useWorkout((state) => state.completedWorkoutResult);
+  const setCompletedWorkoutResult = useWorkout((state) => state.setCompletedWorkoutResult);
   const styles = createStyles(theme);
-  const [section, setSection] = useState("exercises");
-  const [query, setQuery] = useState("");
-  const [muscle, setMuscle] = useState(null);
-  const [sort, setSort] = useState("popular");
+  const [section, setSection] = useState(route.params?.section === 'programs' ? 'programs' : 'exercises');
+  const [query, setQuery] = useState(String(route.params?.q || ''));
+  const [muscle, setMuscle] = useState(Number(route.params?.muscle) || null);
+  const [sort, setSort] = useState(['alphabetical', 'newest'].includes(route.params?.sort) ? route.params.sort : 'popular');
   const [sortOpen, setSortOpen] = useState(false);
-  const [scope, setScope] = useState("all");
+  const [scope, setScope] = useState(['official', 'personal', 'saved'].includes(route.params?.scope) ? route.params.scope : 'all');
   const [creator, setCreator] = useState(false);
   const [creatorInitial, setCreatorInitial] = useState(null);
   const [schedule, setSchedule] = useState(null);
@@ -45,14 +49,26 @@ export default function HomeScreen({ navigation, route }) {
     }, [library.refresh]),
   );
   React.useEffect(() => {
-    const draft = route.params?.createProgram;
+    const draft = route.params?.createProgram === true
+      ? completedWorkoutResult?.programDraft
+      : route.params?.createProgram;
     if (!draft) return;
     setSection("programs");
     setScope("personal");
     setCreatorInitial(draft);
     setCreator(true);
+    setCompletedWorkoutResult(null);
     navigation.setParams({ createProgram: undefined });
-  }, [navigation, route.params?.createProgram]);
+  }, [completedWorkoutResult?.programDraft, navigation, route.params?.createProgram, setCompletedWorkoutResult]);
+  React.useEffect(() => {
+    navigation.setParams({
+      muscle: muscle || undefined,
+      q: query.trim() || undefined,
+      scope: scope === 'all' ? undefined : scope,
+      section: section === 'exercises' ? undefined : section,
+      sort: sort === 'popular' ? undefined : sort,
+    });
+  }, [muscle, navigation, query, scope, section, sort]);
   const data = library[section]
     .filter((item) => {
       if (![item.name, item.displayName].some((name) =>
@@ -186,7 +202,7 @@ export default function HomeScreen({ navigation, route }) {
             <ExerciseItem
               exercise={item}
               onPress={(exercise) =>
-                navigation.push("ExerciseDetails", { exerciseId: exercise.id })
+                navigation.push("ExerciseDetails", { exerciseRef: entityRef(exercise.name, exercise.id) })
               }
             />
           ) : (
@@ -194,7 +210,7 @@ export default function HomeScreen({ navigation, route }) {
               program={item}
               showOwner={item.isPersonal}
               onPress={() =>
-                navigation.push("LibraryProgram", { programId: item.id })
+                navigation.push("LibraryProgram", { programRef: entityRef(item.name, item.id) })
               }
               onAdd={() => setSchedule(item)}
             />
@@ -222,7 +238,7 @@ export default function HomeScreen({ navigation, route }) {
           initialValues={creatorInitial}
           onClose={() => { setCreator(false); setCreatorInitial(null); }}
           onSaved={(result) => {
-            if (!creatorInitial) navigation.push("LibraryProgram", { programId: result.id });
+            if (!creatorInitial) navigation.push("LibraryProgram", { programRef: entityRef(result.name, result.id) });
           }}
         />
       )}

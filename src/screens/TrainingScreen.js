@@ -15,6 +15,7 @@ import { DifficultyIndicator } from '../components/exercise/DifficultyIndicator'
 import { useWords } from '../components/workshop/ui';
 
 import { palette } from '../constants/colors';
+import { entityRef } from '../utils/navigationPaths';
 const weekDays = {
   en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   uk: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
@@ -53,7 +54,10 @@ function ProgramCard({ assignment, navigation, t, theme, userToken, localeTag })
   ), []), [schedule]);
   const difficulty = programDifficulty(schedule);
 
-  const openDetails = () => navigation.navigate('ProgramDetails', { assignment });
+  const openDetails = () => navigation.navigate('ProgramDetails', {
+    assignmentRef: entityRef(assignment.programName, assignment.id),
+    date: assignment.scheduledFor,
+  });
   const tone = scheduleCardTone(assignment);
   const statusColor = {
     planned: palette.accent,
@@ -99,14 +103,17 @@ function ProgramCard({ assignment, navigation, t, theme, userToken, localeTag })
   );
 }
 
-export default function TrainingScreen({ navigation }) {
+export default function TrainingScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userToken } = useContext(AuthContext);
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
-  const [selectedDate, setSelectedDate] = useState(dateKey(new Date()));
-  const [month, setMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const today = dateKey(new Date());
+  const initialDate = /^\d{4}-\d{2}-\d{2}$/.test(route.params?.date) ? route.params.date : today;
+  const initialSelectedDate = parseDate(initialDate);
+  const [selectedDate, setSelectedDate] = useState(initialDate);
+  const [month, setMonth] = useState(new Date(initialSelectedDate.getFullYear(), initialSelectedDate.getMonth(), 1));
   const [assignments, setAssignments] = useState([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [programPickerOpen, setProgramPickerOpen] = useState(false);
@@ -120,6 +127,16 @@ export default function TrainingScreen({ navigation }) {
   const [dateStripWidth, setDateStripWidth] = useState(0);
   const dateStripRef = useRef(null);
   const { start: rangeStart, end: rangeEnd } = range;
+
+  useEffect(() => {
+    const routeDate = /^\d{4}-\d{2}-\d{2}$/.test(route.params?.date) ? route.params.date : today;
+    if (routeDate !== selectedDate) {
+      setSelectedDate(routeDate);
+      const next = parseDate(routeDate);
+      setMonth(new Date(next.getFullYear(), next.getMonth(), 1));
+      setRange({ start: null, end: null });
+    }
+  }, [route.params?.date, selectedDate, today]);
 
   const loadSchedule = useCallback(async () => {
     const from = dateKey(new Date(month.getFullYear(), month.getMonth() - 1, 1));
@@ -186,7 +203,9 @@ export default function TrainingScreen({ navigation }) {
   }, [dateStripWidth, selectedDate]);
 
   const chooseDate = (date) => {
-    setSelectedDate(dateKey(date));
+    const key = dateKey(date);
+    setSelectedDate(key);
+    navigation.setParams({ date: key === today ? undefined : key });
     setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
     setRange({ start: null, end: null });
   };
@@ -194,6 +213,7 @@ export default function TrainingScreen({ navigation }) {
   const chooseRangeDate = (date) => {
     const key = dateKey(date);
     setSelectedDate(key);
+    navigation.setParams({ date: key === today ? undefined : key });
     setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
 
     setRange((current) => {

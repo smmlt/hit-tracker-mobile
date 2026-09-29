@@ -48,7 +48,10 @@ export function ActiveWorkoutBanner({ navigation: tabNavigation }) {
     <TouchableOpacity
       accessibilityRole="button"
       activeOpacity={0.85}
-      onPress={() => navigation.navigate('ActiveWorkout', { screen: 'WorkoutSession', initial: false })}
+      onPress={() => navigation.navigate('ActiveWorkout', {
+        screen: verifiedActiveWorkout ? 'WorkoutSession' : 'WorkoutPreparation',
+        initial: false,
+      })}
       style={styles.banner}
     >
       <View style={styles.leftContainer}>

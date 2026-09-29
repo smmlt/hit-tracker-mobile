@@ -26,6 +26,7 @@ import { formatTimer } from '../utils/formatters';
 import { programExercises as fromProgram } from '../utils/library';
 import { palette } from '../constants/colors';
 import { createStyles } from './ActiveWorkoutScreen.styles.js';
+import { entityRef, isoDate } from '../utils/navigationPaths';
 
 const activeSeconds = (workout, now) => {
   if (!workout?.createdAt) return 0;
@@ -51,8 +52,10 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const { userToken } = useContext(AuthContext);
   const {
     activeWorkout,
+    activeVerified,
     cancelWorkout,
     clearPreparedWorkout,
+    completedWorkoutResult: result,
     finishWorkout,
     isLoading,
     loggedSets,
@@ -60,12 +63,15 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     preparedWorkout,
     setLoggedSets,
     setActiveWorkout,
+    setCompletedWorkoutResult: setResult,
     startWorkout,
     togglePauseWorkout,
   } = useWorkout(useShallow((state) => ({
     activeWorkout: state.activeWorkout,
+    activeVerified: state.activeVerified,
     cancelWorkout: state.cancelWorkout,
     clearPreparedWorkout: state.clearPreparedWorkout,
+    completedWorkoutResult: state.completedWorkoutResult,
     finishWorkout: state.finishWorkout,
     isLoading: state.isLoading,
     loggedSets: state.loggedSets,
@@ -73,6 +79,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     preparedWorkout: state.preparedWorkout,
     setLoggedSets: state.setLoggedSets,
     setActiveWorkout: state.setActiveWorkout,
+    setCompletedWorkoutResult: state.setCompletedWorkoutResult,
     startWorkout: state.startWorkout,
     togglePauseWorkout: state.togglePauseWorkout,
   })));
@@ -81,21 +88,18 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const styles = createStyles(theme, compact);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState(null);
-  const [finishedPlan, setFinishedPlan] = useState([]);
-  const [finishedTitle, setFinishedTitle] = useState('');
   const [finishOpen, setFinishOpen] = useState(false);
   const [notes, setNotes] = useState('');
   const [now, setNow] = useState(Date.now());
   const [pendingSaves, setPendingSaves] = useState(0);
   const [checkingProgram, setCheckingProgram] = useState(false);
-  const [result, setResult] = useState(null);
   const [resultError, setResultError] = useState('');
   const [savePromptOpen, setSavePromptOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
 
-  const plan = result ? finishedPlan : preparedWorkout?.exercises || planFromSnapshot(activeWorkout);
+  const plan = result ? result.plan || [] : preparedWorkout?.exercises || planFromSnapshot(activeWorkout);
   const title = result
-    ? finishedTitle
+    ? result.title
     : preparedWorkout?.title || activeWorkout?.type || route.params?.program?.name || t('workout');
   const displayTitle = translateCatalogName(t, 'program', title);
   const scheduleId = preparedWorkout?.scheduleId || route.params?.assignment?.id;
@@ -137,7 +141,30 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
 
   useEffect(() => {
     if (preparedWorkout && result) setResult(null);
-  }, [preparedWorkout, result]);
+  }, [preparedWorkout, result, setResult]);
+
+  useEffect(() => {
+    if (!activeVerified) return;
+    if (route.name === 'WorkoutPreparation' && activeWorkout) {
+      navigation.replace('WorkoutSession');
+      return;
+    }
+    if (route.name === 'WorkoutPreparation' && !preparedWorkout) {
+      navigation.replace('TrainingHome');
+      return;
+    }
+    if (route.name === 'WorkoutSession' && !activeWorkout) {
+      navigation.replace(preparedWorkout ? 'WorkoutPreparation' : 'TrainingHome');
+      return;
+    }
+    if (route.name === 'WorkoutCompleted' && !result) {
+      navigation.getParent()?.navigate('History', {
+        screen: 'HistoryDetails',
+        params: { date: route.params?.date, workoutRef: route.params?.workoutRef },
+        initial: false,
+      });
+    }
+  }, [activeVerified, activeWorkout, navigation, preparedWorkout, result, route.name, route.params?.date, route.params?.workoutRef]);
 
   useEffect(() => {
     if (!activeWorkout?.programId || plan.length) return;
@@ -168,11 +195,14 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     return () => clearInterval(timer);
   }, [activeWorkout, paused]);
 
-  const begin = () => startWorkout(
-    title,
-    scheduleId,
-    preparedWorkout || { exercises: plan, programId: route.params?.program?.id },
-  );
+  const begin = async () => {
+    const workout = await startWorkout(
+      title,
+      scheduleId,
+      preparedWorkout || { exercises: plan, programId: route.params?.program?.id },
+    );
+    if (workout) navigation.replace('WorkoutSession');
+  };
 
   const saveSet = async (item, values, existingSet) => {
     if (!activeWorkout) return false;
@@ -210,8 +240,9 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   };
 
   const finish = async () => {
-    setFinishedPlan(plan);
-    setFinishedTitle(title);
+    const completedPlan = plan;
+    const completedTitle = title;
+    const completedWorkoutId = activeWorkout?.id;
     const completedWorkout = await finishWorkout(notes);
     if (!completedWorkout) return;
     setFinishOpen(false);
@@ -221,7 +252,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       0,
     );
     const actualReps = loggedSets.reduce((total, set) => total + (Number(set.reps) || 0), 0);
-    setResult({
+    const nextResult = {
       actualReps,
       avgRpe: rpeSets.reduce((sum, set) => sum + set.rpe, 0) / (rpeSets.length || 1),
       elapsed: typeof completedWorkout.durationSeconds === 'number'
@@ -248,10 +279,19 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         })),
         name: `${title} ${t('copySuffix')}`,
       },
+      plan: completedPlan,
+      title: completedTitle,
+    };
+    setResult(nextResult);
+    const id = completedWorkout.id || completedWorkoutId;
+    navigation.replace('WorkoutCompleted', {
+      date: isoDate(completedWorkout.finishedAt || new Date()),
+      workoutRef: entityRef(completedTitle, id),
     });
   };
 
   const returnToTrainingPlan = () => {
+    setResult(null);
     if (navigation.canGoBack()) navigation.popToTop();
     else navigation.navigate('TrainingHome');
   };
@@ -292,7 +332,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     navigation.popToTop();
     tabs.navigate('Home', {
       screen: 'WorkshopHome',
-      params: { createProgram: result.programDraft },
+      params: { createProgram: true },
     });
   };
 
@@ -454,7 +494,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         accessibilityRole="button"
         onPress={() => {
           if (activeWorkout) setCancelOpen(true);
-          else { clearPreparedWorkout(); navigation.goBack(); }
+          else { clearPreparedWorkout(); returnToTrainingPlan(); }
         }}
         style={styles.cancelButton}
       >
@@ -477,7 +517,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       confirmLabel={t('cancelWorkout').replace('?', '')}
       message={t('cancelWorkoutMessage')}
       onCancel={() => setCancelOpen(false)}
-      onConfirm={async () => { await cancelWorkout(); setCancelOpen(false); navigation.goBack(); }}
+      onConfirm={async () => { await cancelWorkout(); setCancelOpen(false); returnToTrainingPlan(); }}
       title={t('cancelWorkout')}
       visible={cancelOpen}
     />

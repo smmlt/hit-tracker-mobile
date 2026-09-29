@@ -6,6 +6,7 @@ import storage from './workoutStorage';
 
 const initial = {
   activeWorkout: null,
+  completedWorkoutResult: null,
   loggedSets: [],
   preparedWorkout: null,
   isLoading: false,
@@ -42,8 +43,12 @@ export const useWorkoutStore = create(persist((set, get) => ({
     set((state) => ({ activeWorkout: typeof value === 'function' ? value(state.activeWorkout) : value }));
   },
   setLoggedSets: (value) => set((state) => ({ loggedSets: typeof value === 'function' ? value(state.loggedSets) : value })),
-  prepareWorkout: (value) => set((state) => ({ preparedWorkout: typeof value === 'function' ? value(state.preparedWorkout) : value })),
+  prepareWorkout: (value) => set((state) => ({
+    completedWorkoutResult: null,
+    preparedWorkout: typeof value === 'function' ? value(state.preparedWorkout) : value,
+  })),
   clearPreparedWorkout: () => set({ preparedWorkout: null }),
+  setCompletedWorkoutResult: (value) => set({ completedWorkoutResult: value }),
   checkActiveWorkout: async () => {
     const { userToken } = get();
     if (!userToken) return;
@@ -53,7 +58,7 @@ export const useWorkoutStore = create(persist((set, get) => ({
       set({ isLoading: true });
       const res = await apiFetch('/workouts/active', {}, userToken);
       if (current !== generation || request !== activeCheck) return;
-      if (res.ok && res.data?.workout) set({ activeWorkout: res.data.workout, loggedSets: res.data.sets || [] });
+      if (res.ok && res.data?.workout) set({ activeWorkout: res.data.workout, completedWorkoutResult: null, loggedSets: res.data.sets || [] });
       else if (res.ok) set({ activeWorkout: null, loggedSets: [] });
     } catch (error) {
       console.error('Error checking active workout:', error);
@@ -87,7 +92,7 @@ export const useWorkoutStore = create(persist((set, get) => ({
       if (current !== generation) return null;
       if (res.ok && res.data) {
         const workout = res.data.workout || res.data;
-        set({ activeWorkout: workout, loggedSets: [] });
+        set({ activeWorkout: workout, completedWorkoutResult: null, loggedSets: [] });
         return workout;
       }
     } catch (error) {
@@ -127,7 +132,7 @@ export const useWorkoutStore = create(persist((set, get) => ({
     } catch (error) {
       console.error('Error canceling workout:', error);
     } finally {
-      if (current === generation) set({ activeWorkout: null, loggedSets: [], preparedWorkout: null });
+      if (current === generation) set({ activeWorkout: null, completedWorkoutResult: null, loggedSets: [], preparedWorkout: null });
     }
   },
   togglePauseWorkout: async () => {
@@ -174,12 +179,21 @@ export const useWorkoutStore = create(persist((set, get) => ({
     if (current !== generation || request !== activeCheck) return;
     set((state) => {
       const base = state.preparedWorkout || restored || { title: state.activeWorkout?.type || title, exercises: [] };
-      return { preparedWorkout: { ...base, programId: base.programId || programId || null, exercises: mergeWorkoutExercises(base.exercises || [], items) } };
+      return {
+        completedWorkoutResult: null,
+        preparedWorkout: { ...base, programId: base.programId || programId || null, exercises: mergeWorkoutExercises(base.exercises || [], items) },
+      };
     });
   },
 }), {
   name: 'workout-state',
   storage: createJSONStorage(() => storage),
-  partialize: ({ userId, activeWorkout, loggedSets, preparedWorkout }) => ({ userId, activeWorkout, loggedSets, preparedWorkout }),
+  partialize: ({ userId, activeWorkout, completedWorkoutResult, loggedSets, preparedWorkout }) => ({
+    userId,
+    activeWorkout,
+    completedWorkoutResult,
+    loggedSets,
+    preparedWorkout,
+  }),
   skipHydration: true,
 }));

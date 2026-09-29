@@ -18,6 +18,7 @@ import { useTheme } from "../context/ThemeContext";
 import { LanguageContext } from "../localization/LanguageContext";
 import { translateCatalogName } from "../localization/catalog";
 import { programShareUrl } from "../utils/shareLinks";
+import { entityId, entityRef } from '../utils/navigationPaths';
 import { createStyles } from './LibraryProgramScreen.styles';
 import { ExerciseVideoPlayer } from "../components/media";
 import { MediaImage } from "../components/media/MediaImage";
@@ -102,7 +103,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
   const library = useLibrary(['exercises', 'errors']);
   const w = useWords();
   const { t } = useContext(LanguageContext);
-  const id = Number(route.params?.programId);
+  const id = entityId(route.params?.programRef) || Number(route.params?.programId);
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -157,7 +158,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
       );
       navigation
         .getParent()
-        .navigate("ActiveWorkout", { screen: "WorkoutSession", initial: false });
+        .navigate("ActiveWorkout", { screen: "WorkoutPreparation", initial: false });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -177,7 +178,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
                 { method: "POST" },
                 userToken,
               );
-              return programShareUrl(token);
+              return programShareUrl(token, program.name, program.id);
             }}
           />
         )}
@@ -199,7 +200,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
               program={localizedProgram}
               showProgramDifficulty
               onExercise={(exercise) =>
-                navigation.push("ExerciseDetails", { exerciseId: exercise.id })
+                navigation.push("ExerciseDetails", { exerciseRef: entityRef(exercise.name, exercise.id) })
               }
               onEdit={canCustomize ? () => setEditor(true) : undefined}
             />
@@ -234,7 +235,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
           program={program}
           onClose={() => setEditor(false)}
           onSaved={(result) => {
-            navigation.setParams({ programId: result.id });
+            navigation.setParams({ programRef: entityRef(result.name, result.id) });
             if (result.id === id) load();
           }}
         />
