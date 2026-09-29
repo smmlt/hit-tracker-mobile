@@ -26,7 +26,7 @@ test('admin observability normalizes the server response through allowlists', ()
     tracingServices: ['hit-api', 'internal-secret', 'http://private-host'],
   });
 
-  assert.equal(result.components.length, 10);
+  assert.equal(result.components.length, 11);
   assert.deepEqual(result.components[0], { id: 'api', status: 'up' });
   assert.equal(result.components.find(({ id }) => id === 'grafana').status, 'unknown');
   assert.equal(result.metrics.apiRequestsPerSecond, 2.5);

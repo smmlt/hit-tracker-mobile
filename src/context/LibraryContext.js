@@ -28,10 +28,25 @@ export function useLibrary(keys = ['exercises', 'programs', 'muscles', 'errors',
       exercise: row.exercise ? { ...row.exercise, displayName: translateCatalogName(t, 'exercise', row.exercise.name) } : row.exercise,
     })),
   })), [programs, locale]);
+  const localizedSearch = useMemo(() => selected.search?.items?.map((item) => ({
+    ...item,
+    displayName: selected.search.section === 'programs'
+      ? (item.isPersonal ? item.name : translateCatalogName(t, 'program', item.name))
+      : translateCatalogName(t, 'exercise', item.name),
+    ...(selected.search.section === 'exercises' ? { muscles: (item.muscles || []).map((muscle) => ({
+      ...muscle,
+      displayName: translateCatalogName(t, 'muscle', muscle.commonName || muscle.name),
+    })) } : {}),
+    ...(selected.search.section === 'programs' ? { schedule: (item.schedule || []).map((row) => ({
+      ...row,
+      exercise: row.exercise ? { ...row.exercise, displayName: translateCatalogName(t, 'exercise', row.exercise.name) } : row.exercise,
+    })) } : {}),
+  })) ?? null, [selected.search, locale]);
   return {
     ...selected,
     ...(exercises ? { exercises: localizedExercises } : {}),
     ...(programs ? { programs: localizedPrograms } : {}),
     ...(muscles ? { muscles: localizedMuscles } : {}),
+    search: selected.search ? { ...selected.search, items: localizedSearch } : selected.search,
   };
 }
