@@ -178,29 +178,35 @@ export default function AdminScreen({ navigation }) {
           </View>
         </View>
         <View style={styles.tabs}>
-          {sections.map((item) => (
-            <Pressable
-              accessibilityRole="tab"
-              accessibilityState={{ selected: section === item }}
-              key={item}
-              style={[styles.tab, section === item && styles.activeTab]}
-              onPress={() => {
-                setSection(item);
-                setDetailUser(null);
-                setMessage("");
-                setError("");
-              }}
-            >
-              <Text
-                style={[
-                  s.text,
-                  section === item && { color: theme.onPrimary, fontWeight: "700" },
-                ]}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabRow}
+          >
+            {sections.map((item) => (
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: section === item }}
+                key={item}
+                style={[styles.tab, section === item && styles.activeTab]}
+                onPress={() => {
+                  setSection(item);
+                  setDetailUser(null);
+                  setMessage("");
+                  setError("");
+                }}
               >
-                {t(item)}
-              </Text>
-            </Pressable>
-          ))}
+                <Text
+                  style={[
+                    s.text,
+                    section === item && { color: theme.onPrimary, fontWeight: "700" },
+                  ]}
+                >
+                  {t(item)}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
         </View>
         {detailUser ? (
           <AdminUserDetails
