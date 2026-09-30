@@ -40,12 +40,15 @@ export const createStyles = (theme) => StyleSheet.create({
   topActions: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 10 },
   dot: { width: 7, height: 7, borderRadius: 4 },
   tabs: {
-    flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
+  },
+  tabRow: {
+    flexDirection: "row",
     gap: 8,
   },
   tab: {
+    flexShrink: 0,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 3,

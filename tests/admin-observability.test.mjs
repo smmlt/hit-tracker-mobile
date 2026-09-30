@@ -48,10 +48,17 @@ test('system tab is visible only in the existing admin-only section set', () => 
   assert.doesNotMatch(dashboard, /Linking|openURL|prometheus:|grafana:|jaeger:|loki:/i);
 });
 
-test('Android 1.1.1 build 9 is configured and the local builder syncs native versions', () => {
+test('admin tabs remain horizontally reachable without shrinking', () => {
+  const admin = source('src/screens/AdminScreen.js');
+  const styles = source('src/screens/AdminScreen.styles.js');
+  assert.match(admin, /<ScrollView horizontal showsHorizontalScrollIndicator=\{false\} contentContainerStyle=\{styles\.tabRow\}>/);
+  assert.match(styles, /tab:\s*\{[\s\S]*flexShrink:\s*0/);
+});
+
+test('Android 1.1.2 build 10 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.1.1');
-  assert.equal(config.expo.android.versionCode, 9);
+  assert.equal(config.expo.version, '1.1.2');
+  assert.equal(config.expo.android.versionCode, 10);
 
   const buildScript = source('scripts/build-apk.ps1');
   assert.match(buildScript, /\[regex\]::Replace/);
