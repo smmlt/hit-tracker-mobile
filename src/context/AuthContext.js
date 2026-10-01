@@ -2,8 +2,10 @@ import React, { createContext, useCallback, useEffect, useRef, useState } from '
 import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import * as Crypto from 'expo-crypto';
 import { authService } from '../services/authService';
 import { apiFetch } from '../services/api';
+import { getInstallationId } from '../utils/installationId';
 import { useWorkoutStore } from '../stores/workoutStore';
 import { useLibraryStore } from '../stores/libraryStore';
 import {
@@ -102,7 +104,18 @@ export const AuthProvider = ({ children }) => {
     const refreshTimer = setTimeout(() => {
       refreshAccessToken().catch(() => {});
     }, 4 * 60_000);
-    const touchPresence = () => apiFetch('/users/me/presence', { method: 'POST' }, userToken).catch(() => {});
+    const touchPresence = async () => {
+      let body;
+      try {
+        body = JSON.stringify({
+          installationId: await getInstallationId(AsyncStorage, Crypto.randomUUID),
+          platform: Platform.OS,
+        });
+      } catch {
+        // Presence still works when local storage is temporarily unavailable.
+      }
+      return apiFetch('/users/me/presence', { method: 'POST', body }, userToken).catch(() => {});
+    };
     touchPresence();
     const interval = setInterval(touchPresence, 60_000);
     const subscription = AppState.addEventListener('change', (state) => {
