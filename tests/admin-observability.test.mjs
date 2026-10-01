@@ -51,7 +51,7 @@ test('system tab is visible only in the existing admin-only section set', () => 
 test('admin tabs remain horizontally reachable without shrinking', () => {
   const admin = source('src/screens/AdminScreen.js');
   const styles = source('src/screens/AdminScreen.styles.js');
-  assert.match(admin, /<ScrollView horizontal showsHorizontalScrollIndicator=\{false\} contentContainerStyle=\{styles\.tabRow\}>/);
+  assert.match(admin, /<ScrollView\s+horizontal\s+showsHorizontalScrollIndicator=\{false\}\s+contentContainerStyle=\{styles\.tabRow\}\s*>/);
   assert.match(styles, /tab:\s*\{[\s\S]*flexShrink:\s*0/);
 });
 
