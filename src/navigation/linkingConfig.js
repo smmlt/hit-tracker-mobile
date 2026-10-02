@@ -13,6 +13,7 @@ export const linkingConfig = {
       alias: [legacy('share/programs/:token')],
     },
     Admin: 'admin',
+    Notifications: 'notifications',
     NotFound: '*',
     MainApp: {
       path: '',

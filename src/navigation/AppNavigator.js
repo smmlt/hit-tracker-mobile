@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { createNavigationContainerRef, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import * as Linking from 'expo-linking';
@@ -35,12 +35,15 @@ import AnalyticsScreen from '../screens/AnalyticsScreen';
 import BodyMetricsDetailsScreen from '../screens/BodyMetricsDetailsScreen';
 import AddBodyMeasurementScreen from '../screens/AddBodyMeasurementScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 import { palette } from '../constants/colors';
 import { WEB_APP_URL } from '../utils/shareLinks';
 import { createStyles } from './AppNavigator.styles';
 import { linkingConfig } from './linkingConfig';
+import { addPushListeners } from '../services/notificationService';
 const Stack = createNativeStackNavigator();
+const navigationRef = createNavigationContainerRef();
 const Tab = createBottomTabNavigator();
 const ProfileStackNavigator = createNativeStackNavigator();
 const TrainingStackNavigator = createNativeStackNavigator();
@@ -160,6 +163,22 @@ export default function AppNavigator() {
   const styles = createStyles(theme);
   const { isInitializing, userData, userToken } = useContext(AuthContext);
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
+  const pendingNotificationOpen = React.useRef(false);
+
+  const openNotifications = React.useCallback((actionUrl) => {
+    if (!userToken) return;
+    if (actionUrl?.startsWith('https://')) {
+      void Linking.openURL(actionUrl);
+      return;
+    }
+    if (navigationRef.isReady()) navigationRef.navigate('Notifications');
+    else pendingNotificationOpen.current = true;
+  }, [userToken]);
+
+  React.useEffect(() => {
+    if (!userToken) return undefined;
+    return addPushListeners(openNotifications, () => {});
+  }, [openNotifications, userToken]);
 
   const [isAdminRoute] = React.useState(() =>
     Platform.OS === 'web'
@@ -176,7 +195,16 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer
+      linking={linking}
+      ref={navigationRef}
+      onReady={() => {
+        if (pendingNotificationOpen.current) {
+          pendingNotificationOpen.current = false;
+          navigationRef.navigate('Notifications');
+        }
+      }}
+    >
       <View style={styles.container}>
         <Stack.Navigator
           initialRouteName={userToken === null ? 'Login' : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
@@ -219,6 +247,11 @@ export default function AppNavigator() {
               <Stack.Screen
                 name="MainApp"
                 component={MainTabs}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Notifications"
+                component={NotificationsScreen}
                 options={{ headerShown: false }}
               />
               {canOpenAdmin && (

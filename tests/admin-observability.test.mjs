@@ -37,11 +37,12 @@ test('admin observability normalizes the server response through allowlists', ()
   assert.doesNotMatch(JSON.stringify(result), /must not be copied|internal-secret|private-host/);
 });
 
-test('system tab is visible only in the existing admin-only section set', () => {
+test('system and notification tabs are visible only in the admin-only section set', () => {
   const admin = source('src/screens/AdminScreen.js');
-  assert.match(admin, /canUsers\s*\?\s*\["users", "system", "programs", "exercises"\]/);
+  assert.match(admin, /canUsers\s*\?\s*\["users", "notifications", "system", "programs", "exercises"\]/);
+  assert.match(admin, /section === "notifications" \? \(\s*<AdminNotifications[\s\S]*userToken=\{userToken\}/);
   assert.match(admin, /section === "system" \? \(\s*<AdminObservability userToken=\{userToken\}/);
-  assert.match(admin, /!canUsers && \["users", "system"\]\.includes\(section\)/);
+  assert.match(admin, /!canUsers && \["users", "notifications", "system"\]\.includes\(section\)/);
 
   const dashboard = source('src/components/admin/AdminObservability.js');
   assert.match(dashboard, /adminService\.getObservability\(userToken\)/);
@@ -55,10 +56,10 @@ test('admin tabs remain horizontally reachable without shrinking', () => {
   assert.match(styles, /tab:\s*\{[\s\S]*flexShrink:\s*0/);
 });
 
-test('Android 1.1.2 build 10 is configured and the local builder syncs native versions', () => {
+test('Android 1.2.0 build 11 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.1.2');
-  assert.equal(config.expo.android.versionCode, 10);
+  assert.equal(config.expo.version, '1.2.0');
+  assert.equal(config.expo.android.versionCode, 11);
 
   const buildScript = source('scripts/build-apk.ps1');
   assert.match(buildScript, /\[regex\]::Replace/);

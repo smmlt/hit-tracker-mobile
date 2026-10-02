@@ -89,7 +89,7 @@ function InfoItem({ label, value, styles }) {
   );
 }
 
-export function AdminUserDetails({ userId, revision, onBack, onManage, manageDisabled }) {
+export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify, manageDisabled }) {
   const { userToken } = useContext(AuthContext);
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
@@ -170,6 +170,7 @@ export function AdminUserDetails({ userId, revision, onBack, onManage, manageDis
     <View style={styles.root}>
       <View style={styles.topBar}>
         <Button secondary onPress={onBack}>{t('backToUsers')}</Button>
+        <Button secondary onPress={() => onNotify(user)}>{t('sendUserNotification')}</Button>
         <Button secondary disabled={manageDisabled} onPress={() => onManage(user)}>
           {t('manage')}
         </Button>

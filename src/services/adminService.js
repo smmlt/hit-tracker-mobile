@@ -27,4 +27,8 @@ export const adminService = {
     body: JSON.stringify({ role }),
   }, token, 'Admin request failed'),
   deleteUser: (id, token) => apiRequest(`/admin/users/${id}`, { method: 'DELETE' }, token, 'Admin request failed'),
+  sendNotification: (payload, token) => apiRequest('/admin/notifications', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, token, 'Could not queue notification'),
 };

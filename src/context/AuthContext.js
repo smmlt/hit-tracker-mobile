@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import * as Crypto from 'expo-crypto';
 import { authService } from '../services/authService';
 import { apiFetch } from '../services/api';
+import { notificationService, syncPushRegistration } from '../services/notificationService';
 import { getInstallationId } from '../utils/installationId';
 import { useWorkoutStore } from '../stores/workoutStore';
 import { useLibraryStore } from '../stores/libraryStore';
@@ -117,6 +118,7 @@ export const AuthProvider = ({ children }) => {
       return apiFetch('/users/me/presence', { method: 'POST', body }, userToken).catch(() => {});
     };
     touchPresence();
+    syncPushRegistration(userToken, false).catch(() => {});
     const interval = setInterval(touchPresence, 60_000);
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') touchPresence();
@@ -261,6 +263,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     sessionEpoch.current += 1;
     try {
+      if (userToken) await notificationService.unregister(userToken).catch(() => {});
       await authService.logout(await loadRefreshToken());
     } catch (error) {
       console.error('Failed to revoke the session during logout:', error);
@@ -274,7 +277,7 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(false);
       }
     }
-  }, [clearAuth]);
+  }, [clearAuth, userToken]);
 
   const updateUserData = useCallback(async (user) => {
     await AsyncStorage.setItem('userData', JSON.stringify(user));

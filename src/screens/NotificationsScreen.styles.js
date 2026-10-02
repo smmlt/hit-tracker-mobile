@@ -1,0 +1,28 @@
+import { StyleSheet } from 'react-native';
+
+export const createStyles = (theme) => StyleSheet.create({
+  screen: { backgroundColor: theme.background, flex: 1 },
+  header: { alignItems: 'center', alignSelf: 'center', flexDirection: 'row', gap: 12, maxWidth: 720, minHeight: 68, paddingHorizontal: 16, width: '100%' },
+  iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 40 },
+  headerText: { flex: 1 },
+  title: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 20 },
+  subtitle: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 12, marginTop: 2 },
+  markAll: { minHeight: 44, justifyContent: 'center' },
+  markAllText: { color: theme.primary, fontFamily: 'Inter-SemiBold', fontSize: 13 },
+  disabled: { opacity: 0.45 },
+  loading: { marginTop: 48 },
+  list: { alignSelf: 'center', gap: 12, maxWidth: 720, padding: 16, paddingBottom: 40, width: '100%' },
+  card: { backgroundColor: theme.cardBackground, borderColor: theme.border, borderRadius: 14, borderWidth: 1, gap: 7, padding: 16 },
+  unreadCard: { borderColor: theme.primary, borderLeftWidth: 4 },
+  cardHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  category: { color: theme.primary, fontFamily: 'Inter-SemiBold', fontSize: 11, textTransform: 'uppercase' },
+  unreadDot: { backgroundColor: theme.primary, borderRadius: 5, height: 9, width: 9 },
+  cardTitle: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 16 },
+  body: { color: theme.textPrimary, fontFamily: 'Inter', fontSize: 14, lineHeight: 20 },
+  image: { aspectRatio: 1.91, borderRadius: 10, marginTop: 4, width: '100%' },
+  date: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 11 },
+  empty: { color: theme.textSecondary, fontFamily: 'Inter', paddingTop: 60, textAlign: 'center' },
+  errorCard: { borderColor: theme.primary, borderRadius: 12, borderWidth: 1, gap: 8, padding: 14 },
+  error: { color: theme.textPrimary, fontFamily: 'Inter', textAlign: 'center' },
+  retry: { color: theme.primary, fontFamily: 'Inter-SemiBold', textAlign: 'center' },
+});

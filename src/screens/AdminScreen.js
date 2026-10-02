@@ -9,6 +9,7 @@ import { LanguageContext } from "../localization/LanguageContext";
 import { ContentManagement } from "../components/admin/ContentManagement";
 import { AdminUserDetails } from "../components/admin/AdminUserDetails";
 import { AdminObservability } from "../components/admin/AdminObservability";
+import { AdminNotifications } from "../components/admin/AdminNotifications";
 import { ConfirmDialog } from "../components/feedback";
 import { Button, Feedback, Field, Sheet, useWorkshopStyles } from "../components/workshop/ui";
 import { useTheme } from "../context/ThemeContext";
@@ -54,11 +55,12 @@ export default function AdminScreen({ navigation }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [detailUser, setDetailUser] = useState(null);
   const [detailsRevision, setDetailsRevision] = useState(0);
+  const [notificationTarget, setNotificationTarget] = useState(null);
   const canContent = ["moderator", "admin", "super_admin"].includes(verifiedRole);
   const canUsers = ["admin", "super_admin"].includes(verifiedRole);
   const isSuper = verifiedRole === "super_admin";
   const sections = canUsers
-    ? ["users", "system", "programs", "exercises"]
+    ? ["users", "notifications", "system", "programs", "exercises"]
     : ["programs", "exercises"];
   const verifyAccess = useCallback(async () => {
     setAccessState("checking");
@@ -75,7 +77,7 @@ export default function AdminScreen({ navigation }) {
     verifyAccess();
   }, [verifyAccess]);
   useEffect(() => {
-    if (!canUsers && ["users", "system"].includes(section)) setSection("programs");
+    if (!canUsers && ["users", "notifications", "system"].includes(section)) setSection("programs");
   }, [canUsers, section]);
   const loadUsers = useCallback(
     async (targetPage = 1) => {
@@ -191,6 +193,7 @@ export default function AdminScreen({ navigation }) {
                 style={[styles.tab, section === item && styles.activeTab]}
                 onPress={() => {
                   setSection(item);
+                  setNotificationTarget(null);
                   setDetailUser(null);
                   setMessage("");
                   setError("");
@@ -214,6 +217,11 @@ export default function AdminScreen({ navigation }) {
             revision={detailsRevision}
             onBack={() => setDetailUser(null)}
             onManage={openManage}
+            onNotify={(user) => {
+              setNotificationTarget(user.id);
+              setDetailUser(null);
+              setSection('notifications');
+            }}
             manageDisabled={detailUser.id === profile.id || (!isSuper && detailUser.role === "super_admin")}
           />
         ) : section === "users" ? (
@@ -334,6 +342,8 @@ export default function AdminScreen({ navigation }) {
               </Button>
             </View>
           </View>
+        ) : section === "notifications" ? (
+          <AdminNotifications key={notificationTarget || 'all'} initialUserId={notificationTarget} userToken={userToken} />
         ) : section === "system" ? (
           <AdminObservability userToken={userToken} />
         ) : (
