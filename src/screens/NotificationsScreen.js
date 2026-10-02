@@ -6,6 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { notificationService } from '../services/notificationService';
+import { getYouTubeThumbnailUrl } from '../utils/media';
 import { createStyles } from './NotificationsScreen.styles';
 
 export default function NotificationsScreen({ navigation }) {
@@ -89,28 +90,39 @@ export default function NotificationsScreen({ navigation }) {
             </Pressable>
           )}
           {!data.items.length && !error ? <Text style={styles.empty}>{t('noNotifications')}</Text> : null}
-          {data.items.map((item) => (
-            <Pressable
+          {data.items.map((item) => {
+            const videoUrl = item.payload?.videoUrl?.startsWith('https://') ? item.payload.videoUrl : null;
+            const actionUrl = item.payload?.actionUrl?.startsWith('https://') ? item.payload.actionUrl : videoUrl;
+            const imageUrl = item.payload?.imageUrl?.startsWith('https://')
+              ? item.payload.imageUrl
+              : getYouTubeThumbnailUrl(videoUrl);
+            return (
+              <Pressable
               accessibilityRole="button"
               key={item.id}
               onPress={() => {
                 void markRead(item);
-                if (item.payload?.actionUrl?.startsWith('https://')) void Linking.openURL(item.payload.actionUrl);
+                if (actionUrl) void Linking.openURL(actionUrl);
               }}
               style={[styles.card, !item.readAt && styles.unreadCard]}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.category}>{t(`notificationCategory_${item.category}`)}</Text>
-                {!item.readAt ? <View accessibilityLabel={t('unread')} style={styles.unreadDot} /> : null}
-              </View>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.body}>{item.body}</Text>
-              {item.payload?.imageUrl?.startsWith('https://') ? (
-                <Image accessibilityLabel={item.title} source={{ uri: item.payload.imageUrl }} style={styles.image} />
-              ) : null}
-              <Text style={styles.date}>{new Date(item.createdAt).toLocaleString(locale)}</Text>
-            </Pressable>
-          ))}
+              >
+                <View style={styles.cardHeader}>
+                  <Text style={styles.category}>{t(`notificationCategory_${item.category}`)}</Text>
+                  {!item.readAt ? <View accessibilityLabel={t('unread')} style={styles.unreadDot} /> : null}
+                </View>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.body}>{item.body}</Text>
+                {imageUrl ? <Image accessibilityLabel={item.title} source={{ uri: imageUrl }} style={styles.image} /> : null}
+                {actionUrl ? (
+                  <View style={styles.linkButton}>
+                    <Ionicons color={theme.primary} name={videoUrl ? 'play-circle-outline' : 'open-outline'} size={20} />
+                    <Text style={styles.linkText}>{t(videoUrl ? 'notificationWatchVideo' : 'notificationOpenLink')}</Text>
+                  </View>
+                ) : null}
+                <Text style={styles.date}>{new Date(item.createdAt).toLocaleString(locale)}</Text>
+              </Pressable>
+            );
+          })}
         </ScrollView>
       )}
     </SafeAreaView>

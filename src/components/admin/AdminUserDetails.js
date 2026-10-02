@@ -169,11 +169,9 @@ export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify,
   return (
     <View style={styles.root}>
       <View style={styles.topBar}>
-        <Button secondary onPress={onBack}>{t('backToUsers')}</Button>
-        <Button secondary onPress={() => onNotify(user)}>{t('sendUserNotification')}</Button>
-        <Button secondary disabled={manageDisabled} onPress={() => onManage(user)}>
-          {t('manage')}
-        </Button>
+        <View style={styles.topBarSlot}><Button secondary onPress={onBack}>{t('backToUsers')}</Button></View>
+        <View style={[styles.topBarSlot, styles.topBarCenter]}><Button secondary onPress={() => onNotify(user)}>{t('sendUserNotification')}</Button></View>
+        <View style={[styles.topBarSlot, styles.topBarRight]}><Button secondary disabled={manageDisabled} onPress={() => onManage(user)}>{t('manage')}</Button></View>
       </View>
 
       <View style={styles.hero}>

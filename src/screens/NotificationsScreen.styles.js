@@ -20,6 +20,8 @@ export const createStyles = (theme) => StyleSheet.create({
   cardTitle: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 16 },
   body: { color: theme.textPrimary, fontFamily: 'Inter', fontSize: 14, lineHeight: 20 },
   image: { aspectRatio: 1.91, borderRadius: 10, marginTop: 4, width: '100%' },
+  linkButton: { alignItems: 'center', alignSelf: 'flex-start', flexDirection: 'row', gap: 6, minHeight: 36 },
+  linkText: { color: theme.primary, fontFamily: 'Inter-SemiBold', fontSize: 13 },
   date: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 11 },
   empty: { color: theme.textSecondary, fontFamily: 'Inter', paddingTop: 60, textAlign: 'center' },
   errorCard: { borderColor: theme.primary, borderRadius: 12, borderWidth: 1, gap: 8, padding: 14 },

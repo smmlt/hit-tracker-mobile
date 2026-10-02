@@ -56,10 +56,22 @@ test('admin tabs remain horizontally reachable without shrinking', () => {
   assert.match(styles, /tab:\s*\{[\s\S]*flexShrink:\s*0/);
 });
 
-test('Android 1.2.0 build 11 is configured and the local builder syncs native versions', () => {
+test('user details uses equal responsive top-bar slots', () => {
+  const details = source('src/components/admin/AdminUserDetails.js');
+  const styles = source('src/components/admin/AdminUserDetails.styles.js');
+  assert.match(details, /onNotify\(user\)/);
+  assert.match(details, /topBarSlot/);
+  assert.match(details, /topBarCenter/);
+  assert.match(styles, /topBarSlot:\s*\{\s*flex:\s*1/);
+  assert.match(styles, /topBarCenter:\s*\{\s*alignItems: 'center'/);
+  assert.match(styles, /topBarRight:\s*\{\s*alignItems: 'flex-end'/);
+  assert.match(styles, /flexWrap: 'wrap'/);
+});
+
+test('Android 1.2.1 build 12 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.2.0');
-  assert.equal(config.expo.android.versionCode, 11);
+  assert.equal(config.expo.version, '1.2.1');
+  assert.equal(config.expo.android.versionCode, 12);
 
   const buildScript = source('scripts/build-apk.ps1');
   assert.match(buildScript, /\[regex\]::Replace/);

@@ -1,5 +1,6 @@
 import { apiRequest } from './api';
 import { normalizeObservability } from '../utils/adminObservability';
+import { createMediaFormData } from './mediaFormData';
 
 export const adminService = {
   listUsers: ({ search, page, online }, token) => apiRequest(
@@ -31,4 +32,14 @@ export const adminService = {
     method: 'POST',
     body: JSON.stringify(payload),
   }, token, 'Could not queue notification'),
+  uploadNotificationImage: async (asset, token) => apiRequest('/admin/notifications/media', {
+    method: 'POST',
+    body: await createMediaFormData(asset),
+  }, token, 'Could not upload notification image'),
+  listNotificationMedia: (token) => apiRequest(
+    '/admin/notifications/media', {}, token, 'Could not load notification images',
+  ),
+  listNotificationHistory: (token) => apiRequest(
+    '/admin/notifications/history', {}, token, 'Could not load notification history',
+  ),
 };

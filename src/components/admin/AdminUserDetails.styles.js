@@ -9,8 +9,11 @@ export const createStyles = (theme) => StyleSheet.create({
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 8,
   },
+  topBarSlot: { flex: 1, minWidth: 0, alignItems: 'flex-start' },
+  topBarCenter: { alignItems: 'center' },
+  topBarRight: { alignItems: 'flex-end' },
   hero: {
     backgroundColor: theme.cardBackground,
     borderColor: theme.border,

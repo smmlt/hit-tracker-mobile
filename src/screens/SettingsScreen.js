@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,7 +57,7 @@ const FrequencyPicker = ({ frequencies, value, onChange, theme, t }) => (
   </View>
 );
 
-const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, onDayChange, theme, t }) => {
+const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, onTimeBlur, onDayChange, theme, t }) => {
   const frequency = notifications[`${kind}ReminderFrequency`];
   const days = notifications[`${kind}ReminderDays`] || [];
   const showDays = ['weekly', 'twice_weekly'].includes(frequency);
@@ -77,6 +77,7 @@ const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, 
             inputMode="numeric"
             maxLength={5}
             onChangeText={onTimeChange}
+            onBlur={onTimeBlur}
             placeholder="18:00"
             placeholderTextColor={theme.textSecondary}
             style={[styles.reminderValue, { color: theme.textPrimary }]}
@@ -124,19 +125,98 @@ export default function SettingsScreen({ navigation }) {
   const [notificationError, setNotificationError] = useState('');
   const [notificationBusy, setNotificationBusy] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+  const notificationRef = useRef(null);
+  const notificationWriteRef = useRef(Promise.resolve());
+  const notificationWriteIdRef = useRef(0);
+  const notificationPendingRef = useRef(0);
   const [weightUnit, setWeightUnit] = useState('kg');
   const [heightUnit, setHeightUnit] = useState('cm');
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
-  const setNotification = (key) => (value) => setNotifications((current) => ({ ...current, [key]: value }));
+  const normalizeNotifications = (preferences) => ({
+    ...preferences,
+    workoutReminderTime: preferences.workoutReminderTime?.slice(0, 5) || '18:00',
+    measurementReminderTime: preferences.measurementReminderTime?.slice(0, 5) || '18:00',
+  });
+  const persistNotifications = (next) => {
+    notificationRef.current = next;
+    setNotifications(next);
+    setNotificationError('');
+    setNotificationMessage('');
+    const payload = {
+      achievementsEnabled: next.achievementsEnabled,
+      generalEnabled: next.generalEnabled,
+      measurementRemindersEnabled: next.measurementRemindersEnabled,
+      newsEnabled: next.newsEnabled,
+      workoutReminderFrequency: next.workoutReminderFrequency,
+      workoutReminderTime: next.workoutReminderTime,
+      workoutReminderDays: next.workoutReminderDays,
+      measurementReminderFrequency: next.measurementReminderFrequency,
+      measurementReminderTime: next.measurementReminderTime,
+      measurementReminderDays: next.measurementReminderDays,
+      workoutRemindersEnabled: next.workoutRemindersEnabled,
+      pushEnabled: next.pushEnabled,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+    const writeId = ++notificationWriteIdRef.current;
+    notificationPendingRef.current += 1;
+    setNotificationBusy(true);
+    const write = notificationWriteRef.current
+      .catch(() => {})
+      .then(async () => {
+        try {
+          const confirmed = normalizeNotifications(await notificationService.updatePreferences(payload, userToken));
+          if (writeId === notificationWriteIdRef.current) {
+            notificationRef.current = confirmed;
+            setNotifications(confirmed);
+          }
+          return true;
+        } catch (error) {
+          if (writeId === notificationWriteIdRef.current) {
+            setNotificationError(error.message);
+            try {
+              const confirmed = normalizeNotifications(await notificationService.getPreferences(userToken));
+              notificationRef.current = confirmed;
+              setNotifications(confirmed);
+            } catch (reloadError) {
+              setNotificationError(reloadError.message);
+            }
+          }
+          return false;
+        }
+      })
+      .finally(() => {
+        notificationPendingRef.current -= 1;
+        setNotificationBusy(notificationPendingRef.current > 0);
+      });
+    notificationWriteRef.current = write;
+    return write;
+  };
+  const setNotification = (key) => (value) => {
+    const current = notificationRef.current || notifications;
+    void persistNotifications({ ...current, [key]: value });
+  };
+  const setReminderTime = (key) => (value) => {
+    const current = notificationRef.current || notifications;
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+      setNotifications({ ...current, [key]: value });
+      setNotificationError(t('invalidReminderTime'));
+      return;
+    }
+    persistNotifications({ ...current, [key]: value });
+  };
+  const restoreReminderTime = (key) => () => {
+    const confirmed = notificationRef.current || notifications;
+    const value = confirmed[key] || '18:00';
+    setNotifications((current) => ({ ...current, [key]: value }));
+    setNotificationError('');
+  };
   const loadNotifications = async () => {
     setNotificationError('');
     try {
       const preferences = await notificationService.getPreferences(userToken);
-      setNotifications({
-        ...preferences,
-        workoutReminderTime: preferences.workoutReminderTime?.slice(0, 5) || '18:00',
-        measurementReminderTime: preferences.measurementReminderTime?.slice(0, 5) || '18:00',
-      });
+      const normalized = normalizeNotifications(preferences);
+      notificationRef.current = normalized;
+      setNotifications(normalized);
     } catch (error) {
       setNotificationError(error.message);
     }
@@ -144,7 +224,6 @@ export default function SettingsScreen({ navigation }) {
   useEffect(() => { void loadNotifications(); }, [userToken]);
 
   const togglePush = async (enabled) => {
-    setNotificationBusy(true);
     setNotificationError('');
     setNotificationMessage('');
     try {
@@ -154,100 +233,42 @@ export default function SettingsScreen({ navigation }) {
       } else {
         await notificationService.unregister(userToken).catch(() => {});
       }
-      const updated = await notificationService.updatePreferences({
-        pushEnabled: enabled,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }, userToken);
-      setNotifications({
-        ...updated,
-        workoutReminderTime: updated.workoutReminderTime?.slice(0, 5) || '18:00',
-        measurementReminderTime: updated.measurementReminderTime?.slice(0, 5) || '18:00',
-      });
-      setNotificationMessage(t(enabled ? 'pushEnabledMessage' : 'pushDisabledMessage'));
+      const saved = await persistNotifications({ ...(notificationRef.current || notifications), pushEnabled: enabled });
+      if (saved) setNotificationMessage(t(enabled ? 'pushEnabledMessage' : 'pushDisabledMessage'));
     } catch (error) {
       setNotificationError(error.message);
-    } finally {
-      setNotificationBusy(false);
-    }
-  };
-
-  const saveNotifications = async () => {
-    setNotificationBusy(true);
-    setNotificationError('');
-    setNotificationMessage('');
-    try {
-      if (![notifications.workoutReminderTime, notifications.measurementReminderTime].every((value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value))) {
-        throw new Error(t('invalidReminderTime'));
-      }
-      const updated = await notificationService.updatePreferences({
-        achievementsEnabled: notifications.achievementsEnabled,
-        generalEnabled: notifications.generalEnabled,
-        measurementRemindersEnabled: notifications.measurementRemindersEnabled,
-        newsEnabled: notifications.newsEnabled,
-        workoutReminderFrequency: notifications.workoutReminderFrequency,
-        workoutReminderTime: notifications.workoutReminderTime,
-        workoutReminderDays: notifications.workoutReminderDays,
-        measurementReminderFrequency: notifications.measurementReminderFrequency,
-        measurementReminderTime: notifications.measurementReminderTime,
-        measurementReminderDays: notifications.measurementReminderDays,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        workoutRemindersEnabled: notifications.workoutRemindersEnabled,
-      }, userToken);
-      setNotifications({
-        ...updated,
-        workoutReminderTime: updated.workoutReminderTime?.slice(0, 5) || '18:00',
-        measurementReminderTime: updated.measurementReminderTime?.slice(0, 5) || '18:00',
-      });
-      setNotificationMessage(t('notificationSettingsSaved'));
-    } catch (error) {
-      setNotificationError(error.message);
-    } finally {
-      setNotificationBusy(false);
     }
   };
 
   const setReminderFrequency = (kind) => (frequency) => {
-    setNotifications((current) => {
-      const daysKey = `${kind}ReminderDays`;
-      const currentDays = current[daysKey] || [1];
-      const days = frequency === 'weekly'
-        ? [currentDays[0]]
-        : frequency === 'twice_weekly'
-          ? currentDays.length >= 2 ? currentDays.slice(0, 2) : [currentDays[0], currentDays[0] === 4 ? 1 : 4]
-          : currentDays;
-      return { ...current, [`${kind}ReminderFrequency`]: frequency, [daysKey]: days };
-    });
+    const current = notificationRef.current || notifications;
+    const daysKey = `${kind}ReminderDays`;
+    const currentDays = current[daysKey] || [1];
+    const days = frequency === 'weekly'
+      ? [currentDays[0]]
+      : frequency === 'twice_weekly'
+        ? currentDays.length >= 2 ? currentDays.slice(0, 2) : [currentDays[0], currentDays[0] === 4 ? 1 : 4]
+        : currentDays;
+    void persistNotifications({ ...current, [`${kind}ReminderFrequency`]: frequency, [daysKey]: days });
   };
 
   const toggleReminderDay = (kind, day) => {
-    setNotifications((current) => {
+    const current = notificationRef.current || notifications;
+    {
       const daysKey = `${kind}ReminderDays`;
       const frequency = current[`${kind}ReminderFrequency`];
       const selected = current[daysKey] || [1];
-      if (frequency === 'weekly') return { ...current, [daysKey]: [day] };
-      if (selected.includes(day) && selected.length === 1) return current;
+      if (frequency === 'weekly') return void persistNotifications({ ...current, [daysKey]: [day] });
+      if (selected.includes(day) && selected.length === 1) return;
       if (frequency === 'twice_weekly' && !selected.includes(day) && selected.length >= 2) {
-        return { ...current, [daysKey]: [selected[1], day].sort((left, right) => left - right) };
+        return void persistNotifications({ ...current, [daysKey]: [selected[1], day].sort((left, right) => left - right) });
       }
-      return {
+      return void persistNotifications({
         ...current,
         [daysKey]: selected.includes(day)
           ? selected.filter((value) => value !== day)
           : [...selected, day].sort((left, right) => left - right),
-      };
-    });
-  };
-
-  const sendTest = async () => {
-    setNotificationBusy(true);
-    setNotificationError('');
-    try {
-      await notificationService.sendTest(userToken);
-      setNotificationMessage(t('testNotificationQueued'));
-    } catch (error) {
-      setNotificationError(error.message);
-    } finally {
-      setNotificationBusy(false);
+      });
     }
   };
 
@@ -277,6 +298,9 @@ export default function SettingsScreen({ navigation }) {
           </View>
         ) : (
           <>
+            <Pressable accessibilityRole="button" disabled={notificationBusy} onPress={() => navigation.navigate('Notifications')} style={[styles.action, { borderColor: theme.border }]}>
+              <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('openNotificationInbox')}</Text>
+            </Pressable>
             <Toggle label={t('pushNotifications')} value={notifications.pushEnabled} onChange={togglePush} theme={theme} />
             <Toggle label={t('generalNotifications')} value={notifications.generalEnabled} onChange={setNotification('generalEnabled')} theme={theme} />
             <Toggle label={t('workoutReminders')} value={notifications.workoutRemindersEnabled} onChange={setNotification('workoutRemindersEnabled')} theme={theme} />
@@ -284,7 +308,8 @@ export default function SettingsScreen({ navigation }) {
               kind="workout"
               notifications={notifications}
               onFrequencyChange={setReminderFrequency('workout')}
-              onTimeChange={setNotification('workoutReminderTime')}
+              onTimeChange={setReminderTime('workoutReminderTime')}
+              onTimeBlur={restoreReminderTime('workoutReminderTime')}
               onDayChange={(day) => toggleReminderDay('workout', day)}
               theme={theme}
               t={t}
@@ -294,7 +319,8 @@ export default function SettingsScreen({ navigation }) {
               kind="measurement"
               notifications={notifications}
               onFrequencyChange={setReminderFrequency('measurement')}
-              onTimeChange={setNotification('measurementReminderTime')}
+              onTimeChange={setReminderTime('measurementReminderTime')}
+              onTimeBlur={restoreReminderTime('measurementReminderTime')}
               onDayChange={(day) => toggleReminderDay('measurement', day)}
               theme={theme}
               t={t}
@@ -303,17 +329,6 @@ export default function SettingsScreen({ navigation }) {
             <Toggle label={t('programNews')} value={notifications.newsEnabled} onChange={setNotification('newsEnabled')} theme={theme} />
             {!!notificationError && <Text accessibilityRole="alert" style={[styles.feedback, { color: theme.primary }]}>{notificationError}</Text>}
             {!!notificationMessage && <Text accessibilityRole="alert" style={[styles.feedback, { color: theme.textSecondary }]}>{notificationMessage}</Text>}
-            <View style={styles.notificationActions}>
-              <Pressable accessibilityRole="button" disabled={notificationBusy} onPress={() => navigation.navigate('Notifications')} style={[styles.action, { borderColor: theme.border }]}>
-                <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('openNotificationInbox')}</Text>
-              </Pressable>
-              <Pressable accessibilityRole="button" disabled={notificationBusy || !notifications.pushEnabled} onPress={sendTest} style={[styles.action, { borderColor: theme.border }, (!notifications.pushEnabled || notificationBusy) && styles.disabled]}>
-                <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('sendTestNotification')}</Text>
-              </Pressable>
-              <Pressable accessibilityRole="button" disabled={notificationBusy} onPress={saveNotifications} style={[styles.action, { backgroundColor: theme.primary, borderColor: theme.primary }]}>
-                <Text style={[styles.actionText, { color: theme.onPrimary }]}>{notificationBusy ? t('saving') : t('saveNotificationSettings')}</Text>
-              </Pressable>
-            </View>
           </>
         )}
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('units')}</Text>

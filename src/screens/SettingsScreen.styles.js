@@ -28,7 +28,6 @@ export const styles = StyleSheet.create({
   day: { alignItems: 'center', borderRadius: 16, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 34 },
   dayText: { fontFamily: 'Inter-SemiBold', fontSize: 11 },
   notificationState: { alignItems: 'center', justifyContent: 'center', minHeight: 80 },
-  notificationActions: { gap: 10, marginTop: 16 },
   action: { alignItems: 'center', borderRadius: 12, borderWidth: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: 12 },
   actionText: { fontFamily: 'Inter-SemiBold', fontSize: 14 },
   feedback: { fontFamily: 'Inter', fontSize: 13, marginTop: 8, textAlign: 'center' },

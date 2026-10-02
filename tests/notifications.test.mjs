@@ -20,6 +20,23 @@ test('push permission is requested only by the explicit enable flow', () => {
   assert.match(settings, /const reminderFrequencies = \[[^\]]*'hourly'/);
 });
 
+test('notification preferences persist optimistically and ordinary users have no save/test controls', () => {
+  const settings = source('src/screens/SettingsScreen.js');
+  assert.match(settings, /notificationWriteRef/);
+  assert.match(settings, /notificationService\.updatePreferences\(payload, userToken\)/);
+  assert.match(settings, /notificationService\.getPreferences\(userToken\)/);
+  assert.match(settings, /setReminderTime/);
+  assert.match(settings, /notificationWriteIdRef/);
+  assert.match(settings, /notificationPendingRef\.current > 0/);
+  assert.match(settings, /if \(writeId === notificationWriteIdRef\.current\)/);
+  assert.match(settings, /onBlur=\{onTimeBlur\}/);
+  assert.match(settings, /setNotificationError\(t\('invalidReminderTime'\)\)/);
+  assert.match(settings, /const saved = await persistNotifications/);
+  assert.match(settings, /if \(saved\) setNotificationMessage/);
+  assert.ok(settings.indexOf("t('openNotificationInbox')") < settings.indexOf("t('pushNotifications')"));
+  assert.doesNotMatch(settings, /sendTestNotification|saveNotificationSettings|sendTest\b|saveNotifications\b/);
+});
+
 test('notification inbox and admin delivery use the authenticated API', () => {
   const service = source('src/services/notificationService.js');
   const admin = source('src/services/adminService.js');
@@ -33,10 +50,16 @@ test('notification inbox and admin delivery use the authenticated API', () => {
   assert.match(service, /'\/notifications\/devices'/);
   assert.match(service, /'\/notifications\/read-all'/);
   assert.match(admin, /'\/admin\/notifications'/);
-  assert.match(composer, /imageUrl/);
+  assert.match(admin, /'\/admin\/notifications\/media'/);
+  assert.match(admin, /'\/admin\/notifications\/history'/);
+  assert.match(composer, /ImagePickerField/);
+  assert.match(composer, /imageMediaId/);
+  assert.match(composer, /notificationContentRequired/);
+  assert.match(composer, /videoUrl/);
   assert.match(composer, /actionUrl/);
-  assert.match(composer, /scheduledAt/);
+  assert.match(composer, /scheduledLocalAt/);
   assert.match(inbox, /payload\?\.imageUrl/);
+  assert.match(inbox, /getYouTubeThumbnailUrl/);
   assert.match(details, /onNotify\(user\)/);
   assert.match(adminScreen, /initialUserId=\{notificationTarget\}/);
   assert.match(routes, /Notifications: 'notifications'/);
