@@ -8,9 +8,14 @@ $version = $config.expo.version
 $versionCode = $config.expo.android.versionCode
 $gradle = Join-Path $projectRoot 'android\gradlew.bat'
 
+$java17 = Get-ChildItem -Path (Join-Path $env:USERPROFILE '.gradle\jdks') -Directory -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '(^|-)17([.-]|$)' } |
+    Select-Object -First 1 -ExpandProperty FullName
+
 $javaCandidates = @(
-    (Join-Path $env:ProgramFiles 'Android\Android Studio\jbr'),
-    $env:JAVA_HOME
+    $java17,
+    $env:JAVA_HOME,
+    (Join-Path $env:ProgramFiles 'Android\Android Studio\jbr')
 ) | Where-Object { $_ }
 
 foreach ($javaHome in $javaCandidates) {
@@ -54,15 +59,13 @@ $env:HITTRACKER_KEYSTORE_PASSWORD = $signingProperties.storePassword
 $env:HITTRACKER_KEY_ALIAS = $signingProperties.keyAlias
 $env:HITTRACKER_KEY_PASSWORD = $signingProperties.keyPassword
 
-if (-not (Test-Path $gradle)) {
-    Push-Location $projectRoot
-    try {
-        & npx expo prebuild --platform android --no-install
-        if ($LASTEXITCODE -ne 0) { throw 'Expo prebuild failed.' }
-    }
-    finally {
-        Pop-Location
-    }
+Push-Location $projectRoot
+try {
+    & npx expo prebuild --platform android --no-install
+    if ($LASTEXITCODE -ne 0) { throw 'Expo prebuild failed.' }
+}
+finally {
+    Pop-Location
 }
 
 $appGradle = Join-Path $projectRoot 'android\app\build.gradle'

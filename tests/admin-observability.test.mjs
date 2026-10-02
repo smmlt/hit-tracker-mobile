@@ -68,10 +68,10 @@ test('user details uses equal responsive top-bar slots', () => {
   assert.match(styles, /flexWrap: 'wrap'/);
 });
 
-test('Android 1.2.1 build 12 is configured and the local builder syncs native versions', () => {
+test('Android 1.2.2 build 13 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.2.1');
-  assert.equal(config.expo.android.versionCode, 12);
+  assert.equal(config.expo.version, '1.2.2');
+  assert.equal(config.expo.android.versionCode, 13);
 
   const buildScript = source('scripts/build-apk.ps1');
   assert.match(buildScript, /\[regex\]::Replace/);
