@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hit Tracker",
     "slug": "hit-tracker-mobile",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "scheme": "hit-tracker-mobile",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,11 +12,10 @@
       "bundleIdentifier": "com.auraxa.hittracker"
     },
     "android": {
-      "versionCode": 14,
+      "versionCode": 15,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "monochromeImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#E32222"
       },
       "package": "com.auraxa.hittracker"
@@ -35,6 +34,7 @@
           "defaultChannel": "default"
         }
       ],
+      "./plugins/withNotificationLargeIcon",
       "expo-font",
       "expo-secure-store",
       "expo-status-bar",
