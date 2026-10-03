@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hit Tracker",
     "slug": "hit-tracker-mobile",
-    "version": "1.2.4",
+    "version": "1.2.5",
     "scheme": "hit-tracker-mobile",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,7 +12,7 @@
       "bundleIdentifier": "com.auraxa.hittracker"
     },
     "android": {
-      "versionCode": 15,
+      "versionCode": 16,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -34,7 +34,6 @@
           "defaultChannel": "default"
         }
       ],
-      "./plugins/withNotificationLargeIcon",
       "expo-font",
       "expo-secure-store",
       "expo-status-bar",
