@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { createStyles } from './AdminScreen.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,7 +10,7 @@ import { LanguageContext } from "../localization/LanguageContext";
 import { ContentManagement } from "../components/admin/ContentManagement";
 import { AdminUserDetails } from "../components/admin/AdminUserDetails";
 import { AdminObservability } from "../components/admin/AdminObservability";
-import { AdminNotifications } from "../components/admin/AdminNotifications";
+import { AdminNotifications, ADMIN_NOTIFICATION_DRAFT_KEY, ADMIN_NOTIFICATION_DRAFT_TTL_MS } from "../components/admin/AdminNotifications";
 import { ConfirmDialog } from "../components/feedback";
 import { Button, Feedback, Field, Sheet, useWorkshopStyles } from "../components/workshop/ui";
 import { useTheme } from "../context/ThemeContext";
@@ -56,6 +57,9 @@ export default function AdminScreen({ navigation }) {
   const [detailUser, setDetailUser] = useState(null);
   const [detailsRevision, setDetailsRevision] = useState(0);
   const [notificationTarget, setNotificationTarget] = useState(null);
+  const [notificationComposerRevision, setNotificationComposerRevision] = useState(0);
+  const [hasNotificationDraft, setHasNotificationDraft] = useState(false);
+  const handleDraftStateChange = useCallback((value) => setHasNotificationDraft(value), []);
   const canContent = ["moderator", "admin", "super_admin"].includes(verifiedRole);
   const canUsers = ["admin", "super_admin"].includes(verifiedRole);
   const isSuper = verifiedRole === "super_admin";
@@ -76,6 +80,16 @@ export default function AdminScreen({ navigation }) {
   useEffect(() => {
     verifyAccess();
   }, [verifyAccess]);
+  useEffect(() => {
+    if (!profile?.id) return undefined;
+    let active = true;
+    AsyncStorage.getItem(ADMIN_NOTIFICATION_DRAFT_KEY(profile.id)).then((raw) => {
+      if (!active) return;
+      if (!raw) { setHasNotificationDraft(false); return; }
+      try { setHasNotificationDraft(Date.now() - JSON.parse(raw).updatedAt <= ADMIN_NOTIFICATION_DRAFT_TTL_MS); } catch (_) { setHasNotificationDraft(false); }
+    });
+    return () => { active = false; };
+  }, [profile?.id]);
   useEffect(() => {
     if (!canUsers && ["users", "notifications", "system"].includes(section)) setSection("programs");
   }, [canUsers, section]);
@@ -173,12 +187,17 @@ export default function AdminScreen({ navigation }) {
               <View
               style={[styles.dot, { backgroundColor: colors[verifiedRole] }]}
               />
-              <Text style={s.muted}>
+              <Text style={[s.muted, styles.identityText]}>
                 {t('signedInAs', { role: roleLabel(verifiedRole) })}
               </Text>
             </View>
           </View>
         </View>
+        {hasNotificationDraft && (
+          <Pressable accessibilityRole="button" accessibilityLabel={t('adminNotificationDraftReminder')} onPress={() => { setSection('notifications'); setNotificationTarget(null); setNotificationComposerRevision((value) => value + 1); }} style={styles.draftReminder}>
+            <Text style={s.text}>{t('adminNotificationDraftReminder')}</Text>
+          </Pressable>
+        )}
         <View style={styles.tabs}>
           <ScrollView
             horizontal
@@ -343,7 +362,7 @@ export default function AdminScreen({ navigation }) {
             </View>
           </View>
         ) : section === "notifications" ? (
-          <AdminNotifications key={notificationTarget || 'all'} initialUserId={notificationTarget} userToken={userToken} />
+          <AdminNotifications key={`${notificationTarget || 'all'}:${notificationComposerRevision}`} initialUserId={notificationTarget} profileId={profile.id} userToken={userToken} onDraftStateChange={handleDraftStateChange} />
         ) : section === "system" ? (
           <AdminObservability userToken={userToken} />
         ) : (

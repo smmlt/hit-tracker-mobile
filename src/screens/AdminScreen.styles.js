@@ -14,6 +14,13 @@ export const createStyles = (theme) => StyleSheet.create({
     alignSelf: "center",
     gap: 28,
   },
+  draftReminder: {
+    backgroundColor: theme.accentWash || palette.accentWash,
+    borderColor: theme.primary,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 14,
+  },
   top: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -31,13 +38,16 @@ export const createStyles = (theme) => StyleSheet.create({
   title: { color: theme.textPrimary, fontSize: 32, fontWeight: "700" },
   identity: {
     flexDirection: "row",
+    flexShrink: 1,
     gap: 8,
     alignItems: "center",
     backgroundColor: theme.cardBackground,
+    maxWidth: "100%",
     padding: 12,
     borderRadius: 10,
   },
-  topActions: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  identityText: { flexShrink: 1 },
+  topActions: { alignItems: "center", flexBasis: 300, flexDirection: "row", flexGrow: 1, flexShrink: 1, flexWrap: "wrap", gap: 10, justifyContent: "flex-end", maxWidth: "100%" },
   dot: { width: 7, height: 7, borderRadius: 4 },
   tabs: {
     borderBottomWidth: 1,

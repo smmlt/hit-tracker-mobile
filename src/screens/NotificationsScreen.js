@@ -91,11 +91,24 @@ export default function NotificationsScreen({ navigation }) {
           )}
           {!data.items.length && !error ? <Text style={styles.empty}>{t('noNotifications')}</Text> : null}
           {data.items.map((item) => {
-            const videoUrl = item.payload?.videoUrl?.startsWith('https://') ? item.payload.videoUrl : null;
-            const actionUrl = item.payload?.actionUrl?.startsWith('https://') ? item.payload.actionUrl : videoUrl;
-            const imageUrl = item.payload?.imageUrl?.startsWith('https://')
-              ? item.payload.imageUrl
-              : getYouTubeThumbnailUrl(videoUrl);
+            const videoUrls = (item.videoUrls?.length
+              ? item.videoUrls
+              : item.payload?.videoUrls?.length
+                ? item.payload.videoUrls
+                : item.payload?.videoUrl
+                  ? [item.payload.videoUrl]
+                  : []).filter((url) => url?.startsWith('https://'));
+            const imageUrls = (item.imageUrls?.length
+              ? item.imageUrls
+              : item.payload?.imageUrls?.length
+                ? item.payload.imageUrls
+                : item.payload?.imageUrl
+                  ? [item.payload.imageUrl]
+                  : []).filter((url) => url?.startsWith('https://'));
+            const explicitActionUrl = item.payload?.actionUrl?.startsWith('https://')
+              ? item.payload.actionUrl
+              : null;
+            const actionUrl = explicitActionUrl || videoUrls[0] || null;
             return (
               <Pressable
               accessibilityRole="button"
@@ -112,11 +125,34 @@ export default function NotificationsScreen({ navigation }) {
                 </View>
                 <Text style={styles.cardTitle}>{item.title}</Text>
                 <Text style={styles.body}>{item.body}</Text>
-                {imageUrl ? <Image accessibilityLabel={item.title} source={{ uri: imageUrl }} style={styles.image} /> : null}
-                {actionUrl ? (
+                {!!imageUrls.length && (
+                  <ScrollView horizontal contentContainerStyle={styles.mediaRow} showsHorizontalScrollIndicator={false}>
+                    {imageUrls.map((url) => <Image accessibilityLabel={item.title} key={url} source={{ uri: url }} style={styles.galleryImage} />)}
+                  </ScrollView>
+                )}
+                {!!videoUrls.length && (
+                  <ScrollView horizontal contentContainerStyle={styles.mediaRow} showsHorizontalScrollIndicator={false}>
+                    {videoUrls.map((url) => (
+                      <Pressable
+                        accessibilityLabel={t('notificationWatchVideo')}
+                        accessibilityRole="link"
+                        key={url}
+                        onPress={(event) => { event?.stopPropagation?.(); void Linking.openURL(url); }}
+                        style={styles.videoCard}
+                      >
+                        {getYouTubeThumbnailUrl(url) ? <Image source={{ uri: getYouTubeThumbnailUrl(url) }} style={styles.videoImage} /> : null}
+                        <View style={styles.videoLink}>
+                          <Ionicons color={theme.primary} name="play-circle-outline" size={18} />
+                          <Text numberOfLines={1} style={styles.videoLinkText}>{t('notificationWatchVideo')}</Text>
+                        </View>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                )}
+                {explicitActionUrl ? (
                   <View style={styles.linkButton}>
-                    <Ionicons color={theme.primary} name={videoUrl ? 'play-circle-outline' : 'open-outline'} size={20} />
-                    <Text style={styles.linkText}>{t(videoUrl ? 'notificationWatchVideo' : 'notificationOpenLink')}</Text>
+                    <Ionicons color={theme.primary} name="open-outline" size={20} />
+                    <Text style={styles.linkText}>{t('notificationOpenLink')}</Text>
                   </View>
                 ) : null}
                 <Text style={styles.date}>{new Date(item.createdAt).toLocaleString(locale)}</Text>
