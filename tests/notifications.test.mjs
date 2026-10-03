@@ -69,6 +69,8 @@ test('notification inbox and admin delivery use the authenticated API', () => {
   assert.match(composer, /ADMIN_NOTIFICATION_DRAFT_KEY/);
   assert.match(composer, /AsyncStorage\.setItem/);
   assert.match(composer, /AsyncStorage\.removeItem/);
+  assert.match(composer, /setAudience\('all'\);\s*setUserIds\(''\);\s*setCategory\('general'\);/);
+  assert.doesNotMatch(composer, /suppressNextDraftSave/);
   assert.match(composer, /adminService\.uploadNotificationImage\(asset, userToken\)/);
   assert.match(adminScreen, /adminNotificationDraftReminder/);
   assert.match(inbox, /item\.imageUrls/);

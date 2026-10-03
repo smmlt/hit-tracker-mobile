@@ -62,7 +62,7 @@ export default function AdminScreen({ navigation }) {
   const handleDraftStateChange = useCallback((value) => setHasNotificationDraft(value), []);
   const canContent = ["moderator", "admin", "super_admin"].includes(verifiedRole);
   const canUsers = ["admin", "super_admin"].includes(verifiedRole);
-  const isSuper = verifiedRole === "super_admin";
+  const isSystemOwner = profile?.isSystemOwner === true;
   const sections = canUsers
     ? ["users", "notifications", "system", "programs", "exercises"]
     : ["programs", "exercises"];
@@ -241,7 +241,7 @@ export default function AdminScreen({ navigation }) {
               setDetailUser(null);
               setSection('notifications');
             }}
-            manageDisabled={detailUser.id === profile.id || (!isSuper && detailUser.role === "super_admin")}
+            manageDisabled={detailUser.id === profile.id || (!isSystemOwner && detailUser.role === "super_admin")}
           />
         ) : section === "users" ? (
           <View style={styles.usersSection}>
@@ -281,7 +281,7 @@ export default function AdminScreen({ navigation }) {
               {users.map((user) => {
                 const protectedUser =
                   user.id === profile.id ||
-                  (!isSuper && user.role === "super_admin");
+                  (!isSystemOwner && user.role === "super_admin");
                 return (
                   <Pressable
                     accessibilityRole="button"
@@ -378,7 +378,7 @@ export default function AdminScreen({ navigation }) {
           <Text style={s.heading}>{t('role')}</Text>
           <View style={s.row}>
             {roles
-              .filter((key) => isSuper || key !== "super_admin")
+              .filter((key) => isSystemOwner || key !== "super_admin")
               .map((key) => (
                 <Button
                   key={key}

@@ -43,6 +43,9 @@ test('system and notification tabs are visible only in the admin-only section se
   assert.match(admin, /section === "notifications" \? \(\s*<AdminNotifications[\s\S]*userToken=\{userToken\}/);
   assert.match(admin, /section === "system" \? \(\s*<AdminObservability userToken=\{userToken\}/);
   assert.match(admin, /!canUsers && \["users", "notifications", "system"\]\.includes\(section\)/);
+  assert.match(admin, /const isSystemOwner = profile\?\.isSystemOwner === true/);
+  assert.match(admin, /!isSystemOwner && user\.role === "super_admin"/);
+  assert.doesNotMatch(admin, /system_owner/i);
 
   const dashboard = source('src/components/admin/AdminObservability.js');
   assert.match(dashboard, /adminService\.getObservability\(userToken\)/);
@@ -68,10 +71,10 @@ test('user details uses equal responsive top-bar slots', () => {
   assert.match(styles, /flexWrap: 'wrap'/);
 });
 
-test('Android 1.3.1 build 18 is configured and the local builder syncs native versions', () => {
+test('Android 1.3.2 build 19 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.3.1');
-  assert.equal(config.expo.android.versionCode, 18);
+  assert.equal(config.expo.version, '1.3.2');
+  assert.equal(config.expo.android.versionCode, 19);
   assert.ok(!config.expo.plugins.includes('./plugins/withNotificationLargeIcon'));
 
   const buildScript = source('scripts/build-apk.ps1');

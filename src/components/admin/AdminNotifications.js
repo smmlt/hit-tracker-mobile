@@ -63,7 +63,6 @@ export function AdminNotifications({ userToken, initialUserId, profileId, onDraf
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const hydrated = useRef(false);
   const initialTarget = useRef(initialUserId ? String(initialUserId) : '');
-  const suppressNextDraftSave = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -89,7 +88,6 @@ export function AdminNotifications({ userToken, initialUserId, profileId, onDraf
 
   useEffect(() => {
     if (!hydrated.current || !profileId) return;
-    if (suppressNextDraftSave.current) { suppressNextDraftSave.current = false; return; }
     const draft = { audience, userIds, category, title, body, selectedImages, videoUrls, videoDraft, actionUrl, scheduledAt, updatedAt: Date.now() };
     const meaningful = title.trim() || body.trim() || userIds.trim() || selectedImages.length || videoUrls.length || videoDraft.trim() || actionUrl.trim() || scheduledAt.trim();
     onDraftStateChange?.(Boolean(meaningful));
@@ -188,8 +186,10 @@ export function AdminNotifications({ userToken, initialUserId, profileId, onDraf
         ...(schedule ? { scheduledLocalAt: schedule } : {}),
         ...(audience === 'users' ? { userIds: ids } : {}),
       }, userToken);
-      suppressNextDraftSave.current = true;
       setResult(t('notificationQueuedFor', response));
+      setAudience('all');
+      setUserIds('');
+      setCategory('general');
       setTitle('');
       setBody('');
       setSelectedImages([]);
