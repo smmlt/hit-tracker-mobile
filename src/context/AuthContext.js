@@ -118,10 +118,13 @@ export const AuthProvider = ({ children }) => {
       return apiFetch('/users/me/presence', { method: 'POST', body }, userToken).catch(() => {});
     };
     touchPresence();
-    syncPushRegistration(userToken, false).catch(() => {});
+    syncPushRegistration(userToken, Platform.OS !== 'web').catch(() => {});
     const interval = setInterval(touchPresence, 60_000);
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') touchPresence();
+      if (state === 'active') {
+        touchPresence();
+        syncPushRegistration(userToken, false).catch(() => {});
+      }
     });
     return () => {
       clearTimeout(refreshTimer);

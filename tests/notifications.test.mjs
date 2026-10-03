@@ -4,14 +4,15 @@ import test from 'node:test';
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('push permission is requested only by the explicit enable flow', () => {
+test('push permission is requested on native session registration only', () => {
   const settings = source('src/screens/SettingsScreen.js');
   const native = source('src/utils/pushRegistration.native.js');
   const web = source('src/utils/pushRegistration.web.js');
   const auth = source('src/context/AuthContext.js');
 
   assert.match(settings, /syncPushRegistration\(userToken, true\)/);
-  assert.match(auth, /syncPushRegistration\(userToken, false\)/);
+  assert.match(auth, /syncPushRegistration\(userToken, Platform\.OS !== 'web'\)/);
+  assert.match(auth, /if \(state === 'active'\) \{[\s\S]*syncPushRegistration\(userToken, false\)/);
   assert.match(native, /if \(requestPermission && permission\.status !== 'granted'\)/);
   assert.match(native, /Platform\.OS === 'ios' && !Device\.isDevice/);
   assert.match(web, /if \(requestPermission && permission === 'default'\)/);
