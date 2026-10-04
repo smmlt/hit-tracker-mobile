@@ -3,8 +3,8 @@ import { isMultipartBody } from '../utils/requestBody';
 import { notifyUnauthorized, refreshAccessToken } from './unauthorized';
 
 /**
- * Універсальна обгортка над стандартним fetch для автоматичного додавання 
- * авторизації, заголовка ngrok та обробки JSON.
+ * Універсальна обгортка над стандартним fetch для автоматичного додавання
+ * авторизації та обробки JSON.
  */
 export async function apiFetch(endpoint, options = {}, userToken = null) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
@@ -12,7 +12,6 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
     const isMultipart = isMultipartBody(options.body);
     const headers = {
       ...(!isMultipart && { 'Content-Type': 'application/json' }),
-      'ngrok-skip-browser-warning': 'true',
       ...(options.headers || {}),
     };
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -55,8 +54,8 @@ export async function apiRequest(endpoint, options = {}, userToken = null, fallb
   error.details = response.data;
   if (response.retryAfter) {
     const retryAfter = Number(response.retryAfter);
-    // Nest's throttler currently sends milliseconds; standard HTTP uses seconds.
-    error.retryAfterSeconds = Math.ceil(retryAfter > 1_000 ? retryAfter / 1_000 : retryAfter);
+    // Retry-After uses the standard HTTP seconds unit.
+    error.retryAfterSeconds = Math.ceil(retryAfter);
   }
   throw error;
 }

@@ -7,7 +7,7 @@ export const isValidEmail = (email) => {
 // Check password criteria
 export const getPasswordCriteria = (password) => {
   return {
-    minLength: password.length >= 8,
+    minLength: password.length >= 12,
     hasNumber: /\d/.test(password),
     hasUpper: /[A-Z]/.test(password),
   };

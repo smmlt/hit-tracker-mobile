@@ -41,7 +41,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
 
   // Розрахунок вимог до пароля
   const requirements = [
-    { label: t('atLeastEight'), met: password.length >= 8 },
+    { label: t('atLeastEight'), met: password.length >= 12 },
     { label: t('uppercaseLetter'), met: /[A-Z]/.test(password) },
     { label: t('lowercaseLetter'), met: /[a-z]/.test(password) },
     { label: t('number'), met: /[0-9]/.test(password) },
@@ -58,7 +58,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
 
   const handleResetPassword = async () => {
     if (!password || !confirmPassword) return showToast(t('fillAllFields'));
-    if (password.length < 8) return showToast(t('passwordMinLength'));
+    if (password.length < 12) return showToast(t('passwordMinLength'));
     if (password !== confirmPassword) return showToast(t('passwordsDoNotMatch'));
 
     const allRequirementsMet = requirements.every(r => r.met);

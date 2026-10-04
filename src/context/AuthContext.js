@@ -9,19 +9,8 @@ import { notificationService, syncPushRegistration } from '../services/notificat
 import { getInstallationId } from '../utils/installationId';
 import { useWorkoutStore } from '../stores/workoutStore';
 import { useLibraryStore } from '../stores/libraryStore';
-import {
-  refreshAccessToken,
-  setRefreshHandler,
-  setUnauthorizedHandler,
-} from '../services/unauthorized';
-import {
-  loadAuthToken,
-  loadRefreshToken,
-  removeAuthToken,
-  removeRefreshToken,
-  saveAuthToken as persistAuthToken,
-  saveRefreshToken,
-} from '../services/secureTokenStorage';
+import { refreshAccessToken, setRefreshHandler, setUnauthorizedHandler } from '../services/unauthorized';
+import { loadAuthToken, loadRefreshToken, removeAuthToken, removeRefreshToken, saveAuthToken as persistAuthToken, saveRefreshToken } from '../services/secureTokenStorage';
 
 export const AuthContext = createContext();
 
@@ -30,6 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [pendingMfa, setPendingMfa] = useState(null);
   const sessionEpoch = useRef(0);
 
   const saveAuthToken = useCallback(async (token) => {
@@ -44,26 +34,17 @@ export const AuthProvider = ({ children }) => {
     useWorkoutStore.getState().reset();
     useLibraryStore.getState().setSession(null, null);
     try {
-      await Promise.all([
-        removeAuthToken(),
-        removeRefreshToken(),
-        AsyncStorage.removeItem('userData'),
-      ]);
+      await Promise.all([removeAuthToken(), removeRefreshToken(), AsyncStorage.removeItem('userData')]);
     } finally {
       setUserToken(null);
       setUserData(null);
+      setPendingMfa(null);
     }
   }, []);
 
   const applySession = useCallback(async (data) => {
     const accessToken = data.accessToken || data.token;
-    await Promise.all([
-      persistAuthToken(accessToken),
-      saveRefreshToken(data.refreshToken),
-      data.user
-        ? AsyncStorage.setItem('userData', JSON.stringify(data.user))
-        : Promise.resolve(),
-    ]);
+    await Promise.all([persistAuthToken(accessToken), saveRefreshToken(data.refreshToken), data.user ? AsyncStorage.setItem('userData', JSON.stringify(data.user)) : Promise.resolve()]);
     if (data.user && useWorkoutStore.persist.hasHydrated() && useWorkoutStore.getState().userId !== data.user.id) {
       useWorkoutStore.getState().reset();
       useLibraryStore.getState().setSession(null, null);
@@ -133,46 +114,62 @@ export const AuthProvider = ({ children }) => {
     };
   }, [refreshSession, userToken]);
 
-  const handleOAuthRedirect = useCallback(async (url, codeVerifier) => {
-    if (!url) return false;
+  const handleOAuthRedirect = useCallback(
+    async (url, codeVerifier) => {
+      if (!url) return false;
 
-    const parsed = Linking.parse(url);
-    const hash = url.includes('#') ? new URLSearchParams(url.split('#')[1]) : null;
-    const error = parsed.queryParams?.error || hash?.get('error');
-    const token = parsed.queryParams?.accessToken || hash?.get('accessToken');
-    const code = parsed.queryParams?.code;
+      const parsed = Linking.parse(url);
+      const hash = url.includes('#') ? new URLSearchParams(url.split('#')[1]) : null;
+      const error = parsed.queryParams?.error || hash?.get('error');
+      const token = parsed.queryParams?.accessToken || hash?.get('accessToken');
+      const mfaChallenge = hash?.get('mfaChallenge');
+      const mfaEnrollmentRequired = hash?.get('mfaEnrollmentRequired');
+      const code = parsed.queryParams?.code;
 
-    if (error === 'access_denied') {
-      try {
-        await authService.logout(await loadRefreshToken());
-      } finally {
-        await clearAuth();
+      if (error === 'access_denied') {
+        try {
+          await authService.logout(await loadRefreshToken());
+        } finally {
+          await clearAuth();
+        }
+        return true;
       }
-      return true;
-    }
-    if (token) {
-      await saveAuthToken(token);
-      return true;
-    }
-    if (code && codeVerifier) {
-      const data = await authService.exchangeOAuthCode(code, codeVerifier);
-      await applySession(data);
-      return true;
-    }
-    return false;
-  }, [applySession, clearAuth, saveAuthToken]);
+      if (token) {
+        await saveAuthToken(token);
+        return true;
+      }
+      if (mfaChallenge) {
+        setPendingMfa({
+          challengeToken: mfaChallenge,
+          enrollmentRequired: mfaEnrollmentRequired === 'true',
+        });
+        return true;
+      }
+      if (code && codeVerifier) {
+        const data = await authService.exchangeOAuthCode(code, codeVerifier);
+        if (data.mfaRequired) setPendingMfa(data);
+        else await applySession(data);
+        return true;
+      }
+      return false;
+    },
+    [applySession, clearAuth, saveAuthToken],
+  );
 
   useEffect(() => {
     const initAuth = async () => {
       try {
         // 1. Перевірка для Web (витягуємо токен з URL хешу #accessToken=...)
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const redirectedToMfa = window.location.hash.includes('mfaChallenge=');
           const handled = await handleOAuthRedirect(window.location.href);
           if (handled) {
-            try {
-              await refreshSession();
-            } catch {
-              // The new access token remains usable if refresh is temporarily unavailable.
+            if (!redirectedToMfa) {
+              try {
+                await refreshSession();
+              } catch {
+                // The new access token remains usable if refresh is temporarily unavailable.
+              }
             }
             window.history.replaceState({}, document.title, window.location.pathname);
             setIsInitializing(false);
@@ -228,19 +225,46 @@ export const AuthProvider = ({ children }) => {
     }
   }, [handleOAuthRedirect, refreshSession]);
 
-  const login = useCallback(async (email, password) => {
-    setIsLoading(true);
-    try {
-      const data = await authService.login(email, password);
-      await applySession(data);
+  const login = useCallback(
+    async (email, password) => {
+      setIsLoading(true);
+      try {
+        const data = await authService.login(email, password);
+        if (data.mfaRequired) setPendingMfa(data);
+        else await applySession(data);
 
+        return data;
+      } catch (error) {
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [applySession],
+  );
+
+  const beginMfaEnrollment = useCallback(() => authService.beginMfaEnrollment(pendingMfa?.challengeToken), [pendingMfa]);
+
+  const confirmMfaEnrollment = useCallback((code) => authService.confirmMfaEnrollment(pendingMfa?.challengeToken, code), [pendingMfa]);
+
+  const acceptMfaSession = useCallback(
+    async (data) => {
+      await applySession(data);
+      setPendingMfa(null);
+    },
+    [applySession],
+  );
+
+  const verifyMfa = useCallback(
+    async (factor) => {
+      const data = await authService.verifyMfa(pendingMfa?.challengeToken, factor);
+      await acceptMfaSession(data);
       return data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [applySession]);
+    },
+    [acceptMfaSession, pendingMfa],
+  );
+
+  const cancelMfa = useCallback(() => setPendingMfa(null), []);
 
   const register = useCallback(async (email, password, displayName) => {
     setIsLoading(true);
@@ -282,6 +306,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, [clearAuth, userToken]);
 
+  const logoutAll = useCallback(async () => {
+    setIsLoading(true);
+    sessionEpoch.current += 1;
+    try {
+      await authService.logoutAll(userToken);
+    } finally {
+      await clearAuth();
+      setIsLoading(false);
+    }
+  }, [clearAuth, userToken]);
+
   const updateUserData = useCallback(async (user) => {
     await AsyncStorage.setItem('userData', JSON.stringify(user));
     setUserData(user);
@@ -294,10 +329,17 @@ export const AuthProvider = ({ children }) => {
         userData,
         isLoading,
         isInitializing,
+        pendingMfa,
         login,
         register,
         verifyRegistration,
+        beginMfaEnrollment,
+        confirmMfaEnrollment,
+        acceptMfaSession,
+        verifyMfa,
+        cancelMfa,
         logout,
+        logoutAll,
         handleOAuthRedirect,
         updateUserData,
       }}

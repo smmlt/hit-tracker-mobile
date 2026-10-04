@@ -15,6 +15,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import VerifyEmailScreen from '../screens/VerifyEmailScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
+import MfaScreen from '../screens/MfaScreen';
 
 import HomeScreen from '../screens/HomeScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
@@ -42,6 +43,7 @@ import { WEB_APP_URL } from '../utils/shareLinks';
 import { createStyles } from './AppNavigator.styles';
 import { linkingConfig } from './linkingConfig';
 import { addPushListeners } from '../services/notificationService';
+import { safeNotificationUrl } from '../utils/safeNotificationUrl';
 const Stack = createNativeStackNavigator();
 const navigationRef = createNavigationContainerRef();
 const Tab = createBottomTabNavigator();
@@ -64,7 +66,15 @@ function AnalyticsStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   return (
-    <AnalyticsStackNavigator.Navigator screenOptions={{ headerShown: false, contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }}>
+    <AnalyticsStackNavigator.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          paddingBottom: tabBarHeight,
+          backgroundColor: theme.background,
+        },
+      }}
+    >
       <AnalyticsStackNavigator.Screen name="AnalyticsHome" component={AnalyticsScreen} />
       <AnalyticsStackNavigator.Screen name="BodyMetricsDetails" component={BodyMetricsDetailsScreen} />
       <AnalyticsStackNavigator.Screen name="AddBodyMeasurement" component={AddBodyMeasurementScreen} />
@@ -73,11 +83,13 @@ function AnalyticsStack() {
 }
 
 function WorkshopStack() {
-  return <WorkshopStackNavigator.Navigator screenOptions={{ headerShown: false }}>
-    <WorkshopStackNavigator.Screen name="WorkshopHome" component={HomeScreen} />
-    <WorkshopStackNavigator.Screen name="LibraryProgram" component={LibraryProgramScreen} />
-    <WorkshopStackNavigator.Screen name="ExerciseDetails" component={ExerciseDetailsScreen} />
-  </WorkshopStackNavigator.Navigator>;
+  return (
+    <WorkshopStackNavigator.Navigator screenOptions={{ headerShown: false }}>
+      <WorkshopStackNavigator.Screen name="WorkshopHome" component={HomeScreen} />
+      <WorkshopStackNavigator.Screen name="LibraryProgram" component={LibraryProgramScreen} />
+      <WorkshopStackNavigator.Screen name="ExerciseDetails" component={ExerciseDetailsScreen} />
+    </WorkshopStackNavigator.Navigator>
+  );
 }
 const AnalyticsPlaceholder = () => {
   const { theme } = useTheme();
@@ -91,12 +103,36 @@ function TrainingStack() {
     <TrainingStackNavigator.Navigator screenOptions={{ headerShown: false }}>
       <TrainingStackNavigator.Screen name="TrainingHome" component={TrainingScreen} />
       <TrainingStackNavigator.Screen name="ProgramDetails" component={ProgramDetailsScreen} />
-      <TrainingStackNavigator.Screen name="WorkoutPreparation" component={ActiveWorkoutScreen}
-        options={{ contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }} />
-      <TrainingStackNavigator.Screen name="WorkoutSession" component={ActiveWorkoutScreen}
-        options={{ contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }} />
-      <TrainingStackNavigator.Screen name="WorkoutCompleted" component={ActiveWorkoutScreen}
-        options={{ contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }} />
+      <TrainingStackNavigator.Screen
+        name="WorkoutPreparation"
+        component={ActiveWorkoutScreen}
+        options={{
+          contentStyle: {
+            paddingBottom: tabBarHeight,
+            backgroundColor: theme.background,
+          },
+        }}
+      />
+      <TrainingStackNavigator.Screen
+        name="WorkoutSession"
+        component={ActiveWorkoutScreen}
+        options={{
+          contentStyle: {
+            paddingBottom: tabBarHeight,
+            backgroundColor: theme.background,
+          },
+        }}
+      />
+      <TrainingStackNavigator.Screen
+        name="WorkoutCompleted"
+        component={ActiveWorkoutScreen}
+        options={{
+          contentStyle: {
+            paddingBottom: tabBarHeight,
+            backgroundColor: theme.background,
+          },
+        }}
+      />
       <TrainingStackNavigator.Screen name="ExerciseDetails" component={ExerciseDetailsScreen} />
     </TrainingStackNavigator.Navigator>
   );
@@ -105,8 +141,15 @@ function ProfileStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   return (
-    <ProfileStackNavigator.Navigator screenOptions={{ headerShown: false,
-      contentStyle: { paddingBottom: tabBarHeight, backgroundColor: theme.background } }}>
+    <ProfileStackNavigator.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          paddingBottom: tabBarHeight,
+          backgroundColor: theme.background,
+        },
+      }}
+    >
       <ProfileStackNavigator.Screen name="ProfileMain" component={ProfileScreen} />
       <ProfileStackNavigator.Screen name="Settings" component={SettingsScreen} />
       <ProfileStackNavigator.Screen name="EditProfile" component={EditProfileScreen} />
@@ -118,37 +161,12 @@ function MainTabs() {
   const { t } = useContext(LanguageContext);
 
   return (
-    <Tab.Navigator
-      initialRouteName="Home"
-      backBehavior="history"
-      tabBar={(props) => <AppTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tab.Screen 
-        name="History" 
-        component={HistoryStack}
-        options={{ title: t('history') }} 
-      />
-      <Tab.Screen 
-        name="ActiveWorkout" 
-        component={TrainingStack}
-        options={{ title: t('training') }}
-      />
-      <Tab.Screen 
-        name="Home" 
-        component={WorkshopStack}
-        options={{ title: t('home') }} 
-      />
-      <Tab.Screen 
-        name="Analytics" 
-        component={AnalyticsStack}
-        options={{ title: t('analytics') }} 
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileStack}
-        options={{ title: t('profile') }} 
-      />
+    <Tab.Navigator initialRouteName="Home" backBehavior="history" tabBar={(props) => <AppTabBar {...props} />} screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="History" component={HistoryStack} options={{ title: t('history') }} />
+      <Tab.Screen name="ActiveWorkout" component={TrainingStack} options={{ title: t('training') }} />
+      <Tab.Screen name="Home" component={WorkshopStack} options={{ title: t('home') }} />
+      <Tab.Screen name="Analytics" component={AnalyticsStack} options={{ title: t('analytics') }} />
+      <Tab.Screen name="Profile" component={ProfileStack} options={{ title: t('profile') }} />
     </Tab.Navigator>
   );
 }
@@ -161,30 +179,30 @@ const linking = {
 export default function AppNavigator() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const { isInitializing, userData, userToken } = useContext(AuthContext);
+  const { isInitializing, pendingMfa, userData, userToken } = useContext(AuthContext);
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
   const pendingNotificationOpen = React.useRef(false);
 
-  const openNotifications = React.useCallback((actionUrl) => {
-    if (!userToken) return;
-    if (actionUrl?.startsWith('https://')) {
-      void Linking.openURL(actionUrl);
-      return;
-    }
-    if (navigationRef.isReady()) navigationRef.navigate('Notifications');
-    else pendingNotificationOpen.current = true;
-  }, [userToken]);
+  const openNotifications = React.useCallback(
+    (actionUrl) => {
+      if (!userToken) return;
+      const safeActionUrl = safeNotificationUrl(actionUrl);
+      if (safeActionUrl) {
+        void Linking.openURL(safeActionUrl);
+        return;
+      }
+      if (navigationRef.isReady()) navigationRef.navigate('Notifications');
+      else pendingNotificationOpen.current = true;
+    },
+    [userToken],
+  );
 
   React.useEffect(() => {
     if (!userToken) return undefined;
     return addPushListeners(openNotifications, () => {});
   }, [openNotifications, userToken]);
 
-  const [isAdminRoute] = React.useState(() =>
-    Platform.OS === 'web'
-      && typeof window !== 'undefined'
-      && window.location.pathname.toLowerCase().startsWith('/admin')
-  );
+  const [isAdminRoute] = React.useState(() => Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/admin'));
 
   if (isInitializing) {
     return (
@@ -207,7 +225,7 @@ export default function AppNavigator() {
     >
       <View style={styles.container}>
         <Stack.Navigator
-          initialRouteName={userToken === null ? 'Login' : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
+          initialRouteName={userToken === null ? (pendingMfa ? 'Mfa' : 'Login') : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
           screenOptions={{
             headerStyle: { backgroundColor: theme.background },
             headerTintColor: theme.textPrimary,
@@ -215,69 +233,29 @@ export default function AppNavigator() {
           }}
         >
           {userToken === null ? (
-            <>
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="Register"
-                component={RegisterScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="VerifyEmail"
-                component={VerifyEmailScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="ForgotPassword"
-                component={ForgotPasswordScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="ResetPassword"
-                component={ResetPasswordScreen}
-                options={{ headerShown: false }}
-              />
-            </>
+            pendingMfa ? (
+              <Stack.Screen name="Mfa" component={MfaScreen} options={{ headerShown: false }} />
+            ) : (
+              <>
+                <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ headerShown: false }} />
+              </>
+            )
           ) : (
             <>
-              <Stack.Screen
-                name="MainApp"
-                component={MainTabs}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="Notifications"
-                component={NotificationsScreen}
-                options={{ headerShown: false }}
-              />
+              <Stack.Screen name="MainApp" component={MainTabs} options={{ headerShown: false }} />
+              <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }} />
               {canOpenAdmin && (
-                <Stack.Screen
-                  name="Admin"
-                  component={AdminScreen}
-                  options={{ headerShown: false }}
-                />
+                <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
               )}
             </>
           )}
-          <Stack.Screen
-            name="SharedExercise"
-            component={SharedExerciseScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="SharedProgram"
-            component={SharedProgramScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="NotFound"
-            component={NotFoundScreen}
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="SharedExercise" component={SharedExerciseScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SharedProgram" component={SharedProgramScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </View>
     </NavigationContainer>
