@@ -71,6 +71,7 @@ export const palette = {
   overlay55: 'rgba(0, 0, 0, 0.55)',
   overlay70: 'rgba(0, 0, 0, 0.7)',
   overlay72: 'rgba(0, 0, 0, 0.72)',
+  overlay88: 'rgba(0, 0, 0, 0.88)',
   slateOverlay: 'rgba(15, 23, 42, 0.8)',
   redWash: 'rgba(239, 68, 68, 0.1)',
   redTint: 'rgba(239, 68, 68, 0.2)',

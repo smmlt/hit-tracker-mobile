@@ -27,7 +27,7 @@ export function LoggedSetsList({ sets = [] }) {
       <View style={styles.details}>
         <Text style={styles.setName}>{set.exerciseName}</Text>
         <Text style={styles.setDetails}>
-          {set.weight} {t('kilogramsShort')} × {set.reps} {t('repsShort')} | RPE: {set.rpe}
+          {set.weight} {t('kilogramsShort')} × {set.reps} {t('repsShort')} | {t('rpeColumn')}: {set.rpe}
         </Text>
       </View>
       {/* Бейдж "До відмови", якщо перемикач був увімкнений */}

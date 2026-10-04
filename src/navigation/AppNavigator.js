@@ -132,7 +132,7 @@ function MainTabs() {
       <Tab.Screen 
         name="ActiveWorkout" 
         component={TrainingStack}
-        options={{ title: t('training') || 'Training' }}
+        options={{ title: t('training') }}
       />
       <Tab.Screen 
         name="Home" 

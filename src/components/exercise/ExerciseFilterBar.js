@@ -7,7 +7,6 @@ import GridIcon from '../../assets/workshop/More.svg';
 import StarFilled from '../../assets/workshop/StarFilled.svg';
 import { createStyles } from './ExerciseFilterBar.styles';
 
-import { palette } from '../../constants/colors';
 export function ExerciseFilterBar({
   musclesList = [],
   selectedMuscleFilter,
@@ -57,7 +56,7 @@ export function ExerciseFilterBar({
           {!!onSelectSaved && renderChip('saved', savedLabel, savedSelected, false, onSelectSaved)}
           {renderChip(
             null, 
-            t('allMuscles') || 'Всі', 
+            t('allMuscles'),
             selectedMuscleFilter === null
           )}
 
@@ -71,7 +70,7 @@ export function ExerciseFilterBar({
         </ScrollView>
 
         <TouchableOpacity
-          accessibilityLabel={t('selectMuscle') || 'Оберіть м\'яз'}
+          accessibilityLabel={t('selectMuscle')}
           accessibilityRole="button"
           style={styles.menuButton}
           onPress={() => setModalVisible(true)}
@@ -80,7 +79,7 @@ export function ExerciseFilterBar({
           <GridIcon 
             width={20} 
             height={20} 
-            color={theme.textPrimary || palette.whitePure}
+            color={theme.textPrimary}
           />
         </TouchableOpacity>
       </View>
@@ -88,10 +87,10 @@ export function ExerciseFilterBar({
       <Modal animationType="fade" transparent visible={isModalVisible} onRequestClose={() => setModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
           <Pressable style={styles.modalSheet} onPress={(event) => event.stopPropagation()}>
-            <Text style={styles.modalTitle}>{t('selectMuscle') || 'Оберіть м\'яз'}</Text>
+            <Text style={styles.modalTitle}>{t('selectMuscle')}</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.gridWrapper}>
-                {renderChip(null, t('allMuscles') || 'Всі', selectedMuscleFilter === null, true)}
+                {renderChip(null, t('allMuscles'), selectedMuscleFilter === null, true)}
                 {musclesList.map((m) => renderChip(m.id, getMuscleDisplayName(m), selectedMuscleFilter === m.id, true))}
               </View>
             </ScrollView>

@@ -7,11 +7,13 @@ import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "../
 import { DifficultyIndicator } from "../exercise/DifficultyIndicator";
 import { ImagePickerField } from "../media/ImagePickerField";
 import { contentMediaService } from "../../services/contentMediaService";
+import { LanguageContext } from "../../localization/LanguageContext";
 
 export function ExerciseEditor({ exercise, onClose }) {
   const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
   const library = useLibrary(['muscles', 'errors', 'refresh']);
+  const { t } = useContext(LanguageContext);
   const w = useWords();
   const [name, setName] = useState(exercise?.name || "");
   const [description, setDescription] = useState(exercise?.description || "");
@@ -27,7 +29,7 @@ export function ExerciseEditor({ exercise, onClose }) {
   const [savedId, setSavedId] = useState(null);
   const save = async () => {
     if (!name.trim()) {
-      setError(`${w.name}: required`);
+      setError(t('exerciseNameRequired'));
       return;
     }
     setSaving(true);

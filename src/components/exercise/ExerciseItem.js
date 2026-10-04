@@ -10,6 +10,7 @@ import { useLibrary } from "../../context/LibraryContext";
 import { useWords } from "../workshop/ui";
 import { ExerciseDetailsModal } from "./ExerciseDetailsModal";
 import { useTheme } from '../../context/ThemeContext';
+import { LanguageContext } from '../../localization/LanguageContext';
 import { MediaImage } from '../media/MediaImage';
 
 export function ExerciseItem({
@@ -23,6 +24,7 @@ export function ExerciseItem({
   const library = useLibrary(['exercises']);
   const w = useWords();
   const { theme } = useTheme();
+  const { locale } = React.useContext(LanguageContext);
   const styles = createStyles(theme);
   const current =
     library?.exercises.find((item) => item.id === exercise.id) || exercise;
@@ -72,7 +74,7 @@ export function ExerciseItem({
             >
               <Heart width={24} height={24} />
               <Text style={styles.count}>
-                {Intl.NumberFormat("en", {
+                {Intl.NumberFormat(locale === 'uk' ? 'uk-UA' : 'en-US', {
                   notation: "compact",
                   maximumFractionDigits: 1,
                 }).format(current.likesCount || 0)}

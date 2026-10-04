@@ -235,8 +235,8 @@ export default function SettingsScreen({ navigation }) {
       }
       const saved = await persistNotifications({ ...(notificationRef.current || notifications), pushEnabled: enabled });
       if (saved) setNotificationMessage(t(enabled ? 'pushEnabledMessage' : 'pushDisabledMessage'));
-    } catch (error) {
-      setNotificationError(error.message);
+    } catch {
+      setNotificationError(t('pushSetupFailed'));
     }
   };
 

@@ -205,7 +205,7 @@ export function Button({
       ]}
       {...props}
     >
-      <Text style={[styles.buttonText, textStyle]}>{children}</Text>
+      <Text style={[styles.buttonText, secondary && styles.secondaryButtonText, textStyle]}>{children}</Text>
     </Pressable>
   );
 }

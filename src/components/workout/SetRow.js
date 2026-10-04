@@ -11,7 +11,7 @@ export function SetRow({ set, index }) {
   // Формуємо надійний унікальний ключ для кожного підходу
   const setKey = set.id ? String(set.id) : `set-index-${index}`;
   const exerciseTitle = set.exercise?.name || t('exerciseUnknown', { id: set.exerciseId || t('unknown') });
-  const metricsText = `${set.weight ?? 0} ${t('kilogramsShort')} × ${set.reps ?? 0} ${t('repsShort')} (RPE: ${set.rpe ?? 10})`;
+  const metricsText = `${set.weight ?? 0} ${t('kilogramsShort')} × ${set.reps ?? 0} ${t('repsShort')} (${t('rpeColumn')}: ${set.rpe ?? 10})`;
 
   return (
     <View key={setKey} style={styles.setRow}>

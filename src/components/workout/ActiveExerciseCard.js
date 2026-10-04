@@ -163,7 +163,7 @@ export function ActiveExerciseCard({
             <Text numberOfLines={1} style={[styles.setHeader, styles.headerText]}>{t('setColumn')}</Text>
             <Text numberOfLines={1} style={[styles.headerText, styles.repsColumn]}>{t('activeRepsColumn')}</Text>
             <Text numberOfLines={1} style={[styles.headerText, styles.weightColumn]}>{t('activeWeightColumn')}</Text>
-            <Text numberOfLines={1} style={[styles.headerText, styles.rpeColumn]}>RPE</Text>
+            <Text numberOfLines={1} style={[styles.headerText, styles.rpeColumn]}>{t('rpeColumn')}</Text>
             <Text numberOfLines={1} style={[styles.headerText, styles.failureHeader]}>{t('activeFailureColumn')}</Text>
             <Text numberOfLines={1} style={[styles.headerText, styles.doneHeader]}>{t('done')}</Text>
           </View>

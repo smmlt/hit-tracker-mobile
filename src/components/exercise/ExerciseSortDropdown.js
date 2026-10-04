@@ -48,7 +48,7 @@ export function ExerciseSortDropdown({ currentSort, onSelectSort }) {
         activeOpacity={0.7}
       >
         <Text style={styles.text}>
-          {t('sortBy') || 'Сортування'} : <Text style={styles.boldText}>{currentLabel}</Text>
+          {t('sortBy')} : <Text style={styles.boldText}>{currentLabel}</Text>
         </Text>
         <ChevronDownIcon 
           width={16} 

@@ -58,6 +58,7 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
   },
+  secondaryButtonText: { color: theme.textPrimary },
   secondary: {
     backgroundColor: theme.cardBackground,
     borderWidth: 1,

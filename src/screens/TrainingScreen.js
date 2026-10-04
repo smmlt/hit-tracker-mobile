@@ -9,7 +9,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { apiFetch } from '../services/api';
-import { calendarDaySelection, scheduleCardTone } from '../utils/scheduleCard';
+import { calendarDaySelection, scheduleCardTone, sortScheduleAssignments } from '../utils/scheduleCard';
 import { programDifficulty } from '../utils/library';
 import { DifficultyIndicator } from '../components/exercise/DifficultyIndicator';
 import { useWords } from '../components/workshop/ui';
@@ -187,11 +187,11 @@ export default function TrainingScreen({ navigation, route }) {
     { length: DATE_STRIP_DAYS },
     (_, index) => addDays(selected, index - Math.floor(DATE_STRIP_DAYS / 2)),
   ), [selectedDate]);
-  const selectedAssignments = assignments.filter((item) => (
+  const selectedAssignments = sortScheduleAssignments(assignments.filter((item) => (
     rangeStart && rangeEnd
       ? item.scheduledFor >= rangeStart && item.scheduledFor <= rangeEnd
       : item.scheduledFor === selectedDate
-  ));
+  )));
   const assignedDates = new Set(assignments.map((item) => item.scheduledFor));
   const isInRange = (key) => rangeStart && key >= rangeStart && (!rangeEnd ? key === rangeStart : key <= rangeEnd);
 
@@ -304,7 +304,7 @@ export default function TrainingScreen({ navigation, route }) {
               <Text style={[styles.monthTitle, { color: theme.textPrimary }]}>{month.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' })}</Text>
               <Pressable onPress={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}><Text style={[styles.monthArrow, { color: theme.textPrimary }]}>›</Text></Pressable>
             </View>
-            <Text style={[styles.rangeHint, { color: theme.textSecondary }]}>{locale === 'uk' ? 'Оберіть початкову та кінцеву дату' : 'Select a start and end date'}</Text>
+            <Text style={[styles.rangeHint, { color: theme.textSecondary }]}>{t('scheduleRangeHint')}</Text>
             <View style={styles.weekHeader}>{weekDays[locale].map((day) => <Text key={day} style={[styles.weekLabel, { color: theme.textSecondary }]}>{day}</Text>)}</View>
             <View style={styles.monthGrid}>{calendarDays.map((date) => {
               const key = dateKey(date);

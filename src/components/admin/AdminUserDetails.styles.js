@@ -107,7 +107,7 @@ export const createStyles = (theme) => StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.88)',
+    backgroundColor: palette.overlay88,
     padding: 24,
   },
   avatarPreview: {
