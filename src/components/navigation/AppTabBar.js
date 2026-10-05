@@ -41,7 +41,7 @@ export default function AppTabBar({ state, descriptors, navigation }) {
         return (
           <Pressable key={route.key} accessibilityLabel={options.tabBarAccessibilityLabel || route.name} accessibilityRole="button" accessibilityState={{ selected: focused }} onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })} onPress={handlePress} style={({ pressed }) => [styles.item, pressed && styles.pressed]}>
             <View style={styles.iconSlot}>
-              {options.tabBarIcon ? options.tabBarIcon({ focused, color, size: 24 }) : <Icon color={color} height={24} width={24} />}
+              {options.tabBarIcon ? options.tabBarIcon({ focused, color, size: 24 }) : <Icon color={color} {...(route.name === 'Profile' ? { fill: focused ? color : 'none' } : {})} height={24} width={24} />}
             </View>
             <Text style={[styles.label, { color }]}>{options.title || route.name}</Text>
           </Pressable>
