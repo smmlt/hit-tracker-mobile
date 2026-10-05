@@ -71,10 +71,10 @@ test('user details uses equal responsive top-bar slots', () => {
   assert.match(styles, /flexWrap: 'wrap'/);
 });
 
-test('Android 1.3.3 build 20 is configured and the local builder syncs native versions', () => {
+test('Android 1.3.4 build 21 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
-  assert.equal(config.expo.version, '1.3.3');
-  assert.equal(config.expo.android.versionCode, 20);
+  assert.equal(config.expo.version, '1.3.4');
+  assert.equal(config.expo.android.versionCode, 21);
   assert.ok(!config.expo.plugins.includes('./plugins/withNotificationLargeIcon'));
 
   const buildScript = source('scripts/build-apk.ps1');
