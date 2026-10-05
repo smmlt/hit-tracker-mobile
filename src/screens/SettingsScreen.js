@@ -6,6 +6,7 @@ import { styles } from './SettingsScreen.styles.js';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
+import { ConfirmDialog } from '../components/feedback';
 import { notificationService, syncPushRegistration } from '../services/notificationService';
 import { authService } from '../services/authService';
 
@@ -129,6 +130,7 @@ export default function SettingsScreen({ navigation }) {
   const [mfaBusy, setMfaBusy] = useState(false);
   const [mfaMessage, setMfaMessage] = useState('');
   const [mfaRecoveryCodes, setMfaRecoveryCodes] = useState(null);
+  const [logoutConfirmation, setLogoutConfirmation] = useState(null);
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
   const normalizeNotifications = (preferences) => ({
     ...preferences,
@@ -472,7 +474,7 @@ export default function SettingsScreen({ navigation }) {
         ) : (
           <ActivityIndicator color={theme.primary} />
         )}
-        <Pressable accessibilityRole="button" onPress={logoutAll} style={[styles.action, { borderColor: theme.border, marginTop: 12 }]}>
+        <Pressable accessibilityRole="button" onPress={() => setLogoutConfirmation('all')} style={[styles.action, { borderColor: theme.border, marginTop: 12 }]}>
           <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('logoutAllDevices')}</Text>
         </Pressable>
         {canOpenAdmin ? (
@@ -481,10 +483,23 @@ export default function SettingsScreen({ navigation }) {
             <Text style={[styles.adminText, { color: theme.textPrimary }]}>{t('openAdminPanel')}</Text>
           </Pressable>
         ) : null}
-        <Pressable accessibilityRole="button" onPress={logout} style={styles.logout}>
+        <Pressable accessibilityRole="button" onPress={() => setLogoutConfirmation('current')} style={styles.logout}>
           <Text style={[styles.logoutText, { color: theme.primary }]}>{t('logout')}</Text>
         </Pressable>
       </ScrollView>
+      <ConfirmDialog
+        cancelLabel={t('cancel')}
+        confirmLabel={logoutConfirmation === 'all' ? t('logoutAllDevices') : t('logout')}
+        message={logoutConfirmation === 'all' ? t('logoutAllDevicesConfirmMessage') : t('logoutConfirmMessage')}
+        onCancel={() => setLogoutConfirmation(null)}
+        onConfirm={async () => {
+          const action = logoutConfirmation === 'all' ? logoutAll : logout;
+          setLogoutConfirmation(null);
+          await action();
+        }}
+        title={logoutConfirmation === 'all' ? t('logoutAllDevicesConfirmTitle') : t('logoutConfirmTitle')}
+        visible={logoutConfirmation !== null}
+      />
     </SafeAreaView>
   );
 }
