@@ -6,8 +6,11 @@ import { LanguageContext } from '../../localization/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import { adminService } from '../../services/adminService';
 import { Button, Feedback } from '../workshop/ui';
+import { Field, Sheet } from '../workshop/ui';
+import { ConfirmDialog } from '../feedback';
 import { palette } from '../../constants/colors';
 import { createStyles } from './AdminUserDetails.styles';
+import { defaultSuspensionInput, suspensionInputToIso } from '../../utils/accountSuspension';
 
 const filters = ['all', 'account', 'profile', 'training', 'programs', 'access'];
 
@@ -56,6 +59,12 @@ function activityCopy(event, t) {
         t('activityRoleChanged'),
         `${t(`role_${data.from}`)} → ${t(`role_${data.to}`)}`,
       ];
+    case 'account.sessions_revoked':
+      return [t('activitySessionsRevoked'), t('sessionsRevokedCount', { count: data.sessionCount || 0 })];
+    case 'account.suspended':
+      return [t('activityAccountSuspended'), `${data.expiresAt ? new Date(data.expiresAt).toLocaleString() : ''} · ${data.reason || ''}`];
+    case 'account.unsuspended':
+      return [t('activityAccountRestored'), ''];
     case 'workout.completed':
       return [
         t('activityWorkoutCompleted', { name: data.programName || data.title || t('workout') }),
@@ -89,7 +98,7 @@ function InfoItem({ label, value, styles }) {
   );
 }
 
-export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify, manageDisabled }) {
+export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify, manageDisabled, canSecurityActions, onSecurityChanged }) {
   const { userToken } = useContext(AuthContext);
   const { locale, t } = useContext(LanguageContext);
   const { theme } = useTheme();
@@ -104,6 +113,13 @@ export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify,
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [securityDialog, setSecurityDialog] = useState(null);
+  const [banOpen, setBanOpen] = useState(false);
+  const [banUntil, setBanUntil] = useState(() => defaultSuspensionInput());
+  const [banReason, setBanReason] = useState('');
+  const [securityBusy, setSecurityBusy] = useState(false);
+  const [securityError, setSecurityError] = useState('');
+  const [securityMessage, setSecurityMessage] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -148,6 +164,60 @@ export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify,
     () => activity.filter((event) => filter === 'all' || event.category === filter),
     [activity, filter],
   );
+
+  const finishSecurityAction = async (messageKey) => {
+    setSecurityDialog(null);
+    setBanOpen(false);
+    setBanReason('');
+    await load();
+    await onSecurityChanged?.();
+    setSecurityMessage(t(messageKey));
+  };
+
+  const revokeSessions = async () => {
+    setSecurityBusy(true);
+    setSecurityError('');
+    setSecurityMessage('');
+    try {
+      await adminService.revokeUserSessions(userId, userToken);
+      await finishSecurityAction('userSessionsRevoked');
+    } catch (actionError) {
+      setSecurityError(actionError.message);
+    } finally {
+      setSecurityBusy(false);
+    }
+  };
+
+  const suspendUser = async () => {
+    const suspendedUntil = suspensionInputToIso(banUntil);
+    if (!suspendedUntil) return setSecurityError(t('suspensionDateInvalid'));
+    if (banReason.trim().length < 3) return setSecurityError(t('suspensionReasonRequired'));
+    setSecurityBusy(true);
+    setSecurityError('');
+    setSecurityMessage('');
+    try {
+      await adminService.suspendUser(userId, { suspendedUntil, reason: banReason.trim() }, userToken);
+      await finishSecurityAction('userSuspended');
+    } catch (actionError) {
+      setSecurityError(actionError.message);
+    } finally {
+      setSecurityBusy(false);
+    }
+  };
+
+  const unsuspendUser = async () => {
+    setSecurityBusy(true);
+    setSecurityError('');
+    setSecurityMessage('');
+    try {
+      await adminService.unsuspendUser(userId, userToken);
+      await finishSecurityAction('userRestored');
+    } catch (actionError) {
+      setSecurityError(actionError.message);
+    } finally {
+      setSecurityBusy(false);
+    }
+  };
 
   if (loading && !details) {
     return <ActivityIndicator color={theme.primary} size="large" />;
@@ -224,6 +294,36 @@ export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify,
         </View>
       </View>
 
+      {canSecurityActions && (
+        <View style={styles.securitySection}>
+          <Text style={styles.sectionTitle}>{t('adminAccountSecurity')}</Text>
+          <Text style={styles.securityHint}>{t('adminAccountSecurityHint')}</Text>
+          {user.suspension ? (
+            <View style={styles.suspensionCard}>
+              <Text style={styles.suspensionTitle}>{t('accountCurrentlySuspended')}</Text>
+              <Text style={styles.infoValue}>{dateTime(user.suspension.expiresAt)}</Text>
+              <Text style={styles.securityHint}>{user.suspension.reason}</Text>
+            </View>
+          ) : null}
+          <Feedback error={securityError} />
+          {!!securityMessage && <Text accessibilityRole="alert" style={styles.securityHint}>{securityMessage}</Text>}
+          <View style={styles.securityActions}>
+            <Button secondary disabled={securityBusy} onPress={() => setSecurityDialog('sessions')}>
+              {t('revokeUserSessions')}
+            </Button>
+            {user.suspension ? (
+              <Button disabled={securityBusy} onPress={() => setSecurityDialog('unsuspend')}>
+                {t('restoreUserAccess')}
+              </Button>
+            ) : (
+              <Button disabled={securityBusy} onPress={() => { setBanUntil(defaultSuspensionInput()); setSecurityError(''); setBanOpen(true); }}>
+                {t('suspendUser')}
+              </Button>
+            )}
+          </View>
+        </View>
+      )}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('userStatistics')}</Text>
         <View style={styles.infoGrid}>
@@ -295,6 +395,35 @@ export function AdminUserDetails({ userId, revision, onBack, onManage, onNotify,
           </Pressable>
         </Pressable>
       </Modal>
+
+      {banOpen && (
+        <Sheet title={t('suspendNamedUser', { name: user.username ? `@${user.username}` : user.displayName })} onClose={() => !securityBusy && setBanOpen(false)}>
+          <Text style={styles.securityHint}>{t('suspendUserExplanation')}</Text>
+          <Field label={t('suspendedUntilInput')} placeholder="2026-10-06 18:00" value={banUntil} onChangeText={setBanUntil} />
+          <Field label={t('suspensionReason')} maxLength={500} multiline value={banReason} onChangeText={setBanReason} />
+          <Feedback error={securityError} />
+          <Button disabled={securityBusy} onPress={suspendUser}>{securityBusy ? t('saving') : t('suspendUser')}</Button>
+        </Sheet>
+      )}
+
+      <ConfirmDialog
+        visible={securityDialog === 'sessions'}
+        title={t('revokeUserSessionsConfirmTitle')}
+        message={t('revokeUserSessionsConfirmMessage')}
+        cancelLabel={t('cancel')}
+        confirmLabel={t('revokeUserSessions')}
+        onCancel={() => !securityBusy && setSecurityDialog(null)}
+        onConfirm={revokeSessions}
+      />
+      <ConfirmDialog
+        visible={securityDialog === 'unsuspend'}
+        title={t('restoreUserAccessConfirmTitle')}
+        message={t('restoreUserAccessConfirmMessage')}
+        cancelLabel={t('cancel')}
+        confirmLabel={t('restoreUserAccess')}
+        onCancel={() => !securityBusy && setSecurityDialog(null)}
+        onConfirm={unsuspendUser}
+      />
     </View>
   );
 }

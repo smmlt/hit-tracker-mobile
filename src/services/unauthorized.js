@@ -1,6 +1,7 @@
 let handler = null;
 let refreshHandler = null;
 let refreshPromise = null;
+let accountSuspendedHandler = null;
 
 export const setUnauthorizedHandler = (nextHandler) => {
   handler = nextHandler;
@@ -21,3 +22,9 @@ export const refreshAccessToken = () => {
   }
   return refreshPromise;
 };
+
+export const setAccountSuspendedHandler = (nextHandler) => {
+  accountSuspendedHandler = nextHandler;
+};
+
+export const notifyAccountSuspended = (details) => accountSuspendedHandler?.(details);

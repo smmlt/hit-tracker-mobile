@@ -1,6 +1,6 @@
 import { API_URL } from '../constants/config';
 import { isMultipartBody } from '../utils/requestBody';
-import { notifyUnauthorized, refreshAccessToken } from './unauthorized';
+import { notifyAccountSuspended, notifyUnauthorized, refreshAccessToken } from './unauthorized';
 
 /**
  * Універсальна обгортка над стандартним fetch для автоматичного додавання
@@ -35,6 +35,10 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
     data = await response.json();
   } catch (e) {
     data = null;
+  }
+
+  if (response.status === 403 && data?.code === 'ACCOUNT_BANNED') {
+    notifyAccountSuspended(data);
   }
 
   return {

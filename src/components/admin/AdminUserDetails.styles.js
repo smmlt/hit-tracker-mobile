@@ -71,6 +71,11 @@ export const createStyles = (theme) => StyleSheet.create({
     gap: 6,
   },
   statValue: { color: theme.textPrimary, fontSize: 24, fontWeight: '800' },
+  securitySection: { backgroundColor: theme.cardBackground, borderColor: theme.border, borderRadius: 18, borderWidth: 1, gap: 14, padding: 18 },
+  securityHint: { color: theme.textSecondary, fontSize: 13, lineHeight: 19 },
+  securityActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  suspensionCard: { backgroundColor: theme.background, borderColor: theme.error, borderRadius: 14, borderWidth: 1, gap: 6, padding: 14 },
+  suspensionTitle: { color: theme.error, fontSize: 14, fontWeight: '800' },
   divider: { height: 1, backgroundColor: theme.border },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filter: {

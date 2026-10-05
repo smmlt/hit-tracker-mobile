@@ -19,6 +19,9 @@ export const adminService = {
       'Admin request failed',
     ),
   deleteUser: (id, token) => apiRequest(`/admin/users/${id}`, { method: 'DELETE' }, token, 'Admin request failed'),
+  revokeUserSessions: (id, token) => apiRequest(`/admin/users/${id}/revoke-sessions`, { method: 'POST' }, token, 'Could not revoke user sessions'),
+  suspendUser: (id, payload, token) => apiRequest(`/admin/users/${id}/suspend`, { method: 'POST', body: JSON.stringify(payload) }, token, 'Could not suspend the user'),
+  unsuspendUser: (id, token) => apiRequest(`/admin/users/${id}/unsuspend`, { method: 'POST' }, token, 'Could not restore the user'),
   sendNotification: (payload, token, idempotencyKey) =>
     apiRequest(
       '/admin/notifications',

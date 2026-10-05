@@ -242,6 +242,8 @@ export default function AdminScreen({ navigation }) {
               setSection('notifications');
             }}
             manageDisabled={detailUser.id === profile.id || (!isSystemOwner && detailUser.role === "super_admin")}
+            canSecurityActions={verifiedRole === "super_admin" && detailUser.id !== profile.id && !detailUser.isSystemOwner && (isSystemOwner || detailUser.role !== "super_admin")}
+            onSecurityChanged={() => loadUsers(page)}
           />
         ) : section === "users" ? (
           <View style={styles.usersSection}>

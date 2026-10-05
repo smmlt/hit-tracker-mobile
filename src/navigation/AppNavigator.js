@@ -37,6 +37,7 @@ import BodyMetricsDetailsScreen from '../screens/BodyMetricsDetailsScreen';
 import AddBodyMeasurementScreen from '../screens/AddBodyMeasurementScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import AccountSuspendedScreen from '../screens/AccountSuspendedScreen';
 
 import { palette } from '../constants/colors';
 import { WEB_APP_URL } from '../utils/shareLinks';
@@ -179,7 +180,7 @@ const linking = {
 export default function AppNavigator() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const { isInitializing, pendingMfa, userData, userToken } = useContext(AuthContext);
+  const { accountSuspension, isInitializing, pendingMfa, userData, userToken } = useContext(AuthContext);
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
   const pendingNotificationOpen = React.useRef(false);
 
@@ -225,14 +226,16 @@ export default function AppNavigator() {
     >
       <View style={styles.container}>
         <Stack.Navigator
-          initialRouteName={userToken === null ? (pendingMfa ? 'Mfa' : 'Login') : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
+          initialRouteName={accountSuspension ? 'AccountSuspended' : userToken === null ? (pendingMfa ? 'Mfa' : 'Login') : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
           screenOptions={{
             headerStyle: { backgroundColor: theme.background },
             headerTintColor: theme.textPrimary,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >
-          {userToken === null ? (
+          {accountSuspension ? (
+            <Stack.Screen name="AccountSuspended" component={AccountSuspendedScreen} options={{ headerShown: false }} />
+          ) : userToken === null ? (
             pendingMfa ? (
               <Stack.Screen name="Mfa" component={MfaScreen} options={{ headerShown: false }} />
             ) : (

@@ -9,10 +9,12 @@ import { notificationService, syncPushRegistration } from '../services/notificat
 import { getInstallationId } from '../utils/installationId';
 import { useWorkoutStore } from '../stores/workoutStore';
 import { useLibraryStore } from '../stores/libraryStore';
-import { refreshAccessToken, setRefreshHandler, setUnauthorizedHandler } from '../services/unauthorized';
+import { refreshAccessToken, setAccountSuspendedHandler, setRefreshHandler, setUnauthorizedHandler } from '../services/unauthorized';
 import { loadAuthToken, loadRefreshToken, removeAuthToken, removeRefreshToken, saveAuthToken as persistAuthToken, saveRefreshToken } from '../services/secureTokenStorage';
+import { normalizeAccountSuspension } from '../utils/accountSuspension';
 
 export const AuthContext = createContext();
+const ACCOUNT_SUSPENSION_KEY = 'accountSuspension';
 
 export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
@@ -20,6 +22,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [pendingMfa, setPendingMfa] = useState(null);
+  const [accountSuspension, setAccountSuspension] = useState(null);
   const sessionEpoch = useRef(0);
 
   const saveAuthToken = useCallback(async (token) => {
@@ -50,9 +53,19 @@ export const AuthProvider = ({ children }) => {
       useLibraryStore.getState().setSession(null, null);
     }
     setUserToken(accessToken);
+    await AsyncStorage.removeItem(ACCOUNT_SUSPENSION_KEY);
+    setAccountSuspension(null);
     if (data.user) setUserData(data.user);
     return accessToken;
   }, []);
+
+  const handleAccountSuspended = useCallback(async (details) => {
+    const suspension = normalizeAccountSuspension(details);
+    if (!suspension) return;
+    await AsyncStorage.setItem(ACCOUNT_SUSPENSION_KEY, JSON.stringify(suspension));
+    setAccountSuspension(suspension);
+    await clearAuth();
+  }, [clearAuth]);
 
   const refreshSession = useCallback(async () => {
     const epoch = sessionEpoch.current;
@@ -64,22 +77,28 @@ export const AuthProvider = ({ children }) => {
       }
       return await applySession(data);
     } catch (error) {
+      if (error.details?.code === 'ACCOUNT_BANNED') {
+        await handleAccountSuspended(error.details);
+        return null;
+      }
       if (error.status === 401) {
         await clearAuth();
         return null;
       }
       throw error;
     }
-  }, [applySession, clearAuth]);
+  }, [applySession, clearAuth, handleAccountSuspended]);
 
   useEffect(() => {
     setUnauthorizedHandler(clearAuth);
+    setAccountSuspendedHandler(handleAccountSuspended);
     setRefreshHandler(refreshSession);
     return () => {
       setUnauthorizedHandler(null);
+      setAccountSuspendedHandler(null);
       setRefreshHandler(null);
     };
-  }, [clearAuth, refreshSession]);
+  }, [clearAuth, handleAccountSuspended, refreshSession]);
 
   useEffect(() => {
     if (!userToken) return;
@@ -159,6 +178,20 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
+        const rawSuspension = await AsyncStorage.getItem(ACCOUNT_SUSPENSION_KEY);
+        let storedSuspension = null;
+        try {
+          storedSuspension = normalizeAccountSuspension(JSON.parse(rawSuspension || 'null'));
+        } catch {
+          await AsyncStorage.removeItem(ACCOUNT_SUSPENSION_KEY);
+        }
+        if (storedSuspension) {
+          setAccountSuspension(storedSuspension);
+          await clearAuth();
+          return;
+        }
+        await AsyncStorage.removeItem(ACCOUNT_SUSPENSION_KEY);
+
         // 1. Перевірка для Web (витягуємо токен з URL хешу #accessToken=...)
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           const redirectedToMfa = window.location.hash.includes('mfaChallenge=');
@@ -322,6 +355,11 @@ export const AuthProvider = ({ children }) => {
     setUserData(user);
   }, []);
 
+  const dismissAccountSuspension = useCallback(async () => {
+    await AsyncStorage.removeItem(ACCOUNT_SUSPENSION_KEY);
+    setAccountSuspension(null);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -330,6 +368,7 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         isInitializing,
         pendingMfa,
+        accountSuspension,
         login,
         register,
         verifyRegistration,
@@ -342,6 +381,7 @@ export const AuthProvider = ({ children }) => {
         logoutAll,
         handleOAuthRedirect,
         updateUserData,
+        dismissAccountSuspension,
       }}
     >
       {children}
