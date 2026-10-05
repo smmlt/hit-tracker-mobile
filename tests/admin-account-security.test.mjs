@@ -29,6 +29,7 @@ test('ACCOUNT_BANNED responses clear auth and route to the suspension screen', (
   assert.match(api, /data\?\.code === 'ACCOUNT_BANNED'/);
   assert.match(api, /notifyAccountSuspended\(data\)/);
   assert.match(auth, /setAccountSuspendedHandler\(handleAccountSuspended\)/);
+  assert.match(auth, /error === 'account_banned'/);
   assert.match(auth, /await clearAuth\(\)/);
   assert.match(navigator, /name="AccountSuspended"/);
 });

@@ -145,6 +145,14 @@ export const AuthProvider = ({ children }) => {
       const mfaEnrollmentRequired = hash?.get('mfaEnrollmentRequired');
       const code = parsed.queryParams?.code;
 
+      if (error === 'account_banned') {
+        await handleAccountSuspended({
+          code: 'ACCOUNT_BANNED',
+          expiresAt: parsed.queryParams?.expiresAt || hash?.get('expiresAt'),
+          reason: parsed.queryParams?.reason || hash?.get('reason'),
+        });
+        return true;
+      }
       if (error === 'access_denied') {
         try {
           await authService.logout(await loadRefreshToken());
@@ -172,7 +180,7 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     },
-    [applySession, clearAuth, saveAuthToken],
+    [applySession, clearAuth, handleAccountSuspended, saveAuthToken],
   );
 
   useEffect(() => {
