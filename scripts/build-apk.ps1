@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $env:NODE_ENV = 'production'
+$env:RELEASE_BUILD = '1'
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $workspaceRoot = Split-Path -Parent $projectRoot

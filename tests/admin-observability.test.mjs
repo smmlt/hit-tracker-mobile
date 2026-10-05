@@ -78,6 +78,7 @@ test('Android 1.3.3 build 20 is configured and the local builder syncs native ve
   assert.ok(!config.expo.plugins.includes('./plugins/withNotificationLargeIcon'));
 
   const buildScript = source('scripts/build-apk.ps1');
+  assert.match(buildScript, /RELEASE_BUILD\s*=\s*'1'/);
   assert.match(buildScript, /\[regex\]::Replace/);
   assert.match(buildScript, /versionCode/);
   assert.match(buildScript, /versionName/);
