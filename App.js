@@ -10,6 +10,8 @@ import { useWorkoutStore } from './src/stores/workoutStore';
 import { useLibraryStore } from './src/stores/libraryStore';
 import { palette } from './src/constants/colors';
 import { useFonts } from 'expo-font';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ONBOARDING_COMPLETED_KEY, ONBOARDING_COMPLETED_VALUE, isOnboardingCompleted } from './src/utils/onboarding';
 
 const STARTUP_ANIMATION_MS = 900;
 const LOGO_SIZE = 172;
@@ -51,6 +53,7 @@ export default function App() {
 function AppContent({ fontsReady }) {
   const { isInitializing, userToken, userData } = useContext(AuthContext);
   const [storesReady, setStoresReady] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(null);
   const activeId = useWorkoutStore((state) => state.activeWorkout?.id);
   const activeStatus = useWorkoutStore((state) => state.activeWorkout?.status);
   const hydration = useRef(null);
@@ -77,6 +80,16 @@ function AppContent({ fontsReady }) {
   }, [isInitializing, userToken, userData?.id]);
 
   useEffect(() => {
+    AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY).then((value) => setOnboardingComplete(isOnboardingCompleted(value))).catch(() => setOnboardingComplete(false));
+  }, []);
+
+  useEffect(() => {
+    if (!userToken || onboardingComplete !== false) return;
+    setOnboardingComplete(true);
+    void AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, ONBOARDING_COMPLETED_VALUE).catch(() => {});
+  }, [onboardingComplete, userToken]);
+
+  useEffect(() => {
     if (!storesReady || !userToken || !activeId || activeStatus !== 'active') return undefined;
     const heartbeat = () => {
       if (AppState.currentState === 'active') void useWorkoutStore.getState().heartbeatActiveWorkout();
@@ -96,13 +109,14 @@ function AppContent({ fontsReady }) {
     setAnimationStarted(true);
   }, []);
   const handleAnimationComplete = useCallback(() => setAnimationComplete(true), []);
+  const handleOnboardingComplete = useCallback(() => setOnboardingComplete(true), []);
 
   if (Platform.OS === 'web') {
-    return fontsReady && storesReady && !isInitializing ? <AppNavigator /> : null;
+    return fontsReady && storesReady && !isInitializing && onboardingComplete !== null ? <AppNavigator onOnboardingComplete={handleOnboardingComplete} showOnboarding={!userToken && !onboardingComplete} /> : null;
   }
 
-  if (fontsReady && animationComplete && !isInitializing && storesReady) {
-    return <AppNavigator />;
+  if (fontsReady && animationComplete && !isInitializing && storesReady && onboardingComplete !== null) {
+    return <AppNavigator onOnboardingComplete={handleOnboardingComplete} showOnboarding={!userToken && !onboardingComplete} />;
   }
 
   return (

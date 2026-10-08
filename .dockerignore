@@ -1,4 +1,6 @@
 node_modules
+android
+.expo
 .git
 .env
 .env.*

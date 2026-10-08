@@ -38,6 +38,7 @@ import AddBodyMeasurementScreen from '../screens/AddBodyMeasurementScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import AccountSuspendedScreen from '../screens/AccountSuspendedScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 
 import { palette } from '../constants/colors';
 import { WEB_APP_URL } from '../utils/shareLinks';
@@ -177,7 +178,7 @@ const linking = {
   config: linkingConfig,
 };
 
-export default function AppNavigator() {
+export default function AppNavigator({ onOnboardingComplete, showOnboarding = false }) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const { accountSuspension, isInitializing, pendingMfa, userData, userToken } = useContext(AuthContext);
@@ -226,13 +227,16 @@ export default function AppNavigator() {
     >
       <View style={styles.container}>
         <Stack.Navigator
-          initialRouteName={accountSuspension ? 'AccountSuspended' : userToken === null ? (pendingMfa ? 'Mfa' : 'Login') : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
+          initialRouteName={showOnboarding ? 'Onboarding' : accountSuspension ? 'AccountSuspended' : userToken === null ? (pendingMfa ? 'Mfa' : 'Login') : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
           screenOptions={{
             headerStyle: { backgroundColor: theme.background },
             headerTintColor: theme.textPrimary,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >
+          <Stack.Screen name="Onboarding" options={{ headerShown: false }}>
+            {(props) => <OnboardingScreen {...props} onComplete={onOnboardingComplete} />}
+          </Stack.Screen>
           {accountSuspension ? (
             <Stack.Screen name="AccountSuspended" component={AccountSuspendedScreen} options={{ headerShown: false }} />
           ) : userToken === null ? (

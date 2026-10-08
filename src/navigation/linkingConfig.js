@@ -2,6 +2,7 @@ const legacy = (path) => ({ path, exact: true });
 
 export const linkingConfig = {
   screens: {
+    Onboarding: 'onboarding',
     Login: { path: 'login', alias: ['auth/google/callback'] },
     Register: 'register',
     VerifyEmail: 'verify-email',
