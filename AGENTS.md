@@ -2,6 +2,8 @@
 
 Scope: the Expo SDK 57 / React Native application for web, Android, and iOS. Use the exact [Expo SDK 57 documentation](https://docs.expo.dev/versions/v57.0.0/) matching `package.json`; do not apply older SDK guidance. For product scope read `../docs/PRODUCT_SPEC/README.md`; for the system map read `../docs/ARCHITECTURE.md`.
 
+Commit frequently: finish one small, coherent function, screen, navigation change, or tested fix, run its nearest practical check, and create a focused commit before starting the next unit. Stage files explicitly and never include unrelated or another contributor's uncommitted changes.
+
 ## Organization and dependencies
 
 - Entry/composition is `index.js` → `App.js` providers → `src/navigation/AppNavigator.js`.
