@@ -78,6 +78,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const intensity = data.intensity || {};
   const bodyMetrics = data.body?.metrics || {};
   const intensityChartWidth = Math.max(112, Math.min(178, width * 0.4));
+  const narrowBodyGrid = width < 480;
 
   if (loading && !data.overview) return <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}><ActivityIndicator color={theme.primary} size="large" style={styles.pageLoader} /></SafeAreaView>;
 
@@ -144,9 +145,9 @@ export default function AnalyticsDashboardScreen({ navigation }) {
 
       <Pressable accessibilityRole="button" onPress={() => navigation.navigate('BodyMetricsDetails')} style={styles.card}>
         <View style={styles.cardHeader}><Text style={styles.cardTitle}>{t('bodyMetricsPreview')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={22} /></View>
-        <View style={styles.bodyRow}>{BODY_METRICS.map(([key, label], index) => {
+        <View style={[styles.bodyRow, narrowBodyGrid && styles.bodyRowNarrow]}>{BODY_METRICS.map(([key, label], index) => {
           const metric = bodyMetrics[key];
-          return <View key={key} style={[styles.bodyItem, index > 0 && styles.summaryBorder]}><Text style={styles.summaryLabel}>{t(label)}</Text><Text style={styles.bodyValue}>{metric?.latest ? formatMetric(metric.latest.value, key, locale, t) : '—'}</Text><Text style={[styles.micro, Number(metric?.change) > 0 && styles.delta]}>{metric?.change == null ? '—' : formatMetricDelta(metric.change, key, locale, t)}</Text></View>;
+          return <View key={key} style={[styles.bodyItem, narrowBodyGrid && styles.bodyItemNarrow, (narrowBodyGrid ? index % 2 === 1 : index > 0) && styles.summaryBorder, narrowBodyGrid && index > 1 && styles.bodyItemLower]}><Text style={styles.summaryLabel}>{t(label)}</Text><Text style={styles.bodyValue}>{metric?.latest ? formatMetric(metric.latest.value, key, locale, t) : '—'}</Text><Text style={[styles.micro, Number(metric?.change) > 0 && styles.delta]}>{metric?.change == null ? '—' : formatMetricDelta(metric.change, key, locale, t)}</Text></View>;
         })}</View>
       </Pressable>
 
