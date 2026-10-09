@@ -95,7 +95,7 @@ const words = {
     days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
   },
   uk: {
-    workshop: "МАСТЕРСЬКА",
+    workshop: "МАЙСТЕРНЯ",
     exercises: "Вправи",
     programs: "Програми",
     all: "Всі",
