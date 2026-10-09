@@ -69,7 +69,7 @@ export default function AnalyticsIntensityScreen({ navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeTrend')}</Text>
-          {rpeTrend.length > 1 ? <ScrollView horizontal showsHorizontalScrollIndicator={false}><LineChart color={theme.primary} data={rpeTrend.map((point) => ({ value: Number(point.averageRpe), label: point.date.slice(5) }))} dataPointsColor={theme.textSecondary} height={165} maxValue={10} noOfSections={5} rulesColor={theme.border} spacing={Math.max(44, chartWidth / Math.max(2, rpeTrend.length))} thickness={2} width={Math.max(chartWidth, rpeTrend.length * 48)} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /></ScrollView> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}
+          {rpeTrend.length ? <ScrollView horizontal showsHorizontalScrollIndicator={false}><LineChart color={theme.primary} data={rpeTrend.map((point) => ({ value: Number(point.averageRpe), label: point.date.slice(5) }))} dataPointsColor={theme.textSecondary} height={165} maxValue={10} noOfSections={5} rulesColor={theme.border} spacing={Math.max(44, chartWidth / Math.max(2, rpeTrend.length))} thickness={2} width={Math.max(chartWidth, rpeTrend.length * 48)} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /></ScrollView> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeDistribution')}</Text>
