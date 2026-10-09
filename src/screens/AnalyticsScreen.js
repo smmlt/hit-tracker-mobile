@@ -1,7 +1,8 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { BarChart, LineChart } from 'react-native-gifted-charts';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -11,8 +12,16 @@ import { bodyMetricsService } from '../services/bodyMetricsService';
 import { useLibraryStore } from '../stores/libraryStore';
 import { useWorkoutStore } from '../stores/workoutStore';
 import { exerciseName, isUpdatingStatistics, summaryVolumeDelta } from '../utils/analytics';
-import { formatMetric, formatMetricDelta, periodToDateRange } from '../utils/bodyMetrics';
+import { formatMetric, formatMetricDelta, formatRangeLabel, periodToDateRange } from '../utils/bodyMetrics';
 import { createStyles } from './AnalyticsScreen.styles';
+
+const PERIODS = [
+  ['today', 'bodyMetricsPeriodToday'],
+  ['7', 'bodyMetricsPeriod7'],
+  ['14', 'bodyMetricsPeriod14'],
+  ['1m', 'bodyMetricsPeriod1m'],
+  ['3m', 'bodyMetricsPeriod3m'],
+];
 
 export default function AnalyticsScreen({ navigation }) {
   const { theme } = useTheme();
@@ -23,6 +32,7 @@ export default function AnalyticsScreen({ navigation }) {
   const lastFinishedWorkoutId = useWorkoutStore((state) => state.lastFinishedWorkoutId);
   const { width } = useWindowDimensions();
   const requestId = useRef(0);
+  const overviewRequestId = useRef(0);
   const progressRequestId = useRef(0);
   const delay = useRef(null);
   const [summary, setSummary] = useState(null);
@@ -40,6 +50,16 @@ export default function AnalyticsScreen({ navigation }) {
   const [bodyMetrics, setBodyMetrics] = useState(null);
   const [bodyMetricsLoading, setBodyMetricsLoading] = useState(true);
   const [bodyMetricsError, setBodyMetricsError] = useState(false);
+  const [period, setPeriod] = useState('today');
+  const [overview, setOverview] = useState(null);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState(false);
+  const [intensity, setIntensity] = useState(null);
+  const [intensityLoading, setIntensityLoading] = useState(false);
+  const [intensityError, setIntensityError] = useState(false);
+  const [intensityVisible, setIntensityVisible] = useState(false);
+  const [overviewRevision, setOverviewRevision] = useState(0);
+  const range = useMemo(() => periodToDateRange(period), [period]);
 
   useEffect(() => {
     setSummary(null);
@@ -51,7 +71,7 @@ export default function AnalyticsScreen({ navigation }) {
 
   const load = useCallback(async (pull = false) => {
     if (!userToken) return;
-    const id = ++requestId.current;
+    const id = ++overviewRequestId.current;
     if (delay.current) { clearTimeout(delay.current.timer); delay.current.resolve(); delay.current = null; }
     if (pull) setRefreshing(true); else setLoading(true);
     setError(null);
@@ -85,14 +105,29 @@ export default function AnalyticsScreen({ navigation }) {
     setBodyMetricsLoading(true);
     setBodyMetricsError(false);
     try {
-      const data = await bodyMetricsService.get(userToken, periodToDateRange('7'));
+      const data = await bodyMetricsService.get(userToken, range);
       if (id === requestId.current) setBodyMetrics(data);
     } catch {
       if (id === requestId.current) setBodyMetricsError(true);
     } finally {
       if (id === requestId.current) setBodyMetricsLoading(false);
     }
-  }, [userToken]);
+  }, [range, userToken]);
+
+  useEffect(() => {
+    if (!userToken) return undefined;
+    const id = ++requestId.current;
+    setOverviewLoading(true);
+    setOverviewError(false);
+    analyticsService.overview(userToken, range).then((data) => {
+      if (id === overviewRequestId.current) setOverview(data);
+    }).catch(() => {
+      if (id === overviewRequestId.current) setOverviewError(true);
+    }).finally(() => {
+      if (id === overviewRequestId.current) setOverviewLoading(false);
+    });
+    return () => { overviewRequestId.current += 1; };
+  }, [overviewRevision, range, userToken]);
 
   useFocusEffect(useCallback(() => {
     void load();
@@ -119,8 +154,21 @@ export default function AnalyticsScreen({ navigation }) {
     return () => { progressRequestId.current += 1; };
   }, [selectedExerciseId, userToken, progressRevision]);
 
-  const refresh = () => { void load(true); void loadBodyMetrics(); };
+  const refresh = () => { void load(true); void loadBodyMetrics(); setOverviewRevision((value) => value + 1); };
+  const openIntensity = async () => {
+    setIntensityVisible(true);
+    setIntensityLoading(true);
+    setIntensityError(false);
+    try {
+      setIntensity(await analyticsService.dailyIntensity(userToken, range.end));
+    } catch {
+      setIntensityError(true);
+    } finally {
+      setIntensityLoading(false);
+    }
+  };
   const number = (value) => Number(value || 0).toLocaleString(locale === 'uk' ? 'uk-UA' : 'en-US', { maximumFractionDigits: 1 });
+  const optionalNumber = (value) => value === null || value === undefined ? '—' : number(value);
   const date = (value) => value ? new Date(value).toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-US') : '—';
   const delta = summary ? summaryVolumeDelta(summary) : null;
   const chartWidth = Math.max(270, width - 84);
@@ -128,10 +176,30 @@ export default function AnalyticsScreen({ navigation }) {
   const selectedName = selectedExerciseId == null ? '' : exerciseName(t, exercises, selectedExerciseId, t('exerciseUnknown', { id: selectedExerciseId }));
   const chartSummary = t('analyticsWeeklyChartSummary', { weeks: weeks.length, volume: number(weeks.reduce((total, week) => total + Number(week.volumeKg || 0), 0)) });
   const progressChartSummary = progress.length ? t('analyticsProgressChartSummary', { count: progress.length, weight: number(progress.at(-1).topSetWeightKg), e1rm: number(progress.at(-1).e1rmKg) }) : '';
+  const overviewSummary = overview?.summary || {};
+  const activity = overview?.activity || overview?.dailyActivity || [];
+  const muscleGroups = overview?.muscleGroups || [];
+  const intensityTrend = overview?.intensityTrend || [];
+  const dateRangeLabel = formatRangeLabel(range, locale);
+  const volumeBars = activity.length
+    ? activity.map((item, index) => ({ value: Number(item.volumeKg) || 0, label: index % Math.max(1, Math.ceil(activity.length / 5)) === 0 ? item.date?.slice(5) : '', frontColor: theme.primary }))
+    : weekBars;
+  const maxWorkouts = Math.max(1, ...activity.map((item) => Number(item.plannedWorkouts ?? item.plannedSessions) || 0));
 
   return <SafeAreaView style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}>
       <Text style={styles.title}>{t('analytics')}</Text>
+      <ScrollView contentContainerStyle={styles.periodRow} horizontal showsHorizontalScrollIndicator={false}>
+        {PERIODS.map(([value, label]) => (
+          <Pressable accessibilityRole="tab" accessibilityState={{ selected: period === value }} key={value} onPress={() => setPeriod(value)} style={[styles.periodChip, period === value && styles.periodChipActive]}>
+            <Text style={[styles.periodText, period === value && styles.periodTextActive]}>{t(label)}</Text>
+          </Pressable>
+        ))}
+        <Pressable accessibilityLabel={t('openCalendar')} accessibilityRole="button" onPress={() => navigation.navigate('BodyMetricsDetails', { period })} style={styles.calendarButton}>
+          <Ionicons color={theme.textSecondary} name="calendar-outline" size={22} />
+        </Pressable>
+      </ScrollView>
+      <Text style={styles.rangeLabel}>{dateRangeLabel}</Text>
       {loading && !summary ? <ActivityIndicator accessibilityLabel={t('loading')} color={theme.primary} /> : null}
       {error ? <View style={styles.card}>
         <Text style={styles.muted}>{error.status === 503 && error.details?.code === 'ANALYTICS_UNAVAILABLE' ? t('analyticsUnavailable') : t('analyticsLoadFailed')}</Text>
@@ -174,7 +242,55 @@ export default function AnalyticsScreen({ navigation }) {
           </View> : <Text style={styles.muted}>{t('analyticsNoProgress')}</Text>}
         </View> : null}</> : null}
       </> : null}
-      <Pressable accessibilityRole="button" accessibilityLabel={t('bodyMetricsPreview')} onPress={() => navigation.navigate('BodyMetricsDetails', { period: '7' })} style={styles.card}>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}><Text style={styles.heading}>{period === 'today' ? t('analyticsPlanCompletion') : t('analyticsActivity')}</Text><Text style={styles.muted}>{overviewSummary.workouts ?? 0} {t('analyticsWorkouts')}</Text></View>
+        {overviewLoading ? <ActivityIndicator color={theme.primary} /> : overviewError ? <Text style={styles.muted}>{t('analyticsPeriodUnavailable')}</Text> : activity.length ? (
+          <View style={styles.complianceChart} accessibilityLabel={t('analyticsComplianceChart')}>
+            {activity.slice(-7).map((item) => {
+              const planned = Number(item.plannedWorkouts ?? item.plannedSessions) || 0;
+              const completed = Number(item.completedWorkouts ?? item.completedSessions) || 0;
+              return <View key={item.date} style={styles.complianceColumn}>
+                <View style={[styles.complianceBar, { height: Math.max(4, planned / maxWorkouts * 58) }]}>
+                  <View style={[styles.complianceActual, { height: `${planned ? Math.min(100, completed / planned * 100) : 0}%` }]} />
+                </View>
+                <Text numberOfLines={1} style={styles.chartLabel}>{item.date?.slice(5)}</Text>
+              </View>;
+            })}
+          </View>
+        ) : <Text style={styles.muted}>{t('analyticsNoActivity')}</Text>}
+        {period === 'today' && overviewSummary.plannedWorkouts != null ? <Text style={styles.muted}>{t('analyticsPlanSummary', { completed: overviewSummary.completedWorkouts || 0, planned: overviewSummary.plannedWorkouts })}</Text> : null}
+      </View>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}><Text style={styles.heading}>{t('analyticsVolume')}</Text><Text style={styles.muted}>{number(overviewSummary.volumeKg ?? totalWeekVolume)} {t('kgShort')}</Text></View>
+        {volumeBars.some((bar) => bar.value > 0) ? <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <BarChart data={volumeBars} width={Math.max(chartWidth, volumeBars.length * 33)} barWidth={12} spacing={10} height={145} yAxisTextStyle={{ color: theme.textSecondary, fontSize: 10 }} xAxisLabelTextStyle={{ color: theme.textSecondary, fontSize: 10 }} yAxisColor={theme.border} xAxisColor={theme.border} rulesColor={theme.border} noOfSections={3} />
+        </ScrollView> : <Text style={styles.muted}>{t('analyticsNoWeeklyVolume')}</Text>}
+      </View>
+      <Pressable accessibilityRole="button" onPress={openIntensity} style={styles.card}>
+        <View style={styles.cardHeader}><Text style={styles.heading}>{t('analyticsIntensity')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={20} /></View>
+        <View style={styles.intensitySummary}>
+          <View><Text style={styles.muted}>{t('analyticsAverageRpe')}</Text><Text style={styles.large}>{optionalNumber(overviewSummary.averageRpe ?? overviewSummary.avgRpe)}</Text></View>
+          {intensityTrend.length > 1 ? <LineChart data={intensityTrend.map((point) => ({ value: Number(point.averageRpe) || 0 }))} width={Math.min(185, chartWidth * 0.55)} height={68} color={theme.primary} thickness={2} hideYAxisText hideRules xAxisColor={theme.border} yAxisColor={theme.border} dataPointsColor={theme.primary} /> : <Text style={styles.muted}>{t('analyticsIntensityHint')}</Text>}
+        </View>
+      </Pressable>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}><Text style={styles.heading}>{t('analyticsMuscleGroups')}</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('analyticsSeeMuscleBalance')} onPress={() => navigation.navigate('AnalyticsMuscleBalance', { period })} hitSlop={8}><Ionicons color={theme.textPrimary} name="chevron-forward" size={20} /></Pressable>
+        </View>
+        {muscleGroups.length ? muscleGroups.slice(0, 5).map((item) => {
+          const max = Math.max(1, ...muscleGroups.map((group) => Number(group.workingSets) || 0));
+          return <View key={item.muscleId ?? item.name} style={styles.muscleRow}>
+            <Text numberOfLines={1} style={styles.muscleName}>{item.name}</Text>
+            <View style={styles.muscleTrack}><View style={[styles.muscleFill, { width: `${Math.max(3, (Number(item.workingSets) || 0) / max * 100)}%` }]} /></View>
+            <Text style={styles.muscleCount}>{number(item.workingSets)}</Text>
+          </View>;
+        }) : <Text style={styles.muted}>{t('analyticsNoMuscleGroups')}</Text>}
+      </View>
+      <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsStrength')} style={styles.card}>
+        <View style={styles.cardHeader}><Text style={styles.heading}>{t('analyticsStrengthProgress')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={20} /></View>
+        <Text style={styles.muted}>{records.length ? t('analyticsRecordCount', { count: records.length }) : t('analyticsNoRecords')}</Text>
+      </Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={t('bodyMetricsPreview')} onPress={() => navigation.navigate('BodyMetricsDetails', { period })} style={styles.card}>
         <Text style={styles.heading}>{t('bodyMetricsPreview')}</Text>
         {bodyMetricsLoading ? <Text style={styles.muted}>{t('loading')}</Text> : bodyMetricsError ? <Text style={styles.muted}>{t('bodyMetricsLoadFailed')}</Text> : <View style={styles.metricsGrid}>
           {[['weight', 'bodyMetricsWeight'], ['bodyFatPercentage', 'bodyMetricsFat'], ['muscleMass', 'bodyMetricsMuscle'], ['waistCircumference', 'bodyMetricsWaist']].map(([key, label]) => {
@@ -184,5 +300,29 @@ export default function AnalyticsScreen({ navigation }) {
         </View>}
       </Pressable>
     </ScrollView>
+    <Modal animationType="slide" onRequestClose={() => setIntensityVisible(false)} transparent visible={intensityVisible}>
+      <Pressable accessibilityLabel={t('close')} onPress={() => setIntensityVisible(false)} style={styles.modalOverlay}>
+        <Pressable onPress={(event) => event.stopPropagation()} style={styles.sheet}>
+          <View style={styles.sheetHeader}><Text accessibilityRole="header" style={styles.sheetTitle}>{t('analyticsIntensity')}</Text>
+            <Pressable accessibilityLabel={t('close')} accessibilityRole="button" onPress={() => setIntensityVisible(false)} style={styles.closeButton}><Ionicons color={theme.textSecondary} name="close" size={21} /></Pressable>
+          </View>
+          <Text style={styles.muted}>{new Date(`${range.end}T12:00:00`).toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+          {intensityLoading ? <ActivityIndicator color={theme.primary} style={styles.sheetLoader} /> : intensityError ? <Text style={styles.muted}>{t('analyticsIntensityUnavailable')}</Text> : <>
+            <View style={styles.intensityStats}>
+              <View style={styles.detailStat}><Text style={styles.statLabel}>{t('analyticsAverageRpe')}</Text><Text style={styles.detailValue}>{optionalNumber(intensity?.averageRpe)}</Text><Text style={styles.statLabel}>{t('analyticsPerWorkout')}</Text></View>
+              <View style={styles.detailStat}><Text style={styles.statLabel}>{t('analyticsVolumePerMinute')}</Text><Text style={styles.detailValue}>{optionalNumber(intensity?.volumePerMinute)} {intensity?.volumePerMinute == null ? '' : t('kgShort')}</Text><Text style={styles.statLabel}>{t('analyticsPerMinute')}</Text></View>
+            </View>
+            <View style={styles.distributionCard}><Text style={styles.cardTitle}>{t('analyticsRpeDistribution')}</Text>
+              {(intensity?.rpeDistribution || []).map((item, index) => <View key={item.range} style={styles.distributionRow}>
+                <View style={styles.distributionLabels}><Text style={styles.distributionName}>{t(['analyticsRpeEasy', 'analyticsRpeModerate', 'analyticsRpeHigh'][index] || 'analyticsRpeOther')} {item.range}</Text><Text style={styles.distributionPercent}>{number(item.percentage)}%</Text></View>
+                <View style={styles.distributionTrack}><View style={[styles.distributionFill, { backgroundColor: [theme.textSecondary, theme.secondary, theme.primary][index] || theme.primary, width: `${Math.min(100, Number(item.percentage) || 0)}%` }]} /></View>
+              </View>)}
+              {!intensity?.rpeDistribution?.length ? <Text style={styles.muted}>{t('analyticsNoRpeData')}</Text> : null}
+            </View>
+            <View style={styles.failureRow}><Text style={styles.muted}>{t('analyticsSetsToFailure')}</Text><Text style={styles.failureValue}>{intensity?.setsToFailure == null ? '—' : `${intensity.setsToFailure} / ${intensity.totalSets ?? '—'}`}</Text></View>
+          </>}
+        </Pressable>
+      </Pressable>
+    </Modal>
   </SafeAreaView>;
 }

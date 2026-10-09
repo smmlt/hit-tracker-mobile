@@ -19,12 +19,20 @@ test('analytics service builds read-model requests and preserves normalized API 
   runInNewContext(code, { module, exports: module.exports, require: () => ({ apiRequest }), encodeURIComponent });
   const service = module.exports.analyticsService;
   await service.summary('token');
+  await service.overview('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.weeklyVolume('token');
   await service.exerciseProgress('token', 12, { from: '2026-09-01', to: '2026-09-28' });
+  await service.exerciseSets('token', 12, { from: '2026-09-01', to: '2026-09-28' });
+  await service.dailyIntensity('token', '2026-09-28');
+  await service.muscleGroups('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.bodyMetrics('token');
   assert.deepEqual(calls.map(([path]) => path), [
-    '/analytics/me/summary', '/analytics/me/weekly-volume?weeks=12',
-    '/analytics/me/exercises/12/progress?from=2026-09-01&to=2026-09-28', '/analytics/me/body-metrics',
+    '/analytics/me/summary', '/analytics/me/overview?from=2026-09-21&to=2026-09-28', '/analytics/me/weekly-volume?weeks=12',
+    '/analytics/me/exercises/12/progress?from=2026-09-01&to=2026-09-28',
+    '/analytics/me/exercises/12/sets?from=2026-09-01&to=2026-09-28',
+    '/analytics/me/intensity?date=2026-09-28',
+    '/analytics/me/muscle-groups?from=2026-09-21&to=2026-09-28&metric=workingSets',
+    '/analytics/me/body-metrics',
   ]);
   assert.ok(calls.every(([, , token]) => token === 'token'));
   await assert.rejects(service.personalRecords('token'), (error) => error.status === 503 && error.details.code === 'ANALYTICS_UNAVAILABLE');

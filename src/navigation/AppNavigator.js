@@ -33,6 +33,9 @@ import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 import SharedExerciseScreen from '../screens/SharedExerciseScreen';
 import SharedProgramScreen from '../screens/SharedProgramScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
+import AnalyticsStrengthScreen from '../screens/AnalyticsStrengthScreen';
+import AnalyticsExerciseScreen from '../screens/AnalyticsExerciseScreen';
+import AnalyticsMuscleBalanceScreen from '../screens/AnalyticsMuscleBalanceScreen';
 import BodyMetricsDetailsScreen from '../screens/BodyMetricsDetailsScreen';
 import AddBodyMeasurementScreen from '../screens/AddBodyMeasurementScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
@@ -78,6 +81,9 @@ function AnalyticsStack() {
       }}
     >
       <AnalyticsStackNavigator.Screen name="AnalyticsHome" component={AnalyticsScreen} />
+      <AnalyticsStackNavigator.Screen name="AnalyticsStrength" component={AnalyticsStrengthScreen} />
+      <AnalyticsStackNavigator.Screen name="AnalyticsExercise" component={AnalyticsExerciseScreen} />
+      <AnalyticsStackNavigator.Screen name="AnalyticsMuscleBalance" component={AnalyticsMuscleBalanceScreen} />
       <AnalyticsStackNavigator.Screen name="BodyMetricsDetails" component={BodyMetricsDetailsScreen} />
       <AnalyticsStackNavigator.Screen name="AddBodyMeasurement" component={AddBodyMeasurementScreen} />
     </AnalyticsStackNavigator.Navigator>
