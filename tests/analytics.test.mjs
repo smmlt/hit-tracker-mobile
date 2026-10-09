@@ -16,22 +16,25 @@ test('analytics service builds read-model requests and preserves normalized API 
   const source = readFileSync(new URL('../src/services/analyticsService.js', import.meta.url), 'utf8');
   const code = transformSync(source, { babelrc: false, configFile: false, plugins: ['@babel/plugin-transform-modules-commonjs'] }).code;
   const module = { exports: {} };
-  runInNewContext(code, { module, exports: module.exports, require: () => ({ apiRequest }), encodeURIComponent });
+  const Intl = { DateTimeFormat: () => ({ resolvedOptions: () => ({ timeZone: 'Europe/Berlin' }) }) };
+  runInNewContext(code, { module, exports: module.exports, require: () => ({ apiRequest }), encodeURIComponent, Intl });
   const service = module.exports.analyticsService;
   await service.summary('token');
   await service.overview('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.weeklyVolume('token');
   await service.exerciseProgress('token', 12, { from: '2026-09-01', to: '2026-09-28' });
   await service.exerciseSets('token', 12, { from: '2026-09-01', to: '2026-09-28' });
-  await service.dailyIntensity('token', '2026-09-28');
+  await service.intensity('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.muscleGroups('token', { from: '2026-09-21', to: '2026-09-28' });
+  await service.strength('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.bodyMetrics('token');
   assert.deepEqual(calls.map(([path]) => path), [
-    '/analytics/me/summary', '/analytics/me/overview?from=2026-09-21&to=2026-09-28', '/analytics/me/weekly-volume?weeks=12',
+    '/analytics/me/summary', '/analytics/me/overview?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin', '/analytics/me/weekly-volume?weeks=12',
     '/analytics/me/exercises/12/progress?from=2026-09-01&to=2026-09-28',
     '/analytics/me/exercises/12/sets?from=2026-09-01&to=2026-09-28',
-    '/analytics/me/intensity?date=2026-09-28',
-    '/analytics/me/muscle-groups?from=2026-09-21&to=2026-09-28&metric=workingSets',
+    '/analytics/me/intensity?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin',
+    '/analytics/me/muscle-groups?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin',
+    '/analytics/me/strength?from=2026-09-21&to=2026-09-28',
     '/analytics/me/body-metrics',
   ]);
   assert.ok(calls.every(([, , token]) => token === 'token'));
@@ -66,4 +69,30 @@ test('analytics strings are localized', () => {
   for (const key of Object.keys(translations.en).filter((key) => key.startsWith('analytics'))) {
     assert.equal(typeof translations.uk[key], 'string', key);
   }
+});
+
+test('analytics starts at Overview and keeps approved drilldowns adaptive', () => {
+  const navigator = readFileSync(new URL('../src/navigation/AppNavigator.js', import.meta.url), 'utf8');
+  const order = [
+    'name="AnalyticsHome"',
+    'name="AnalyticsIntensity"',
+    'name="AnalyticsMuscleBalance"',
+    'name="AnalyticsStrength"',
+    'name="AnalyticsExercise"',
+    'name="BodyMetricsDetails"',
+  ].map((needle) => navigator.indexOf(needle));
+  assert.ok(order.every((index) => index >= 0));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
+
+  const styles = [
+    'AnalyticsDashboardScreen.styles.js',
+    'AnalyticsIntensityScreen.styles.js',
+    'AnalyticsMuscleDetailScreen.styles.js',
+    'AnalyticsStrengthListScreen.styles.js',
+    'AnalyticsExerciseDetailScreen.styles.js',
+  ].map((file) => readFileSync(new URL(`../src/screens/${file}`, import.meta.url), 'utf8')).join('\n');
+  assert.doesNotMatch(styles, /(?:max)?width:\s*393/i);
+  assert.doesNotMatch(styles, /#[0-9a-f]{3,8}|rgba?\(/i);
+  assert.match(styles, /maxWidth:\s*800/);
+  assert.match(styles, /flexWrap:\s*'wrap'/);
 });
