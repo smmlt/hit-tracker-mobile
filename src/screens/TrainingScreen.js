@@ -116,11 +116,6 @@ export default function TrainingScreen({ navigation, route }) {
   const [month, setMonth] = useState(new Date(initialSelectedDate.getFullYear(), initialSelectedDate.getMonth(), 1));
   const [assignments, setAssignments] = useState([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [programPickerOpen, setProgramPickerOpen] = useState(false);
-  const [programs, setPrograms] = useState([]);
-  const [programsLoading, setProgramsLoading] = useState(false);
-  const [repeatWeekly, setRepeatWeekly] = useState(true);
-  const [schedulingId, setSchedulingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [range, setRange] = useState({ start: null, end: null });
@@ -153,34 +148,6 @@ export default function TrainingScreen({ navigation, route }) {
   }, [month, t, userToken]);
 
   useFocusEffect(useCallback(() => { loadSchedule(); }, [loadSchedule]));
-
-  const openProgramPicker = async () => {
-    setProgramPickerOpen(true);
-    setProgramsLoading(true);
-    const response = await apiFetch('/workout-programs', {}, userToken);
-    if (response.ok) {
-      setPrograms(response.data || []);
-      setError(null);
-    } else {
-      setError(response.data?.message || t('programLoadError'));
-    }
-    setProgramsLoading(false);
-  };
-
-  const addProgramToPlan = async (program) => {
-    setSchedulingId(program.id);
-    const response = await apiFetch('/workout-programs/schedule', {
-      method: 'POST',
-      body: JSON.stringify({ programId: program.id, scheduledFor: selectedDate, repeat: repeatWeekly ? 'weekly' : 'none' }),
-    }, userToken);
-    setSchedulingId(null);
-    if (response.ok) {
-      setProgramPickerOpen(false);
-      loadSchedule();
-    } else {
-      setError(response.data?.message || t('scheduleLoadError'));
-    }
-  };
 
   const selected = parseDate(selectedDate);
   const nearbyDates = useMemo(() => Array.from(
@@ -243,10 +210,6 @@ export default function TrainingScreen({ navigation, route }) {
 
         <Pressable onPress={() => setCalendarOpen(true)}>
           <Text style={[styles.selectedDate, { color: theme.textPrimary }]}>{selected.toLocaleDateString(localeTag, { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
-        </Pressable>
-
-        <Pressable onPress={openProgramPicker} style={[styles.addProgramButton, { borderColor: theme.primary }]}>
-          <Text style={[styles.addProgramText, { color: theme.primary }]}>{t('addProgram')}</Text>
         </Pressable>
 
         <ScrollView
@@ -328,25 +291,6 @@ export default function TrainingScreen({ navigation, route }) {
         </View>
       </Modal>
 
-      <Modal visible={programPickerOpen} transparent animationType="fade" onRequestClose={() => setProgramPickerOpen(false)}>
-        <View style={styles.overlay}>
-          <View style={[styles.modal, { backgroundColor: theme.cardBackground }]}>
-            <Text style={[styles.monthTitle, { color: theme.textPrimary }]}>{t('chooseProgram')}</Text>
-            <Text style={[styles.rangeHint, { color: theme.textSecondary }]}>{t('addProgramHint')} {selectedDate}</Text>
-            <View style={styles.repeatPicker}>
-              <Pressable onPress={() => setRepeatWeekly(true)} style={[styles.repeatOption, { borderColor: theme.border }, repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={[styles.repeatText, { color: repeatWeekly ? palette.whitePure : theme.textPrimary }]}>{t('everyWeek')}</Text></Pressable>
-              <Pressable onPress={() => setRepeatWeekly(false)} style={[styles.repeatOption, { borderColor: theme.border }, !repeatWeekly && { backgroundColor: theme.primary, borderColor: theme.primary }]}><Text style={[styles.repeatText, { color: !repeatWeekly ? palette.whitePure : theme.textPrimary }]}>{t('onlyThisDay')}</Text></Pressable>
-            </View>
-            {programsLoading ? <ActivityIndicator color={theme.primary} style={styles.modalSpinner} /> : <ScrollView style={styles.programPickerList}>{programs.map((program) => (
-              <Pressable disabled={schedulingId !== null} key={program.id} onPress={() => addProgramToPlan(program)} style={[styles.pickerProgram, { borderColor: theme.border }]}>
-                <Text style={[styles.programTitle, { color: theme.textPrimary }]}>{schedulingId === program.id ? '…' : program.name}</Text>
-                {!!program.description && <Text numberOfLines={2} style={[styles.description, { color: theme.textSecondary }]}>{program.description}</Text>}
-              </Pressable>
-            ))}</ScrollView>}
-            <View style={styles.modalActions}><View /><Pressable onPress={() => setProgramPickerOpen(false)}><Text style={[styles.link, { color: theme.textPrimary }]}>{t('close')}</Text></Pressable></View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
