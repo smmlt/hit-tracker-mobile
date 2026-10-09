@@ -31,7 +31,7 @@ test('body metrics translation keys exist in both supported locales', () => {
 
 test('periods use local day boundaries and clamp future custom dates', () => {
   const range = periodToDateRange('7', now);
-  assert.equal(range.start, '2026-08-21');
+  assert.equal(range.start, '2026-08-22');
   assert.equal(range.end, '2026-08-28');
   assert.equal(new Date(range.from).getHours(), 0);
   assert.equal(new Date(range.to).getHours(), 23);

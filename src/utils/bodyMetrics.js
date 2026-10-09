@@ -8,7 +8,7 @@ export const BODY_METRICS = {
 
 export const BODY_METRIC_KEYS = Object.keys(BODY_METRICS);
 
-const PERIOD_DAYS = { today: 0, '7': -7, '14': -14 };
+const PERIOD_DAYS = { today: 0, '7': -6, '14': -13 };
 
 function localDateKey(date) {
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
