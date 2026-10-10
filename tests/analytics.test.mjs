@@ -106,6 +106,7 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   assert.match(interactiveCharts, /maxX={scatterMaxReps}/);
   assert.match(interactiveCharts, /setChartBoxWidth/);
   assert.match(interactiveCharts, /showDateLabel/);
+  assert.match(interactiveCharts, /period === 'today' && setRpeTrend\.length > 1/);
   assert.match(interactiveCharts, /overflow: 'hidden'/);
 });
 

@@ -54,8 +54,20 @@ export default function AnalyticsIntensityScreen({ navigation }) {
 
   const trend = data?.trend || [];
   const rpeTrend = trend.filter((point) => point.averageRpe != null);
+  const setRpeTrend = (data?.setRpeTrend || []).filter((point) => point.rpe != null);
   const volume = trend.filter((point) => Number(point.volumeKg) > 0);
   const showDateLabel = (index, length) => index === 0 || index === length - 1 || index % Math.max(1, Math.ceil((length - 1) / 4)) === 0;
+  const rpeSeries = period === 'today' && setRpeTrend.length > 1
+    ? setRpeTrend.map((point, index) => ({
+      value: Number(point.rpe),
+      label: showDateLabel(index, setRpeTrend.length) ? String(index + 1) : '',
+      pointerLabel: `${t('analyticsSetNumber')} ${index + 1}`,
+    }))
+    : rpeTrend.map((point, index) => ({
+      value: Number(point.averageRpe),
+      label: showDateLabel(index, rpeTrend.length) ? point.date.slice(5) : '',
+      pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }),
+    }));
 
   return <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -73,7 +85,7 @@ export default function AnalyticsIntensityScreen({ navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeTrend')}</Text>
-          <View onLayout={(event) => setChartBoxWidth(Math.floor(event.nativeEvent.layout.width))} style={styles.chartBox}>{rpeTrend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={rpeTrend.length > 2} data={rpeTrend.map((point, index) => ({ value: Number(point.averageRpe), label: showDateLabel(index, rpeTrend.length) ? point.date.slice(5) : '', pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} endSpacing={0} height={165} hideDataPoints={rpeTrend.length > 1} initialSpacing={0} maxValue={10} noOfSections={5} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} rulesColor={theme.border} startFillColor={theme.primary} startOpacity={0.24} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisLabelWidth={34} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}</View>
+          <View onLayout={(event) => setChartBoxWidth(Math.floor(event.nativeEvent.layout.width))} style={styles.chartBox}>{rpeSeries.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={rpeSeries.length > 2} data={rpeSeries} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} endSpacing={0} height={165} hideDataPoints={rpeSeries.length > 1} initialSpacing={0} maxValue={10} noOfSections={5} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} rulesColor={theme.border} startFillColor={theme.primary} startOpacity={0.24} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisLabelWidth={34} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}</View>
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeDistribution')}</Text>
