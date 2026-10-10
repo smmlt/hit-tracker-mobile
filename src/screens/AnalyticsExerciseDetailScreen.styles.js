@@ -19,7 +19,7 @@ export const createStyles = (theme) => StyleSheet.create({
   retry: { color: theme.primary, fontFamily: 'Inter-Bold', fontSize: 13, paddingVertical: 10 },
   axisText: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 8 },
   detailGrid: { alignItems: 'stretch', flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  halfCard: { flex: 1, minWidth: 150 },
+  halfCard: { flex: 1, minWidth: 150, overflow: 'hidden' },
   rangeRow: { flexDirection: 'row', justifyContent: 'space-between' },
   tooltip: { borderColor: theme.textSecondary, borderRadius: 4, borderWidth: 1, gap: 2, padding: 5 },
   tooltipText: { color: theme.textPrimary, fontFamily: 'Inter', fontSize: 9 },

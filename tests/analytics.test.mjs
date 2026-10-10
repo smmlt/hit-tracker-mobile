@@ -95,6 +95,7 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   ].join('\n');
   assert.match(interactiveCharts, /pointerConfig/);
   assert.doesNotMatch(interactiveCharts, /<ScrollView horizontal[^>]*><LineChart/);
+  assert.match(interactiveCharts, /maxX={scatterMaxReps}/);
 });
 
 test('analytics starts at Overview and keeps approved drilldowns adaptive', () => {

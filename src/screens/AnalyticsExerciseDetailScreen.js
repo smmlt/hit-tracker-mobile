@@ -73,6 +73,8 @@ export default function AnalyticsExerciseDetailScreen({ navigation, route }) {
     return { label: max === Infinity ? `${min}+` : `${min}-${max}`, row };
   });
   const scatter = sets.filter((set) => Number(set.reps) > 0 && Number(set.weightKg) > 0).map((set) => ({ x: Number(set.reps), y: Number(set.weightKg), r: 5, onPress: () => setSelected(set) }));
+  const scatterMaxReps = Math.max(20, ...scatter.map((point) => point.x));
+  const scatterChartWidth = Math.max(100, chartWidth / 2 - 62);
 
   const openWorkout = () => {
     if (!selected?.workoutId) return;
@@ -101,7 +103,7 @@ export default function AnalyticsExerciseDetailScreen({ navigation, route }) {
         </View>
         <View style={styles.detailGrid}>
           <View style={[styles.card, styles.halfCard]}><Text style={styles.cardTitle}>{t('analyticsBestByRepRange')}</Text>{byRange.map(({ label, row }) => <View key={label} style={styles.rangeRow}><Text style={styles.muted}>{label}</Text><Text style={styles.detail}>{row ? `${number(row.weightKg)} ${t('kgShort')} × ${row.reps}` : '—'}</Text></View>)}</View>
-          <View style={[styles.card, styles.halfCard]}><Text style={styles.cardTitle}>{t('analyticsStrengthByReps')}</Text>{scatter.length ? <BubbleChart bubblesColor={theme.textPrimary} data={scatter} endSpacing={10} height={190} rulesColor={theme.border} scatterChart width={Math.max(145, chartWidth / 2 - 24)} xAxisColor={theme.textPrimary} xAxisLabelTextStyle={styles.axisText} xNoOfSections={4} yAxisColor={theme.textPrimary} yAxisTextStyle={styles.axisText} yNoOfSections={4} /> : <Text style={styles.muted}>{t('analyticsNoSets')}</Text>}{selected ? <View style={styles.tooltip}><Text style={styles.tooltipText}>{number(selected.weightKg)} {t('kgShort')} × {selected.reps}</Text><Text style={styles.tooltipText}>{selected.date}</Text><Text style={styles.tooltipText}>RPE: {selected.rpe ?? '—'} · {t('analyticsFailure')}: {selected.isFailure ? t('yes') : t('no')}</Text><Text style={styles.tooltipText}>{t('analyticsSetNumber')}: {selected.setNumber ?? '—'}</Text></View> : null}</View>
+          <View style={[styles.card, styles.halfCard]}><Text style={styles.cardTitle}>{t('analyticsStrengthByReps')}</Text>{scatter.length ? <BubbleChart autoRoundLabelsX={false} bubblesColor={theme.textPrimary} data={scatter} disableScroll endSpacing={6} formatXLabel={(value) => String(Math.round(Number(value)))} height={190} maxX={scatterMaxReps} minX={0} rulesColor={theme.border} scatterChart showFractionalXAxis={false} width={scatterChartWidth} xAxisColor={theme.textPrimary} xAxisLabelTextStyle={styles.axisText} xNoOfSections={4} xRoundToDigits={0} xStepValue={scatterMaxReps / 4} yAxisColor={theme.textPrimary} yAxisLabelWidth={24} yAxisTextStyle={styles.axisText} yNoOfSections={4} /> : <Text style={styles.muted}>{t('analyticsNoSets')}</Text>}{selected ? <View style={styles.tooltip}><Text style={styles.tooltipText}>{number(selected.weightKg)} {t('kgShort')} × {selected.reps}</Text><Text style={styles.tooltipText}>{selected.date}</Text><Text style={styles.tooltipText}>RPE: {selected.rpe ?? '—'} · {t('analyticsFailure')}: {selected.isFailure ? t('yes') : t('no')}</Text><Text style={styles.tooltipText}>{t('analyticsSetNumber')}: {selected.setNumber ?? '—'}</Text></View> : null}</View>
         </View>
         {selected?.workoutId ? <Pressable accessibilityRole="button" onPress={openWorkout} style={styles.cta}><Text style={styles.ctaText}>{t('analyticsViewWorkout')}</Text></Pressable> : null}
       </>}
