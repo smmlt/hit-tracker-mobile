@@ -112,6 +112,8 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   const periodPickerStyles = readFileSync(new URL('../src/components/analytics/AnalyticsPeriodPicker.styles.js', import.meta.url), 'utf8');
   assert.match(periodPicker, /styles\.rangeFill/);
   assert.doesNotMatch(periodPicker, /selected && styles\.daySelected/);
+  assert.match(periodPicker, /typeof period === 'object' \? theme\.primary : theme\.textSecondary/);
+  assert.doesNotMatch(periodPicker, /styles\.calendarButtonActive/);
   assert.match(periodPickerStyles, /periodRow: \{[^}]*flexGrow: 1[^}]*width: '100%'/);
   assert.match(periodPickerStyles, /rangeStart:/);
   assert.match(periodPickerStyles, /rangeEnd:/);

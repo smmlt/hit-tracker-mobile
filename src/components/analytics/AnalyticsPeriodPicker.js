@@ -68,8 +68,8 @@ export default function AnalyticsPeriodPicker({ compact = false }) {
           <Text style={[styles.periodText, selected && styles.periodTextActive]}>{t(key)}</Text>
         </Pressable>;
       })}
-      <Pressable accessibilityLabel={t('selectDateOrPeriod')} accessibilityRole="button" onPress={showCalendar} style={[styles.calendarButton, typeof period === 'object' && styles.calendarButtonActive]}>
-        <Ionicons color={typeof period === 'object' ? theme.onPrimary : theme.textSecondary} name="calendar-outline" size={22} />
+      <Pressable accessibilityLabel={t('selectDateOrPeriod')} accessibilityRole="button" onPress={showCalendar} style={styles.calendarButton}>
+        <Ionicons color={typeof period === 'object' ? theme.primary : theme.textSecondary} name="calendar-outline" size={22} />
       </Pressable>
     </ScrollView>
     {!compact && <Text style={styles.rangeLabel}>{formatRangeLabel(range, locale)}</Text>}

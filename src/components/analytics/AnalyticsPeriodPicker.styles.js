@@ -8,7 +8,6 @@ export const createStyles = (theme) => StyleSheet.create({
   periodText: { color: theme.textPrimary, fontFamily: 'Inter-SemiBold', fontSize: 12 },
   periodTextActive: { color: theme.onPrimary },
   calendarButton: { alignItems: 'center', borderRadius: 9, flexBasis: 38, flexGrow: 0, flexShrink: 0, height: 36, justifyContent: 'center' },
-  calendarButtonActive: { backgroundColor: theme.primary },
   rangeLabel: { color: theme.textPrimary, fontFamily: 'Inter', fontSize: 12, marginTop: 10 },
   overlay: { alignItems: 'center', backgroundColor: theme.overlay, flex: 1, justifyContent: 'center', padding: 20 },
   modal: { backgroundColor: theme.surfaceElevated, borderRadius: 14, gap: 12, maxWidth: 420, padding: 18, width: '100%' },
