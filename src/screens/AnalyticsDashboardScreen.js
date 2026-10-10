@@ -103,6 +103,8 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const scheduled = data.schedule || [];
   const scheduleAvailable = data.schedule !== null;
   const completed = scheduled.filter((item) => item.status === 'completed').length;
+  const todayActual = Math.max(completed, Number(summary.workouts) || 0);
+  const todayBarMax = Math.max(1, scheduled.length, todayActual);
   const firstScheduled = scheduled[0];
   const completionPercent = scheduled.length ? Math.round(completed / scheduled.length * 100) : null;
   const periodScheduled = Number(plan.scheduledAssignments) || 0;
@@ -153,10 +155,10 @@ export default function AnalyticsDashboardScreen({ navigation }) {
         <View style={[styles.card, styles.planCard]}>
           <Text style={styles.cardTitle}>{t('analyticsPlanCompletion')}</Text>
           <View accessibilityLabel={scheduled.length ? t('analyticsTodayCompletion', { completed, scheduled: scheduled.length }) : t('analyticsNoPlanToday')} style={styles.todayBars}>
-            <View style={styles.todayBarColumn}><View style={[styles.todayBar, styles.todayBarPlanned, { height: scheduled.length ? 48 : 2 }]} /><Text style={styles.chartLabel}>{t('analyticsPlan')}</Text></View>
-            <View style={styles.todayBarColumn}><View style={[styles.todayBar, styles.todayBarDone, { height: scheduled.length ? Math.max(2, completed / scheduled.length * 48) : 2 }]} /><Text style={styles.chartLabel}>{t('analyticsActual')}</Text></View>
+            <View style={styles.todayBarColumn}><Text style={styles.barCount}>{scheduled.length}</Text><View style={[styles.todayBar, styles.todayBarPlanned, { height: Math.max(4, scheduled.length / todayBarMax * 64) }]} /><Text style={styles.chartLabel}>{t('analyticsPlan')}</Text></View>
+            <View style={styles.todayBarColumn}><Text style={styles.barCount}>{todayActual}</Text><View style={[styles.todayBar, styles.todayBarDone, { height: Math.max(4, todayActual / todayBarMax * 64) }]} /><Text style={styles.chartLabel}>{t('analyticsActual')}</Text></View>
           </View>
-          <Text style={styles.muted}>{scheduled.length ? `${completed} ${t('analyticsOf')} ${scheduled.length}` : '—'}</Text>
+          <Text style={styles.muted}>{scheduled.length ? `${completed} ${t('analyticsOf')} ${scheduled.length}` : t('analyticsNoPlanToday')}</Text>
         </View>
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsMuscleBalance')} style={[styles.card, styles.activityCard]}>
           <View style={styles.cardHeader}><Text style={styles.cardTitle}>{t('analyticsMuscleGroups')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={20} /></View>
@@ -172,13 +174,16 @@ export default function AnalyticsDashboardScreen({ navigation }) {
         </View>
         <View style={[styles.card, styles.activityCard]}>
           <Text style={styles.cardTitle}>{t('analyticsActivity')}</Text>
-          <Text style={styles.micro}>{t('analyticsActivityHint')}</Text>
+          <View style={styles.activityLegend}><View style={[styles.legendDot, styles.legendDone]} /><Text style={styles.micro}>{t('scheduleStatus_completed')}</Text><View style={[styles.legendDot, styles.legendMissed]} /><Text style={styles.micro}>{t('scheduleStatus_missed')}</Text></View>
           <View accessibilityLabel={t('analyticsComplianceChart')} style={styles.activityChart}>
             {activity.slice(-7).map((item) => {
               const planned = Number(item.plannedWorkouts) || 0;
               const completed = Number(item.completedWorkouts) || 0;
+              const total = Math.max(planned, completed);
+              const completedShare = total ? Math.min(100, completed / total * 100) : 0;
+              const missedShare = total ? Math.max(0, planned - completed) / total * 100 : 0;
               return <View key={item.date} style={styles.activityColumn}>
-                <View style={[styles.activityPlanned, { height: Math.max(planned ? 10 : 2, planned / maxActivity * 52) }]}><View style={[styles.activityDone, { height: `${Math.min(100, planned ? completed / planned * 100 : completed ? 100 : 0)}%` }]} /></View>
+                <View style={[styles.activityBar, { height: Math.max(total ? 10 : 2, total / maxActivity * 52) }]}><View style={[styles.activityMissed, { height: `${missedShare}%` }]} /><View style={[styles.activityDone, { height: `${completedShare}%` }]} /></View>
                 <Text style={styles.chartLabel}>{item.date.slice(8)}</Text>
               </View>;
             })}
