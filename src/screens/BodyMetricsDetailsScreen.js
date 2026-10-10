@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-gifted-charts';
+import { chartPointerConfig } from '../components/analytics/chartPointer';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -139,7 +140,9 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
                       <View onLayout={(event) => setChartBoxWidth(Math.floor(event.nativeEvent.layout.width))} style={styles.chartBox}>
                       <LineChart
                         areaChart
-                        data={points.map(({ value }) => ({ value }))}
+                        curved
+                        data={points.map(({ value, recordedAt }) => ({ value, pointerLabel: new Date(recordedAt).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) }))}
+                        disableScroll
                         endFillColor={theme.bodyMetricsChartFill}
                         endOpacity={0.02}
                         height={150}
@@ -149,6 +152,7 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
                         initialSpacing={layout.initialSpacing}
                         maxValue={layout.maxValue}
                         noOfSections={3}
+                        pointerConfig={chartPointerConfig({ theme, formatValue: (value) => formatMetric(value, activeMetric, locale, t) })}
                         startFillColor={theme.bodyMetricsChartFill}
                         startOpacity={0.24}
                         thickness={2}

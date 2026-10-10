@@ -71,6 +71,31 @@ test('analytics strings are localized', () => {
   }
 });
 
+test('Today overview uses real schedule completion, compact metrics, and interactive charts', () => {
+  const screen = readFileSync(new URL('../src/screens/AnalyticsDashboardScreen.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(screen, /PieChart/);
+  assert.match(screen, /analyticsService\.schedule/);
+  assert.match(screen, /getParent\(\)\?\.navigate\('ActiveWorkout'/);
+  for (const key of ['analyticsActiveTime', 'analyticsWorkingSets', 'analyticsVolume', 'analyticsCompletedWorkouts']) assert.match(screen, new RegExp(key));
+  assert.doesNotMatch(screen, /calories/i);
+  assert.match(screen, /analyticsScheduleUnavailable/);
+  assert.match(screen, /emptyTrend/);
+  assert.match(screen, /chartPointerConfig/);
+  assert.match(screen, /curved/);
+  assert.match(screen, /disableScroll/);
+  assert.match(screen, /AddBodyMeasurement/);
+  assert.match(readFileSync(new URL('../src/services/analyticsService.js', import.meta.url), 'utf8'), /workout-programs\/schedule/);
+
+  const interactiveCharts = [
+    screen,
+    readFileSync(new URL('../src/screens/AnalyticsIntensityScreen.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/AnalyticsExerciseDetailScreen.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/BodyMetricsDetailsScreen.js', import.meta.url), 'utf8'),
+  ].join('\n');
+  assert.match(interactiveCharts, /pointerConfig/);
+  assert.doesNotMatch(interactiveCharts, /<ScrollView horizontal[^>]*><LineChart/);
+});
+
 test('analytics starts at Overview and keeps approved drilldowns adaptive', () => {
   const navigator = readFileSync(new URL('../src/navigation/AppNavigator.js', import.meta.url), 'utf8');
   const order = [

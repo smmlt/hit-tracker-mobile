@@ -9,6 +9,7 @@ import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAnalyticsPeriod } from '../context/AnalyticsPeriodContext';
 import AnalyticsPeriodPicker from '../components/analytics/AnalyticsPeriodPicker';
+import { chartPointerConfig } from '../components/analytics/chartPointer';
 import { analyticsService } from '../services/analyticsService';
 import { periodToDateRange } from '../utils/bodyMetrics';
 import { createStyles } from './AnalyticsExerciseDetailScreen.styles';
@@ -96,7 +97,7 @@ export default function AnalyticsExerciseDetailScreen({ navigation, route }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsStrengthProgress')}</Text>
-          {progress.length > 1 ? <ScrollView horizontal showsHorizontalScrollIndicator={false}><LineChart color={theme.primary} data={progress.map((point) => ({ value: Number(point.e1rmKg) || 0, label: point.date?.slice(5) }))} dataPointsColor={theme.textSecondary} height={165} rulesColor={theme.border} spacing={Math.max(46, chartWidth / Math.max(2, progress.length))} thickness={2} width={Math.max(chartWidth, progress.length * 48)} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /></ScrollView> : <Text style={styles.muted}>{t(progress.length ? 'analyticsStrengthNeedsMoreData' : 'analyticsNoProgress')}</Text>}
+          {progress.length > 1 ? <LineChart adjustToWidth color={theme.primary} curved data={progress.map((point) => ({ value: Number(point.e1rmKg) || 0, label: point.date?.slice(5), pointerLabel: point.date ? new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) : '' }))} dataPointsColor={theme.textSecondary} disableScroll height={165} hideDataPoints pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `${number(value)} ${t('kgShort')}` })} rulesColor={theme.border} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t(progress.length ? 'analyticsStrengthNeedsMoreData' : 'analyticsNoProgress')}</Text>}
         </View>
         <View style={styles.detailGrid}>
           <View style={[styles.card, styles.halfCard]}><Text style={styles.cardTitle}>{t('analyticsBestByRepRange')}</Text>{byRange.map(({ label, row }) => <View key={label} style={styles.rangeRow}><Text style={styles.muted}>{label}</Text><Text style={styles.detail}>{row ? `${number(row.weightKg)} ${t('kgShort')} × ${row.reps}` : '—'}</Text></View>)}</View>

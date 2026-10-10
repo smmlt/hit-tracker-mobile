@@ -9,6 +9,7 @@ import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAnalyticsPeriod } from '../context/AnalyticsPeriodContext';
 import AnalyticsPeriodPicker from '../components/analytics/AnalyticsPeriodPicker';
+import { chartPointerConfig } from '../components/analytics/chartPointer';
 import { analyticsService } from '../services/analyticsService';
 import { periodToDateRange } from '../utils/bodyMetrics';
 import { createStyles } from './AnalyticsIntensityScreen.styles';
@@ -69,7 +70,7 @@ export default function AnalyticsIntensityScreen({ navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeTrend')}</Text>
-          {rpeTrend.length ? <ScrollView horizontal showsHorizontalScrollIndicator={false}><LineChart color={theme.primary} data={rpeTrend.map((point) => ({ value: Number(point.averageRpe), label: point.date.slice(5) }))} dataPointsColor={theme.textSecondary} height={165} maxValue={10} noOfSections={5} rulesColor={theme.border} spacing={Math.max(44, chartWidth / Math.max(2, rpeTrend.length))} thickness={2} width={Math.max(chartWidth, rpeTrend.length * 48)} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /></ScrollView> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}
+          {rpeTrend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={rpeTrend.length > 2} data={rpeTrend.map((point) => ({ value: Number(point.averageRpe), label: point.date.slice(5), pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} height={165} hideDataPoints={rpeTrend.length > 1} maxValue={10} noOfSections={5} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} rulesColor={theme.border} startFillColor={theme.primary} startOpacity={0.24} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeDistribution')}</Text>
@@ -82,7 +83,7 @@ export default function AnalyticsIntensityScreen({ navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsVolume')}</Text>
-          {volume.length ? <ScrollView horizontal showsHorizontalScrollIndicator={false}><BarChart barWidth={13} data={volume.map((point) => ({ value: Number(point.volumeKg), label: point.date.slice(5), frontColor: theme.primary }))} height={145} noOfSections={3} rulesColor={theme.border} spacing={18} width={Math.max(chartWidth, volume.length * 42)} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /></ScrollView> : <Text style={styles.muted}>{t('analyticsNoWeeklyVolume')}</Text>}
+          {volume.length ? <BarChart adjustToWidth barWidth={13} data={volume.map((point) => ({ value: Number(point.volumeKg), label: point.date.slice(5), pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }), frontColor: theme.primary }))} disableScroll height={145} noOfSections={3} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `${number(value, 1)} ${t('kgShort')}` })} rulesColor={theme.border} spacing={18} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoWeeklyVolume')}</Text>}
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsTrainingDensity')}</Text>
