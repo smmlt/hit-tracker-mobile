@@ -91,6 +91,10 @@ export const linkingConfig = {
               path: '',
               alias: [legacy('MainApp/Analytics/AnalyticsHome')],
             },
+            AnalyticsStrength: { path: 'strength' },
+            AnalyticsExercise: { path: 'exercises/:exerciseId' },
+            AnalyticsMuscleBalance: { path: 'muscle-balance' },
+            AnalyticsIntensity: { path: 'intensity' },
             BodyMetricsDetails: {
               path: 'body-metrics',
               alias: [legacy('MainApp/Analytics/BodyMetricsDetails')],

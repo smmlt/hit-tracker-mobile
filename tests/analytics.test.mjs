@@ -16,15 +16,26 @@ test('analytics service builds read-model requests and preserves normalized API 
   const source = readFileSync(new URL('../src/services/analyticsService.js', import.meta.url), 'utf8');
   const code = transformSync(source, { babelrc: false, configFile: false, plugins: ['@babel/plugin-transform-modules-commonjs'] }).code;
   const module = { exports: {} };
-  runInNewContext(code, { module, exports: module.exports, require: () => ({ apiRequest }), encodeURIComponent });
+  const Intl = { DateTimeFormat: () => ({ resolvedOptions: () => ({ timeZone: 'Europe/Berlin' }) }) };
+  runInNewContext(code, { module, exports: module.exports, require: () => ({ apiRequest }), encodeURIComponent, Intl });
   const service = module.exports.analyticsService;
   await service.summary('token');
+  await service.overview('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.weeklyVolume('token');
   await service.exerciseProgress('token', 12, { from: '2026-09-01', to: '2026-09-28' });
+  await service.exerciseSets('token', 12, { from: '2026-09-01', to: '2026-09-28' });
+  await service.intensity('token', { from: '2026-09-21', to: '2026-09-28' });
+  await service.muscleGroups('token', { from: '2026-09-21', to: '2026-09-28' });
+  await service.strength('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.bodyMetrics('token');
   assert.deepEqual(calls.map(([path]) => path), [
-    '/analytics/me/summary', '/analytics/me/weekly-volume?weeks=12',
-    '/analytics/me/exercises/12/progress?from=2026-09-01&to=2026-09-28', '/analytics/me/body-metrics',
+    '/analytics/me/summary', '/analytics/me/overview?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin', '/analytics/me/weekly-volume?weeks=12',
+    '/analytics/me/exercises/12/progress?from=2026-09-01&to=2026-09-28',
+    '/analytics/me/exercises/12/sets?from=2026-09-01&to=2026-09-28',
+    '/analytics/me/intensity?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin',
+    '/analytics/me/muscle-groups?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin',
+    '/analytics/me/strength?from=2026-09-21&to=2026-09-28',
+    '/analytics/me/body-metrics',
   ]);
   assert.ok(calls.every(([, , token]) => token === 'token'));
   await assert.rejects(service.personalRecords('token'), (error) => error.status === 503 && error.details.code === 'ANALYTICS_UNAVAILABLE');
@@ -58,4 +69,80 @@ test('analytics strings are localized', () => {
   for (const key of Object.keys(translations.en).filter((key) => key.startsWith('analytics'))) {
     assert.equal(typeof translations.uk[key], 'string', key);
   }
+});
+
+test('Today overview uses real schedule completion, compact metrics, and interactive charts', () => {
+  const screen = readFileSync(new URL('../src/screens/AnalyticsDashboardScreen.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(screen, /PieChart/);
+  assert.match(screen, /analyticsService\.schedule/);
+  assert.match(screen, /getParent\(\)\?\.navigate\('ActiveWorkout'/);
+  for (const key of ['analyticsActiveTime', 'analyticsWorkingSets', 'analyticsVolume', 'analyticsCompletedWorkouts']) assert.match(screen, new RegExp(key));
+  assert.doesNotMatch(screen, /calories/i);
+  assert.match(screen, /analyticsScheduleUnavailable/);
+  assert.match(screen, /emptyTrend/);
+  assert.match(screen, /chartPointerConfig/);
+  assert.match(screen, /setRpeTrend/);
+  assert.match(screen, /width - 64/);
+  assert.match(screen, /height={today \? 126 : 104}/);
+  assert.match(screen, /analyticsSetsCount/);
+  assert.match(screen, /todayActual/);
+  assert.match(screen, /activityMissed/);
+  assert.match(screen, /scheduleStatus_completed/);
+  assert.match(screen, /curved/);
+  assert.match(screen, /disableScroll/);
+  assert.match(screen, /AddBodyMeasurement/);
+  assert.match(readFileSync(new URL('../src/services/analyticsService.js', import.meta.url), 'utf8'), /workout-programs\/schedule/);
+
+  const interactiveCharts = [
+    screen,
+    readFileSync(new URL('../src/screens/AnalyticsIntensityScreen.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/AnalyticsExerciseDetailScreen.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/AnalyticsExerciseDetailScreen.styles.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/AnalyticsIntensityScreen.styles.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/BodyMetricsDetailsScreen.js', import.meta.url), 'utf8'),
+  ].join('\n');
+  assert.match(interactiveCharts, /pointerConfig/);
+  assert.doesNotMatch(interactiveCharts, /<ScrollView horizontal[^>]*><LineChart/);
+  assert.match(interactiveCharts, /maxX={scatterMaxReps}/);
+  assert.match(interactiveCharts, /setChartBoxWidth/);
+  assert.match(interactiveCharts, /showDateLabel/);
+  assert.match(interactiveCharts, /period === 'today' && setRpeTrend\.length > 1/);
+  assert.match(interactiveCharts, /overflow: 'hidden'/);
+  assert.match(interactiveCharts, /areaChart[\s\S]*startFillColor={theme\.primary}[\s\S]*startOpacity={0\.45}/);
+  assert.doesNotMatch(interactiveCharts, /dataPointsColor={theme\.textSecondary}/);
+  const periodPicker = readFileSync(new URL('../src/components/analytics/AnalyticsPeriodPicker.js', import.meta.url), 'utf8');
+  const periodPickerStyles = readFileSync(new URL('../src/components/analytics/AnalyticsPeriodPicker.styles.js', import.meta.url), 'utf8');
+  assert.match(periodPicker, /styles\.rangeFill/);
+  assert.doesNotMatch(periodPicker, /selected && styles\.daySelected/);
+  assert.match(periodPicker, /typeof period === 'object' \? theme\.primary : theme\.textSecondary/);
+  assert.doesNotMatch(periodPicker, /styles\.calendarButtonActive/);
+  assert.match(periodPickerStyles, /periodRow: \{[^}]*flexGrow: 1[^}]*width: '100%'/);
+  assert.match(periodPickerStyles, /rangeStart:/);
+  assert.match(periodPickerStyles, /rangeEnd:/);
+});
+
+test('analytics starts at Overview and keeps approved drilldowns adaptive', () => {
+  const navigator = readFileSync(new URL('../src/navigation/AppNavigator.js', import.meta.url), 'utf8');
+  const order = [
+    'name="AnalyticsHome"',
+    'name="AnalyticsIntensity"',
+    'name="AnalyticsMuscleBalance"',
+    'name="AnalyticsStrength"',
+    'name="AnalyticsExercise"',
+    'name="BodyMetricsDetails"',
+  ].map((needle) => navigator.indexOf(needle));
+  assert.ok(order.every((index) => index >= 0));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
+
+  const styles = [
+    'AnalyticsDashboardScreen.styles.js',
+    'AnalyticsIntensityScreen.styles.js',
+    'AnalyticsMuscleDetailScreen.styles.js',
+    'AnalyticsStrengthListScreen.styles.js',
+    'AnalyticsExerciseDetailScreen.styles.js',
+  ].map((file) => readFileSync(new URL(`../src/screens/${file}`, import.meta.url), 'utf8')).join('\n');
+  assert.doesNotMatch(styles, /(?:max)?width:\s*393/i);
+  assert.doesNotMatch(styles, /#[0-9a-f]{3,8}|rgba?\(/i);
+  assert.match(styles, /maxWidth:\s*800/);
+  assert.match(styles, /flexWrap:\s*'wrap'/);
 });

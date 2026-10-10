@@ -32,7 +32,11 @@ import TrainingScreen from '../screens/TrainingScreen';
 import ProgramDetailsScreen from '../screens/ProgramDetailsScreen';
 import SharedExerciseScreen from '../screens/SharedExerciseScreen';
 import SharedProgramScreen from '../screens/SharedProgramScreen';
-import AnalyticsScreen from '../screens/AnalyticsScreen';
+import AnalyticsScreen from '../screens/AnalyticsDashboardScreen';
+import AnalyticsStrengthScreen from '../screens/AnalyticsStrengthListScreen';
+import AnalyticsExerciseScreen from '../screens/AnalyticsExerciseDetailScreen';
+import AnalyticsMuscleBalanceScreen from '../screens/AnalyticsMuscleDetailScreen';
+import AnalyticsIntensityScreen from '../screens/AnalyticsIntensityScreen';
 import BodyMetricsDetailsScreen from '../screens/BodyMetricsDetailsScreen';
 import AddBodyMeasurementScreen from '../screens/AddBodyMeasurementScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
@@ -46,6 +50,7 @@ import { createStyles } from './AppNavigator.styles';
 import { linkingConfig } from './linkingConfig';
 import { addPushListeners } from '../services/notificationService';
 import { safeNotificationUrl } from '../utils/safeNotificationUrl';
+import { AnalyticsPeriodProvider } from '../context/AnalyticsPeriodContext';
 const Stack = createNativeStackNavigator();
 const navigationRef = createNavigationContainerRef();
 const Tab = createBottomTabNavigator();
@@ -68,19 +73,26 @@ function AnalyticsStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   return (
-    <AnalyticsStackNavigator.Navigator
-      screenOptions={{
-        headerShown: false,
-        contentStyle: {
-          paddingBottom: tabBarHeight,
-          backgroundColor: theme.background,
-        },
-      }}
-    >
-      <AnalyticsStackNavigator.Screen name="AnalyticsHome" component={AnalyticsScreen} />
-      <AnalyticsStackNavigator.Screen name="BodyMetricsDetails" component={BodyMetricsDetailsScreen} />
-      <AnalyticsStackNavigator.Screen name="AddBodyMeasurement" component={AddBodyMeasurementScreen} />
-    </AnalyticsStackNavigator.Navigator>
+    <AnalyticsPeriodProvider>
+      <AnalyticsStackNavigator.Navigator
+        initialRouteName="AnalyticsHome"
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            paddingBottom: tabBarHeight,
+            backgroundColor: theme.background,
+          },
+        }}
+      >
+        <AnalyticsStackNavigator.Screen name="AnalyticsHome" component={AnalyticsScreen} />
+        <AnalyticsStackNavigator.Screen name="AnalyticsIntensity" component={AnalyticsIntensityScreen} />
+        <AnalyticsStackNavigator.Screen name="AnalyticsMuscleBalance" component={AnalyticsMuscleBalanceScreen} />
+        <AnalyticsStackNavigator.Screen name="AnalyticsStrength" component={AnalyticsStrengthScreen} />
+        <AnalyticsStackNavigator.Screen name="AnalyticsExercise" component={AnalyticsExerciseScreen} />
+        <AnalyticsStackNavigator.Screen name="BodyMetricsDetails" component={BodyMetricsDetailsScreen} />
+        <AnalyticsStackNavigator.Screen name="AddBodyMeasurement" component={AddBodyMeasurementScreen} />
+      </AnalyticsStackNavigator.Navigator>
+    </AnalyticsPeriodProvider>
   );
 }
 
