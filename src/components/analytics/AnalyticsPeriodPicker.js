@@ -61,7 +61,7 @@ export default function AnalyticsPeriodPicker({ compact = false }) {
   };
 
   return <>
-    <ScrollView contentContainerStyle={styles.periodRow} horizontal showsHorizontalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={styles.periodRow} horizontal showsHorizontalScrollIndicator={false} style={styles.periodScroll}>
       {PERIODS.map(([value, key]) => {
         const selected = period === value;
         return <Pressable accessibilityRole="tab" accessibilityState={{ selected }} key={value} onPress={() => setPeriod(value)} style={[styles.periodChip, selected && styles.periodChipActive]}>
@@ -89,7 +89,10 @@ export default function AnalyticsPeriodPicker({ compact = false }) {
             const inMonth = day.getMonth() === month.getMonth();
             const future = key > todayKey;
             const selected = key === pending.start || key === pending.end || (pending.start && pending.end && key > pending.start && key < pending.end);
-            return <Pressable accessibilityLabel={day.toLocaleDateString(localeTag)} disabled={!inMonth || future} key={key} onPress={() => setPending((current) => selectRange(current, key))} style={[styles.day, selected && styles.daySelected]}>
+            const isStart = key === pending.start;
+            const isEnd = key === (pending.end || pending.start);
+            return <Pressable accessibilityLabel={day.toLocaleDateString(localeTag)} disabled={!inMonth || future} key={key} onPress={() => setPending((current) => selectRange(current, key))} style={styles.day}>
+              {selected && <View style={[styles.rangeFill, isStart && styles.rangeStart, isEnd && styles.rangeEnd]} />}
               <Text style={[styles.dayText, (!inMonth || future) && styles.disabledText, selected && styles.dayTextSelected]}>{day.getDate()}</Text>
             </Pressable>;
           })}</View>

@@ -108,6 +108,13 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   assert.match(interactiveCharts, /showDateLabel/);
   assert.match(interactiveCharts, /period === 'today' && setRpeTrend\.length > 1/);
   assert.match(interactiveCharts, /overflow: 'hidden'/);
+  const periodPicker = readFileSync(new URL('../src/components/analytics/AnalyticsPeriodPicker.js', import.meta.url), 'utf8');
+  const periodPickerStyles = readFileSync(new URL('../src/components/analytics/AnalyticsPeriodPicker.styles.js', import.meta.url), 'utf8');
+  assert.match(periodPicker, /styles\.rangeFill/);
+  assert.doesNotMatch(periodPicker, /selected && styles\.daySelected/);
+  assert.match(periodPickerStyles, /periodRow: \{[^}]*flexGrow: 1[^}]*width: '100%'/);
+  assert.match(periodPickerStyles, /rangeStart:/);
+  assert.match(periodPickerStyles, /rangeEnd:/);
 });
 
 test('analytics starts at Overview and keeps approved drilldowns adaptive', () => {
