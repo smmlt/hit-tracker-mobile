@@ -81,6 +81,7 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   assert.match(screen, /analyticsScheduleUnavailable/);
   assert.match(screen, /emptyTrend/);
   assert.match(screen, /chartPointerConfig/);
+  assert.match(screen, /setRpeTrend/);
   assert.match(screen, /curved/);
   assert.match(screen, /disableScroll/);
   assert.match(screen, /AddBodyMeasurement/);

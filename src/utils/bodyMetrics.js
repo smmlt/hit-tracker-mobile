@@ -94,6 +94,11 @@ export function formatRangeLabel(range, locale = 'en') {
   const uk = locale === 'uk';
   const month = (date) => new Intl.DateTimeFormat(uk ? 'uk-UA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })
     .formatToParts(date).find((part) => part.type === 'month').value;
+  if (localDateKey(start) === localDateKey(end)) {
+    return uk
+      ? `${start.getDate()} ${month(start)} ${start.getFullYear()}`
+      : `${month(start)} ${start.getDate()}, ${start.getFullYear()}`;
+  }
   if (uk) {
     if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {
       return `${start.getDate()} - ${end.getDate()} ${month(end)} ${end.getFullYear()}`;

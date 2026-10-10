@@ -45,6 +45,8 @@ test('periods use local day boundaries and clamp future custom dates', () => {
 test('range labels and locale values use the requested language', () => {
   const range = { start: '2026-08-21', end: '2026-08-28' };
   assert.equal(formatRangeLabel(range, 'uk'), '21 - 28 серпня 2026');
+  assert.equal(formatRangeLabel({ start: '2026-08-21', end: '2026-08-21' }, 'uk'), '21 серпня 2026');
+  assert.equal(formatRangeLabel({ start: '2026-08-21', end: '2026-08-21' }, 'en'), 'August 21, 2026');
   assert.equal(formatMetric(74, 'weight', 'uk', uk), '74,0 кг');
   assert.equal(formatMetric(74, 'weight', 'en', en), '74.0 kg');
   assert.equal(formatMetric(74, 'waistCircumference', 'uk', uk), '74 см');

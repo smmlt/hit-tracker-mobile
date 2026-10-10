@@ -85,14 +85,20 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const muscles = overview.muscleGroups || [];
   const maxActivity = Math.max(1, ...activity.map((item) => Math.max(Number(item.plannedWorkouts) || 0, Number(item.completedWorkouts) || 0)));
   const maxMuscle = Math.max(1, ...muscles.map((item) => Number(item.workingSets) || 0));
-  const trend = (overview.intensityTrend || []).filter((point) => point.averageRpe != null);
   const intensity = data.intensity || {};
+  const today = period === 'today';
+  const trend = today && intensity.setRpeTrend?.length
+    ? intensity.setRpeTrend.map((point) => ({
+        averageRpe: point.rpe,
+        date: point.date,
+        pointerLabel: `${new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' })} · ${t('analyticsSetNumber')} ${point.setNumber}`,
+      }))
+    : (overview.intensityTrend || []).filter((point) => point.averageRpe != null);
   const bodyMetrics = data.body?.metrics || {};
   const intensityChartWidth = period === 'today'
     ? Math.max(180, Math.min(700, width - 80))
     : Math.max(112, Math.min(178, width * 0.4));
   const narrowBodyGrid = width < 480;
-  const today = period === 'today';
   const scheduled = data.schedule || [];
   const scheduleAvailable = data.schedule !== null;
   const completed = scheduled.filter((item) => item.status === 'completed').length;
@@ -195,7 +201,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsIntensity')} style={styles.cardHeader}><Text style={styles.cardTitle}>{t(today ? 'analyticsDayIntensity' : 'analyticsIntensity')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={22} /></Pressable>
         <View style={styles.intensityRow}>
           <View><Text style={styles.hero}>{summary.averageRpe == null ? '—' : number(summary.averageRpe, 1)}</Text><Text style={styles.muted}>{t('analyticsAverageRpe')}</Text></View>
-          {trend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={trend.length > 2} data={trend.map((point) => ({ value: Number(point.averageRpe), date: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} height={78} hideDataPoints={trend.length > 1} hideRules hideYAxisText initialSpacing={8} maxValue={10} noOfSections={2} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} startFillColor={theme.primary} startOpacity={0.3} thickness={2} width={intensityChartWidth} xAxisColor={theme.border} yAxisColor={theme.border} /> : <View accessibilityLabel={t('analyticsNoRpeDataPeriod')} style={[styles.emptyTrend, { width: intensityChartWidth }]}><View style={styles.emptyTrendLine} /><Text style={styles.emptyTrendText}>{t('analyticsNoRpeDataPeriod')}</Text></View>}
+          {trend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={trend.length > 2} data={trend.map((point) => ({ value: Number(point.averageRpe), pointerLabel: point.pointerLabel || new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} height={78} hideDataPoints={trend.length > 1} hideRules hideYAxisText initialSpacing={8} maxValue={10} noOfSections={2} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} startFillColor={theme.primary} startOpacity={0.3} thickness={2} width={intensityChartWidth} xAxisColor={theme.border} yAxisColor={theme.border} /> : <View accessibilityLabel={t('analyticsNoRpeDataPeriod')} style={[styles.emptyTrend, { width: intensityChartWidth }]}><View style={styles.emptyTrendLine} /><Text style={styles.emptyTrendText}>{t('analyticsNoRpeDataPeriod')}</Text></View>}
         </View>
         <View style={styles.bandRow}>{(intensity.rpeDistribution || []).map((band) => <Text key={band.range} style={styles.band}>{band.range} <Text style={styles.bandValue}>{number(band.percentage)}%</Text></Text>)}</View>
         <Text style={styles.muted}>{t('analyticsFailureRate')}: {intensity.failurePercentage == null ? '—' : `${number(intensity.failurePercentage)}%`}</Text>
