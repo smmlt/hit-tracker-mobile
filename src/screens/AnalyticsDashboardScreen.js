@@ -58,7 +58,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
       analyticsService.strength(userToken, range),
       bodyMetricsService.get(userToken, range),
     ];
-    if (period === 'today') requests.push(analyticsService.schedule(userToken, range.from));
+    if (period === 'today') requests.push(analyticsService.schedule(userToken, range.start));
     const results = await Promise.allSettled(requests);
     if (id !== requestId.current) return;
     const [overview, intensity, strength, body, schedule] = results;
@@ -67,7 +67,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
       intensity: intensity.status === 'fulfilled' ? intensity.value : null,
       strength: strength.status === 'fulfilled' ? strength.value.exercises || [] : [],
       body: body.status === 'fulfilled' ? body.value : null,
-      schedule: schedule?.status === 'fulfilled' && Array.isArray(schedule.value) ? schedule.value.filter((item) => item.scheduledFor === range.from) : null,
+      schedule: schedule?.status === 'fulfilled' && Array.isArray(schedule.value) ? schedule.value.filter((item) => item.scheduledFor === range.start) : null,
     });
     setError(overview.status === 'rejected' || (period === 'today' && schedule?.status === 'rejected'));
     setLoading(false);

@@ -28,6 +28,7 @@ test('analytics service builds read-model requests and preserves normalized API 
   await service.muscleGroups('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.strength('token', { from: '2026-09-21', to: '2026-09-28' });
   await service.bodyMetrics('token');
+  await service.schedule('token', '2026-10-10');
   assert.deepEqual(calls.map(([path]) => path), [
     '/analytics/me/summary', '/analytics/me/overview?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin', '/analytics/me/weekly-volume?weeks=12',
     '/analytics/me/exercises/12/progress?from=2026-09-01&to=2026-09-28',
@@ -36,6 +37,7 @@ test('analytics service builds read-model requests and preserves normalized API 
     '/analytics/me/muscle-groups?from=2026-09-21&to=2026-09-28&timeZone=Europe%2FBerlin',
     '/analytics/me/strength?from=2026-09-21&to=2026-09-28',
     '/analytics/me/body-metrics',
+    '/workout-programs/schedule?from=2026-10-10&to=2026-10-10',
   ]);
   assert.ok(calls.every(([, , token]) => token === 'token'));
   await assert.rejects(service.personalRecords('token'), (error) => error.status === 503 && error.details.code === 'ANALYTICS_UNAVAILABLE');
@@ -75,6 +77,8 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   const screen = readFileSync(new URL('../src/screens/AnalyticsDashboardScreen.js', import.meta.url), 'utf8');
   assert.doesNotMatch(screen, /PieChart/);
   assert.match(screen, /analyticsService\.schedule/);
+  assert.match(screen, /analyticsService\.schedule\(userToken, range\.start\)/);
+  assert.match(screen, /item\.scheduledFor === range\.start/);
   assert.match(screen, /getParent\(\)\?\.navigate\('ActiveWorkout'/);
   for (const key of ['analyticsActiveTime', 'analyticsWorkingSets', 'analyticsVolume', 'analyticsCompletedWorkouts']) assert.match(screen, new RegExp(key));
   assert.doesNotMatch(screen, /calories/i);

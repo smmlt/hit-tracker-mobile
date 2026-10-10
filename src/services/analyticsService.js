@@ -31,5 +31,5 @@ export const analyticsService = {
   muscleGroups: (token, range) => apiRequest(`/analytics/me/muscle-groups${queryString(withTimeZone(range))}`, {}, token),
   strength: (token, range) => apiRequest(`/analytics/me/strength${rangeQuery(range)}`, {}, token),
   bodyMetrics: (token, range) => apiRequest(`/analytics/me/body-metrics${rangeQuery(range)}`, {}, token),
-  schedule: (token, date) => apiRequest(`/workout-programs/schedule?from=${encodeURIComponent(date)}&to=${encodeURIComponent(date)}`, {}, token),
+  schedule: (token, dateKey) => apiRequest(`/workout-programs/schedule?from=${encodeURIComponent(dateKey)}&to=${encodeURIComponent(dateKey)}`, {}, token),
 };
