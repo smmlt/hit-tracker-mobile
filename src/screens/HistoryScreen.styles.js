@@ -25,6 +25,8 @@ export const createStyles = (theme) => StyleSheet.create({
   emptyAction: { borderColor: theme.primary, borderRadius: 10, borderWidth: 1, marginTop: 7, paddingHorizontal: 15, paddingVertical: 10 },
   emptyActionText: { color: theme.primary, fontSize: 13, fontWeight: '900' },
   footerLoader: { padding: 20 },
+  loadMoreButton: { alignItems: 'center', borderColor: theme.primary, borderRadius: 10, borderWidth: 1, marginTop: 4, padding: 12 },
+  loadMoreText: { color: theme.primary, fontSize: 13, fontWeight: '800' },
   retryPage: { alignItems: 'center', padding: 18 },
   retryPageText: { color: theme.primary, fontSize: 13, fontWeight: '800' },
   overlay: { alignItems: 'center', backgroundColor: palette.overlay72, flex: 1, justifyContent: 'center', padding: 18 },

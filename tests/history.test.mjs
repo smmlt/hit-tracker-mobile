@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   chooseHistoryDate,
@@ -35,4 +36,12 @@ test('history always uses cursor pagination, including a single selected day', (
     q: 'squat',
     limit: 15,
   });
+});
+
+test('history has a visible and scroll-based path to the next cursor page', () => {
+  const screen = readFileSync(new URL('../src/screens/HistoryScreen.js', import.meta.url), 'utf8');
+  assert.match(screen, /onEndReached={loadMore}/);
+  assert.match(screen, /onScroll={loadMoreOnScroll}/);
+  assert.match(screen, /nextCursor \? \(/);
+  assert.match(screen, /t\('showMore'\)/);
 });

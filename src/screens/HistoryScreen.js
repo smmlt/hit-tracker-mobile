@@ -131,6 +131,11 @@ export default function HistoryScreen({ navigation, route }) {
     }
   }, [filters, loading, loadingMore, nextCursor, t, userToken]);
 
+  const loadMoreOnScroll = useCallback(({ nativeEvent }) => {
+    const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
+    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 160) void loadMore();
+  }, [loadMore]);
+
   const selectPreset = (preset) => {
     if (preset !== 'all' && activePreset === preset) {
       setActivePreset('all');
@@ -304,11 +309,17 @@ export default function HistoryScreen({ navigation, route }) {
           <Pressable onPress={loadMore} style={styles.retryPage}>
             <Text style={styles.retryPageText}>{t('loadMoreFailed')} · {t('tryAgain')}</Text>
           </Pressable>
+        ) : nextCursor ? (
+          <Pressable accessibilityLabel={t('showMore')} onPress={loadMore} style={styles.loadMoreButton}>
+            <Text style={styles.loadMoreText}>{t('showMore')}</Text>
+          </Pressable>
         ) : null}
         ListHeaderComponent={listHeader}
         onEndReached={loadMore}
         onEndReachedThreshold={0.35}
+        onScroll={loadMoreOnScroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadFirstPage(true)} tintColor={theme.primary} />}
+        scrollEventThrottle={150}
         renderItem={({ item }) => (
           <HistoryCard workout={item} onPress={() => navigation.navigate('HistoryDetails', {
             date: isoDate(item.finishedAt || item.createdAt),
