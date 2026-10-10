@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   chooseHistoryDate,
+  historyRequestFilters,
   isDateInSelection,
   presetSelection,
   selectionQuery,
@@ -24,4 +25,14 @@ test('calendar selection progresses from one day to a normalized range', () => {
 test('a single local date produces an exclusive next-day API boundary', () => {
   const query = selectionQuery({ start: '2026-09-13', end: '2026-09-13' });
   assert.equal(new Date(query.to).getTime() - new Date(query.from).getTime(), 24 * 60 * 60 * 1000);
+});
+
+test('history always uses cursor pagination, including a single selected day', () => {
+  assert.deepEqual(historyRequestFilters({ start: null, end: null }), { limit: 15 });
+  assert.deepEqual(historyRequestFilters({ start: '2026-09-13', end: '2026-09-13' }, 'squat'), {
+    from: selectionQuery({ start: '2026-09-13', end: '2026-09-13' }).from,
+    to: selectionQuery({ start: '2026-09-13', end: '2026-09-13' }).to,
+    q: 'squat',
+    limit: 15,
+  });
 });

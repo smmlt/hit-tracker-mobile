@@ -37,6 +37,14 @@ export function selectionQuery(selection) {
   return { from: start.toISOString(), to: end.toISOString() };
 }
 
+export function historyRequestFilters(selection, query = '') {
+  return {
+    ...selectionQuery(selection),
+    ...(query ? { q: query } : {}),
+    limit: 15,
+  };
+}
+
 export const isDateInSelection = (key, selection) => (
   !!selection.start && key >= selection.start && key <= (selection.end || selection.start)
 );

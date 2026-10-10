@@ -22,6 +22,7 @@ import {
   addDays,
   chooseHistoryDate,
   dateKey,
+  historyRequestFilters,
   isDateInSelection,
   parseDateKey,
   presetSelection,
@@ -82,11 +83,7 @@ export default function HistoryScreen({ navigation, route }) {
   }, [activePreset, debouncedQuery, navigation, selection.end, selection.start]);
 
   const singleDay = !!selection.start && selection.start === selection.end;
-  const filters = useMemo(() => ({
-    ...selectionQuery(selection),
-    ...(debouncedQuery ? { q: debouncedQuery } : {}),
-    ...(!singleDay ? { limit: 15 } : {}),
-  }), [debouncedQuery, selection.end, selection.start, singleDay]);
+  const filters = useMemo(() => historyRequestFilters(selection, debouncedQuery), [debouncedQuery, selection.end, selection.start]);
 
   const loadFirstPage = useCallback(async (keepItems = false) => {
     const id = ++requestId.current;
