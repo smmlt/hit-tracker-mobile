@@ -96,7 +96,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
     : (overview.intensityTrend || []).filter((point) => point.averageRpe != null);
   const bodyMetrics = data.body?.metrics || {};
   const intensityChartWidth = period === 'today'
-    ? Math.max(180, Math.min(700, width - 80))
+    ? Math.max(160, Math.min(736, width - 64))
     : Math.max(112, Math.min(178, width * 0.4));
   const narrowBodyGrid = width < 480;
   const scheduled = data.schedule || [];
@@ -199,10 +199,11 @@ export default function AnalyticsDashboardScreen({ navigation }) {
 
       <View style={styles.card}>
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsIntensity')} style={styles.cardHeader}><Text style={styles.cardTitle}>{t(today ? 'analyticsDayIntensity' : 'analyticsIntensity')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={22} /></Pressable>
-        <View style={styles.intensityRow}>
-          <View><Text style={styles.hero}>{summary.averageRpe == null ? '—' : number(summary.averageRpe, 1)}</Text><Text style={styles.muted}>{t('analyticsAverageRpe')}</Text></View>
-          {trend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={trend.length > 2} data={trend.map((point) => ({ value: Number(point.averageRpe), pointerLabel: point.pointerLabel || new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} height={78} hideDataPoints={trend.length > 1} hideRules hideYAxisText initialSpacing={8} maxValue={10} noOfSections={2} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} startFillColor={theme.primary} startOpacity={0.3} thickness={2} width={intensityChartWidth} xAxisColor={theme.border} yAxisColor={theme.border} /> : <View accessibilityLabel={t('analyticsNoRpeDataPeriod')} style={[styles.emptyTrend, { width: intensityChartWidth }]}><View style={styles.emptyTrendLine} /><Text style={styles.emptyTrendText}>{t('analyticsNoRpeDataPeriod')}</Text></View>}
+        <View style={today ? styles.todayIntensityChart : styles.intensityRow}>
+          {!today ? <View><Text style={styles.hero}>{summary.averageRpe == null ? '—' : number(summary.averageRpe, 1)}</Text><Text style={styles.muted}>{t('analyticsAverageRpe')}</Text></View> : null}
+          {trend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={trend.length > 2} data={trend.map((point) => ({ value: Number(point.averageRpe), pointerLabel: point.pointerLabel || new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} endSpacing={today ? 0 : 10} height={today ? 126 : 78} hideDataPoints={trend.length > 1} hideRules hideYAxisText initialSpacing={today ? 0 : 8} maxValue={10} noOfSections={2} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} startFillColor={theme.primary} startOpacity={0.3} thickness={2} width={intensityChartWidth} xAxisColor={theme.border} yAxisColor={theme.border} yAxisLabelWidth={0} /> : <View accessibilityLabel={t('analyticsNoRpeDataPeriod')} style={[styles.emptyTrend, today && styles.todayEmptyTrend, { width: intensityChartWidth }]}><View style={styles.emptyTrendLine} /><Text style={styles.emptyTrendText}>{t('analyticsNoRpeDataPeriod')}</Text></View>}
         </View>
+        {today ? <View style={styles.intensityFooter}><Text style={styles.hero}>{summary.averageRpe == null ? '—' : number(summary.averageRpe, 1)}</Text><Text style={styles.micro}>{t('analyticsSetsCount', { count: intensity.totalSets ?? summary.workingSets ?? 0 })}</Text></View> : null}
         <View style={styles.bandRow}>{(intensity.rpeDistribution || []).map((band) => <Text key={band.range} style={styles.band}>{band.range} <Text style={styles.bandValue}>{number(band.percentage)}%</Text></Text>)}</View>
         <Text style={styles.muted}>{t('analyticsFailureRate')}: {intensity.failurePercentage == null ? '—' : `${number(intensity.failurePercentage)}%`}</Text>
       </View>
