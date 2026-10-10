@@ -83,7 +83,7 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   assert.match(screen, /chartPointerConfig/);
   assert.match(screen, /setRpeTrend/);
   assert.match(screen, /width - 64/);
-  assert.match(screen, /height={today \? 126 : 78}/);
+  assert.match(screen, /height={today \? 126 : 104}/);
   assert.match(screen, /analyticsSetsCount/);
   assert.match(screen, /todayActual/);
   assert.match(screen, /activityMissed/);
