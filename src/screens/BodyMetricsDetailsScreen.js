@@ -165,7 +165,7 @@ export default function BodyMetricsDetailsScreen({ navigation, route }) {
                         xAxisLabelsHeight={0}
                         yAxisColor={theme.bodyMetricsChartAxis}
                         color={theme.bodyMetricsChartLine}
-                        dataPointsColor={theme.textSecondary}
+                        dataPointsColor={theme.bodyMetricsChartLine}
                       />
                       <View style={[styles.chartLabels, { width: chartWidth }]}>
                         {chartLabels.map(({ index, left, label }) => (

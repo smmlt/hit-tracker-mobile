@@ -108,6 +108,8 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   assert.match(interactiveCharts, /showDateLabel/);
   assert.match(interactiveCharts, /period === 'today' && setRpeTrend\.length > 1/);
   assert.match(interactiveCharts, /overflow: 'hidden'/);
+  assert.match(interactiveCharts, /areaChart[\s\S]*startFillColor={theme\.primary}[\s\S]*startOpacity={0\.3}/);
+  assert.doesNotMatch(interactiveCharts, /dataPointsColor={theme\.textSecondary}/);
   const periodPicker = readFileSync(new URL('../src/components/analytics/AnalyticsPeriodPicker.js', import.meta.url), 'utf8');
   const periodPickerStyles = readFileSync(new URL('../src/components/analytics/AnalyticsPeriodPicker.styles.js', import.meta.url), 'utf8');
   assert.match(periodPicker, /styles\.rangeFill/);
