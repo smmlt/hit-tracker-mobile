@@ -94,11 +94,16 @@ test('Today overview uses real schedule completion, compact metrics, and interac
     screen,
     readFileSync(new URL('../src/screens/AnalyticsIntensityScreen.js', import.meta.url), 'utf8'),
     readFileSync(new URL('../src/screens/AnalyticsExerciseDetailScreen.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/AnalyticsExerciseDetailScreen.styles.js', import.meta.url), 'utf8'),
+    readFileSync(new URL('../src/screens/AnalyticsIntensityScreen.styles.js', import.meta.url), 'utf8'),
     readFileSync(new URL('../src/screens/BodyMetricsDetailsScreen.js', import.meta.url), 'utf8'),
   ].join('\n');
   assert.match(interactiveCharts, /pointerConfig/);
   assert.doesNotMatch(interactiveCharts, /<ScrollView horizontal[^>]*><LineChart/);
   assert.match(interactiveCharts, /maxX={scatterMaxReps}/);
+  assert.match(interactiveCharts, /setChartBoxWidth/);
+  assert.match(interactiveCharts, /showDateLabel/);
+  assert.match(interactiveCharts, /overflow: 'hidden'/);
 });
 
 test('analytics starts at Overview and keeps approved drilldowns adaptive', () => {

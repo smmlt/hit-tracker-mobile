@@ -24,11 +24,13 @@ export default function AnalyticsIntensityScreen({ navigation }) {
   const range = useMemo(() => periodToDateRange(period), [period]);
   const requestId = useRef(0);
   const [data, setData] = useState(null);
+  const [chartBoxWidth, setChartBoxWidth] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
   const number = (value, digits = 0) => Number(value || 0).toLocaleString(localeTag, { maximumFractionDigits: digits });
-  const chartWidth = Math.max(180, Math.min(width, 800) - 74);
+  const chartBox = chartBoxWidth || Math.max(180, Math.min(width, 800) - 64);
+  const chartWidth = Math.max(120, chartBox - 34);
 
   const load = useCallback(async () => {
     if (!userToken) return;
@@ -53,6 +55,7 @@ export default function AnalyticsIntensityScreen({ navigation }) {
   const trend = data?.trend || [];
   const rpeTrend = trend.filter((point) => point.averageRpe != null);
   const volume = trend.filter((point) => Number(point.volumeKg) > 0);
+  const showDateLabel = (index, length) => index === 0 || index === length - 1 || index % Math.max(1, Math.ceil((length - 1) / 4)) === 0;
 
   return <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -70,7 +73,7 @@ export default function AnalyticsIntensityScreen({ navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeTrend')}</Text>
-          {rpeTrend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={rpeTrend.length > 2} data={rpeTrend.map((point) => ({ value: Number(point.averageRpe), label: point.date.slice(5), pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} height={165} hideDataPoints={rpeTrend.length > 1} maxValue={10} noOfSections={5} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} rulesColor={theme.border} startFillColor={theme.primary} startOpacity={0.24} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}
+          <View onLayout={(event) => setChartBoxWidth(Math.floor(event.nativeEvent.layout.width))} style={styles.chartBox}>{rpeTrend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={rpeTrend.length > 2} data={rpeTrend.map((point, index) => ({ value: Number(point.averageRpe), label: showDateLabel(index, rpeTrend.length) ? point.date.slice(5) : '', pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} endSpacing={0} height={165} hideDataPoints={rpeTrend.length > 1} initialSpacing={0} maxValue={10} noOfSections={5} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} rulesColor={theme.border} startFillColor={theme.primary} startOpacity={0.24} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisLabelWidth={34} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoRpeDataPeriod')}</Text>}</View>
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsRpeDistribution')}</Text>
@@ -83,7 +86,7 @@ export default function AnalyticsIntensityScreen({ navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsVolume')}</Text>
-          {volume.length ? <BarChart adjustToWidth barWidth={13} data={volume.map((point) => ({ value: Number(point.volumeKg), label: point.date.slice(5), pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }), frontColor: theme.primary }))} disableScroll height={145} noOfSections={3} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `${number(value, 1)} ${t('kgShort')}` })} rulesColor={theme.border} spacing={18} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoWeeklyVolume')}</Text>}
+          <View style={styles.chartBox}>{volume.length ? <BarChart adjustToWidth barWidth={Math.max(3, Math.min(13, chartWidth / Math.max(1, volume.length) * 0.55))} data={volume.map((point, index) => ({ value: Number(point.volumeKg), label: showDateLabel(index, volume.length) ? point.date.slice(5) : '', pointerLabel: new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }), frontColor: theme.primary }))} disableScroll endSpacing={0} height={145} initialSpacing={0} noOfSections={3} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `${number(value, 1)} ${t('kgShort')}` })} rulesColor={theme.border} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisLabelWidth={34} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t('analyticsNoWeeklyVolume')}</Text>}</View>
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsTrainingDensity')}</Text>

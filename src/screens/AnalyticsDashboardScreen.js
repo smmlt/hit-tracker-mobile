@@ -40,6 +40,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const requestId = useRef(0);
   const range = useMemo(() => periodToDateRange(period), [period]);
   const [data, setData] = useState({ overview: null, intensity: null, strength: [], body: null, schedule: null });
+  const [intensityBoxWidth, setIntensityBoxWidth] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
@@ -96,7 +97,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
     : (overview.intensityTrend || []).filter((point) => point.averageRpe != null);
   const bodyMetrics = data.body?.metrics || {};
   const intensityChartWidth = period === 'today'
-    ? Math.max(160, Math.min(736, width - 64))
+    ? intensityBoxWidth || Math.max(160, Math.min(736, width - 64))
     : Math.max(112, Math.min(178, width * 0.4));
   const narrowBodyGrid = width < 480;
   const scheduled = data.schedule || [];
@@ -199,7 +200,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
 
       <View style={styles.card}>
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsIntensity')} style={styles.cardHeader}><Text style={styles.cardTitle}>{t(today ? 'analyticsDayIntensity' : 'analyticsIntensity')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={22} /></Pressable>
-        <View style={today ? styles.todayIntensityChart : styles.intensityRow}>
+        <View onLayout={today ? (event) => setIntensityBoxWidth(Math.floor(event.nativeEvent.layout.width)) : undefined} style={today ? styles.todayIntensityChart : styles.intensityRow}>
           {!today ? <View><Text style={styles.hero}>{summary.averageRpe == null ? '—' : number(summary.averageRpe, 1)}</Text><Text style={styles.muted}>{t('analyticsAverageRpe')}</Text></View> : null}
           {trend.length ? <LineChart adjustToWidth areaChart color={theme.primary} curved={trend.length > 2} data={trend.map((point) => ({ value: Number(point.averageRpe), pointerLabel: point.pointerLabel || new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short' }) }))} dataPointsColor={theme.textSecondary} disableScroll endFillColor={theme.cardBackground} endOpacity={0} endSpacing={today ? 0 : 10} height={today ? 126 : 78} hideDataPoints={trend.length > 1} hideRules hideYAxisText initialSpacing={today ? 0 : 8} maxValue={10} noOfSections={2} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `RPE ${number(value, 1)}` })} startFillColor={theme.primary} startOpacity={0.3} thickness={2} width={intensityChartWidth} xAxisColor={theme.border} yAxisColor={theme.border} yAxisLabelWidth={0} /> : <View accessibilityLabel={t('analyticsNoRpeDataPeriod')} style={[styles.emptyTrend, today && styles.todayEmptyTrend, { width: intensityChartWidth }]}><View style={styles.emptyTrendLine} /><Text style={styles.emptyTrendText}>{t('analyticsNoRpeDataPeriod')}</Text></View>}
         </View>

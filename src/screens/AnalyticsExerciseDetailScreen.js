@@ -32,12 +32,15 @@ export default function AnalyticsExerciseDetailScreen({ navigation, route }) {
   const requestId = useRef(0);
   const [progress, setProgress] = useState([]);
   const [sets, setSets] = useState([]);
+  const [progressBoxWidth, setProgressBoxWidth] = useState(0);
+  const [scatterBoxWidth, setScatterBoxWidth] = useState(0);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
   const number = (value) => Number(value || 0).toLocaleString(localeTag, { maximumFractionDigits: 1 });
-  const chartWidth = Math.max(180, Math.min(width, 800) - 74);
+  const chartBoxWidth = progressBoxWidth || Math.max(180, Math.min(width, 800) - 64);
+  const chartWidth = Math.max(120, chartBoxWidth - 34);
 
   const load = useCallback(async () => {
     if (!userToken || !exerciseId) return;
@@ -72,9 +75,17 @@ export default function AnalyticsExerciseDetailScreen({ navigation, route }) {
     const row = candidates.reduce((winner, set) => !winner || Number(set.weightKg) > Number(winner.weightKg) ? set : winner, null);
     return { label: max === Infinity ? `${min}+` : `${min}-${max}`, row };
   });
-  const scatter = sets.filter((set) => Number(set.reps) > 0 && Number(set.weightKg) > 0).map((set) => ({ x: Number(set.reps), y: Number(set.weightKg), r: 5, onPress: () => setSelected(set) }));
+  const scatterGroups = new Map();
+  sets.filter((set) => Number(set.reps) > 0 && Number(set.weightKg) > 0).forEach((set) => {
+    const key = `${Number(set.reps)}:${Number(set.weightKg)}`;
+    const current = scatterGroups.get(key);
+    scatterGroups.set(key, { set, count: (current?.count || 0) + 1 });
+  });
+  const scatter = [...scatterGroups.values()].map(({ set, count }) => ({ x: Number(set.reps), y: Number(set.weightKg), r: Math.min(5, 2.5 + count * 0.35), onPress: () => setSelected(set) }));
   const scatterMaxReps = Math.max(20, ...scatter.map((point) => point.x));
-  const scatterChartWidth = Math.max(100, chartWidth / 2 - 62);
+  const scatterMaxWeight = Math.max(10, ...scatter.map((point) => point.y));
+  const scatterChartWidth = Math.max(80, (scatterBoxWidth || Math.max(150, chartBoxWidth / 2 - 5)) - 28);
+  const showDateLabel = (index, length) => index === 0 || index === length - 1 || index % Math.max(1, Math.ceil((length - 1) / 4)) === 0;
 
   const openWorkout = () => {
     if (!selected?.workoutId) return;
@@ -99,11 +110,11 @@ export default function AnalyticsExerciseDetailScreen({ navigation, route }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('analyticsStrengthProgress')}</Text>
-          {progress.length > 1 ? <LineChart adjustToWidth color={theme.primary} curved data={progress.map((point) => ({ value: Number(point.e1rmKg) || 0, label: point.date?.slice(5), pointerLabel: point.date ? new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) : '' }))} dataPointsColor={theme.textSecondary} disableScroll height={165} hideDataPoints pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `${number(value)} ${t('kgShort')}` })} rulesColor={theme.border} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t(progress.length ? 'analyticsStrengthNeedsMoreData' : 'analyticsNoProgress')}</Text>}
+          <View onLayout={(event) => setProgressBoxWidth(Math.floor(event.nativeEvent.layout.width))} style={styles.chartBox}>{progress.length > 1 ? <LineChart adjustToWidth color={theme.primary} curved data={progress.map((point, index) => ({ value: Number(point.e1rmKg) || 0, label: showDateLabel(index, progress.length) ? point.date?.slice(5) : '', pointerLabel: point.date ? new Date(`${point.date}T12:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'short', year: 'numeric' }) : '' }))} dataPointsColor={theme.textSecondary} disableScroll endSpacing={0} height={165} hideDataPoints initialSpacing={0} pointerConfig={chartPointerConfig({ theme, formatValue: (value) => `${number(value)} ${t('kgShort')}` })} rulesColor={theme.border} thickness={2} width={chartWidth} xAxisColor={theme.border} xAxisLabelTextStyle={styles.axisText} yAxisColor={theme.border} yAxisLabelWidth={34} yAxisTextStyle={styles.axisText} /> : <Text style={styles.muted}>{t(progress.length ? 'analyticsStrengthNeedsMoreData' : 'analyticsNoProgress')}</Text>}</View>
         </View>
         <View style={styles.detailGrid}>
           <View style={[styles.card, styles.halfCard]}><Text style={styles.cardTitle}>{t('analyticsBestByRepRange')}</Text>{byRange.map(({ label, row }) => <View key={label} style={styles.rangeRow}><Text style={styles.muted}>{label}</Text><Text style={styles.detail}>{row ? `${number(row.weightKg)} ${t('kgShort')} × ${row.reps}` : '—'}</Text></View>)}</View>
-          <View style={[styles.card, styles.halfCard]}><Text style={styles.cardTitle}>{t('analyticsStrengthByReps')}</Text>{scatter.length ? <BubbleChart autoRoundLabelsX={false} bubblesColor={theme.textPrimary} data={scatter} disableScroll endSpacing={6} formatXLabel={(value) => String(Math.round(Number(value)))} height={190} maxX={scatterMaxReps} minX={0} rulesColor={theme.border} scatterChart showFractionalXAxis={false} width={scatterChartWidth} xAxisColor={theme.textPrimary} xAxisLabelTextStyle={styles.axisText} xNoOfSections={4} xRoundToDigits={0} xStepValue={scatterMaxReps / 4} yAxisColor={theme.textPrimary} yAxisLabelWidth={24} yAxisTextStyle={styles.axisText} yNoOfSections={4} /> : <Text style={styles.muted}>{t('analyticsNoSets')}</Text>}{selected ? <View style={styles.tooltip}><Text style={styles.tooltipText}>{number(selected.weightKg)} {t('kgShort')} × {selected.reps}</Text><Text style={styles.tooltipText}>{selected.date}</Text><Text style={styles.tooltipText}>RPE: {selected.rpe ?? '—'} · {t('analyticsFailure')}: {selected.isFailure ? t('yes') : t('no')}</Text><Text style={styles.tooltipText}>{t('analyticsSetNumber')}: {selected.setNumber ?? '—'}</Text></View> : null}</View>
+          <View style={[styles.card, styles.halfCard]}><Text style={styles.cardTitle}>{t('analyticsStrengthByReps')}</Text><View onLayout={(event) => setScatterBoxWidth(Math.floor(event.nativeEvent.layout.width))} style={styles.chartBox}>{scatter.length ? <BubbleChart autoRoundLabelsX={false} bubblesColor={theme.textPrimary} data={scatter} disableScroll endSpacing={0} formatXLabel={(value) => String(Math.round(Number(value)))} height={190} initialSpacing={0} maxX={scatterMaxReps} maxY={Math.ceil(scatterMaxWeight / 10) * 10 + 10} minX={0} overflowTop={0} rulesColor={theme.border} scatterChart showFractionalXAxis={false} width={scatterChartWidth} xAxisColor={theme.textPrimary} xAxisLabelTextStyle={styles.axisText} xNoOfSections={4} xRoundToDigits={0} xStepValue={scatterMaxReps / 4} yAxisColor={theme.textPrimary} yAxisLabelWidth={28} yAxisTextStyle={styles.axisText} yNoOfSections={4} /> : <Text style={styles.muted}>{t('analyticsNoSets')}</Text>}</View>{selected ? <View style={styles.tooltip}><Text style={styles.tooltipText}>{number(selected.weightKg)} {t('kgShort')} × {selected.reps}</Text><Text style={styles.tooltipText}>{selected.date}</Text><Text style={styles.tooltipText}>RPE: {selected.rpe ?? '—'} · {t('analyticsFailure')}: {selected.isFailure ? t('yes') : t('no')}</Text><Text style={styles.tooltipText}>{t('analyticsSetNumber')}: {selected.setNumber ?? '—'}</Text></View> : null}</View>
         </View>
         {selected?.workoutId ? <Pressable accessibilityRole="button" onPress={openWorkout} style={styles.cta}><Text style={styles.ctaText}>{t('analyticsViewWorkout')}</Text></Pressable> : null}
       </>}
