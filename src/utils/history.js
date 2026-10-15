@@ -45,6 +45,12 @@ export function historyRequestFilters(selection, query = '') {
   };
 }
 
+export function appendUniqueHistoryItems(current, incoming) {
+  const itemsById = new Map(current.map((item) => [String(item.id), item]));
+  for (const item of incoming) itemsById.set(String(item.id), item);
+  return [...itemsById.values()];
+}
+
 export const isDateInSelection = (key, selection) => (
   !!selection.start && key >= selection.start && key <= (selection.end || selection.start)
 );

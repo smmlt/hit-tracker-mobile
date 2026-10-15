@@ -2,12 +2,23 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
+  appendUniqueHistoryItems,
   chooseHistoryDate,
   historyRequestFilters,
   isDateInSelection,
   presetSelection,
   selectionQuery,
 } from '../src/utils/history.js';
+
+test('history pagination appends new rows without duplicating an overlapping cursor item', () => {
+  assert.deepEqual(
+    appendUniqueHistoryItems(
+      [{ id: 3, title: 'Newest' }, { id: 2, title: 'Existing' }],
+      [{ id: 2, title: 'Updated' }, { id: 1, title: 'Oldest' }],
+    ),
+    [{ id: 3, title: 'Newest' }, { id: 2, title: 'Updated' }, { id: 1, title: 'Oldest' }],
+  );
+});
 
 test('history presets include today and use calendar-day windows', () => {
   const today = new Date(2026, 8, 13, 12);
@@ -42,6 +53,8 @@ test('history has a visible and scroll-based path to the next cursor page', () =
   const screen = readFileSync(new URL('../src/screens/HistoryScreen.js', import.meta.url), 'utf8');
   assert.match(screen, /onEndReached={loadMore}/);
   assert.match(screen, /onScroll={loadMoreOnScroll}/);
+  assert.match(screen, /loadMoreRunRef\.current/);
+  assert.match(screen, /appendUniqueHistoryItems/);
   assert.match(screen, /nextCursor \? \(/);
   assert.match(screen, /t\('showMore'\)/);
   assert.match(screen, /initialNumToRender=\{15\}/);

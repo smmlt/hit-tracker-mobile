@@ -20,6 +20,7 @@ import { HistoryCard } from '../components/workout';
 import { workoutsService } from '../services/workoutsService';
 import {
   addDays,
+  appendUniqueHistoryItems,
   chooseHistoryDate,
   dateKey,
   historyRequestFilters,
@@ -48,6 +49,8 @@ export default function HistoryScreen({ navigation, route }) {
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
   const listRef = useRef(null);
   const requestId = useRef(0);
+  const loadMoreRunRef = useRef(null);
+  const nextCursorRef = useRef(null);
 
   const [items, setItems] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
@@ -87,6 +90,7 @@ export default function HistoryScreen({ navigation, route }) {
 
   const loadFirstPage = useCallback(async (keepItems = false) => {
     const id = ++requestId.current;
+    loadMoreRunRef.current = null;
     if (keepItems) setRefreshing(true);
     else setLoading(true);
     setLoadingMore(false);
@@ -96,7 +100,8 @@ export default function HistoryScreen({ navigation, route }) {
       const data = await workoutsService.getHistory(userToken, filters);
       if (id !== requestId.current) return;
       setItems(data.items || []);
-      setNextCursor(data.nextCursor || null);
+      nextCursorRef.current = data.nextCursor || null;
+      setNextCursor(nextCursorRef.current);
     } catch (loadError) {
       if (id === requestId.current) setError(loadError.message || t('historyLoadFailed'));
     } finally {
@@ -109,27 +114,35 @@ export default function HistoryScreen({ navigation, route }) {
 
   useEffect(() => {
     setItems([]);
+    nextCursorRef.current = null;
     setNextCursor(null);
     listRef.current?.scrollToOffset({ animated: false, offset: 0 });
     loadFirstPage();
   }, [historyRevision, loadFirstPage]);
 
   const loadMore = useCallback(async () => {
-    if (!nextCursor || loading || loadingMore) return;
+    const cursor = nextCursorRef.current;
+    if (!cursor || loading || loadMoreRunRef.current) return;
     const id = requestId.current;
+    const run = { cursor, id };
+    loadMoreRunRef.current = run;
     setLoadingMore(true);
     setPageError('');
     try {
-      const data = await workoutsService.getHistory(userToken, { ...filters, cursor: nextCursor });
+      const data = await workoutsService.getHistory(userToken, { ...filters, cursor });
       if (id !== requestId.current) return;
-      setItems((current) => [...current, ...(data.items || [])]);
-      setNextCursor(data.nextCursor || null);
+      setItems((current) => appendUniqueHistoryItems(current, data.items || []));
+      nextCursorRef.current = data.nextCursor || null;
+      setNextCursor(nextCursorRef.current);
     } catch (loadError) {
       if (id === requestId.current) setPageError(loadError.message || t('loadMoreFailed'));
     } finally {
-      if (id === requestId.current) setLoadingMore(false);
+      if (loadMoreRunRef.current === run) {
+        loadMoreRunRef.current = null;
+        if (id === requestId.current) setLoadingMore(false);
+      }
     }
-  }, [filters, loading, loadingMore, nextCursor, t, userToken]);
+  }, [filters, loading, t, userToken]);
 
   const loadMoreOnScroll = useCallback(({ nativeEvent }) => {
     const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
@@ -307,11 +320,11 @@ export default function HistoryScreen({ navigation, route }) {
         ListFooterComponent={loadingMore ? (
           <ActivityIndicator color={theme.primary} style={styles.footerLoader} />
         ) : pageError ? (
-          <Pressable onPress={loadMore} style={styles.retryPage}>
+          <Pressable accessibilityRole="button" onPress={loadMore} style={styles.retryPage}>
             <Text style={styles.retryPageText}>{t('loadMoreFailed')} · {t('tryAgain')}</Text>
           </Pressable>
         ) : nextCursor ? (
-          <Pressable accessibilityLabel={t('showMore')} onPress={loadMore} style={styles.loadMoreButton}>
+          <Pressable accessibilityLabel={t('showMore')} accessibilityRole="button" onPress={loadMore} style={styles.loadMoreButton}>
             <Text style={styles.loadMoreText}>{t('showMore')}</Text>
           </Pressable>
         ) : null}
