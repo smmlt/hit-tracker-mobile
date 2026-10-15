@@ -300,6 +300,7 @@ export default function HistoryScreen({ navigation, route }) {
         ref={listRef}
         contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + 28 }, !items.length && styles.emptyList]}
         data={items}
+        initialNumToRender={15}
         keyExtractor={(item) => String(item.id)}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={emptyContent}
@@ -315,6 +316,7 @@ export default function HistoryScreen({ navigation, route }) {
           </Pressable>
         ) : null}
         ListHeaderComponent={listHeader}
+        maxToRenderPerBatch={15}
         onEndReached={loadMore}
         onEndReachedThreshold={0.35}
         onScroll={loadMoreOnScroll}

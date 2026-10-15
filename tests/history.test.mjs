@@ -44,4 +44,6 @@ test('history has a visible and scroll-based path to the next cursor page', () =
   assert.match(screen, /onScroll={loadMoreOnScroll}/);
   assert.match(screen, /nextCursor \? \(/);
   assert.match(screen, /t\('showMore'\)/);
+  assert.match(screen, /initialNumToRender=\{15\}/);
+  assert.match(screen, /maxToRenderPerBatch=\{15\}/);
 });
