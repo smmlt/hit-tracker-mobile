@@ -26,7 +26,8 @@ export const createStyles = (theme) => StyleSheet.create({
     textAlignVertical: 'top',
   },
   label: { color: theme.textSecondary, fontSize: 13, marginBottom: 6 },
-  muscleList: { maxHeight: 120, marginBottom: 15 },
+  muscleList: { maxHeight: 220, marginBottom: 15 },
+  muscleGroup: { gap: 6, marginBottom: 12 },
   muscleSelectorContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   selectableChip: {
     backgroundColor: theme.filterChipBackground,

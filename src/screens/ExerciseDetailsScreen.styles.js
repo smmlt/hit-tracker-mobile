@@ -21,6 +21,8 @@ export const createStyles = (theme) => StyleSheet.create({
     width: '43%',
   },
   muscleList: { flex: 1, gap: 8, justifyContent: 'center', minWidth: 0, paddingHorizontal: 8 },
+  muscleGroup: { gap: 4 },
+  muscleGroupTitle: { color: theme.textPrimary, fontFamily: 'Inter', fontSize: 12, fontWeight: '700' },
   muscleItem: { alignItems: 'flex-start', flexDirection: 'row', gap: 6 },
   muscleDash: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 13, lineHeight: 19 },
   muscleName: { flex: 1, minWidth: 0 },

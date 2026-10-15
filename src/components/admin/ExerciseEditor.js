@@ -8,6 +8,7 @@ import { DifficultyIndicator } from "../exercise/DifficultyIndicator";
 import { ImagePickerField } from "../media/ImagePickerField";
 import { contentMediaService } from "../../services/contentMediaService";
 import { LanguageContext } from "../../localization/LanguageContext";
+import { splitMusclesByRole, toggleMuscleRole } from "../../utils/muscleRoles";
 
 export function ExerciseEditor({ exercise, onClose }) {
   const s = useWorkshopStyles();
@@ -20,9 +21,9 @@ export function ExerciseEditor({ exercise, onClose }) {
   const [video, setVideo] = useState(exercise?.videoUrl || "");
   const [videoChanged, setVideoChanged] = useState(false);
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
-  const [muscles, setMuscles] = useState(
-    exercise?.muscles?.map((m) => m.id) || [],
-  );
+  const initialMuscles = splitMusclesByRole(exercise?.muscles);
+  const [primaryMuscles, setPrimaryMuscles] = useState(initialMuscles.primary.map((m) => m.id));
+  const [secondaryMuscles, setSecondaryMuscles] = useState(initialMuscles.secondary.map((m) => m.id));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [image, setImage] = useState(null);
@@ -46,7 +47,8 @@ export function ExerciseEditor({ exercise, onClose }) {
               description: description.trim(),
               ...(videoChanged || !exercise ? { videoUrl: video.trim() || undefined } : {}),
               difficulty,
-              muscleIds: muscles,
+              primaryMuscleIds: primaryMuscles,
+              secondaryMuscleIds: secondaryMuscles,
             }),
           },
           userToken,
@@ -115,27 +117,37 @@ export function ExerciseEditor({ exercise, onClose }) {
         ))}
       </View>
       <DifficultyIndicator difficulty={difficulty} />
-      <Text style={s.heading}>{w.muscles}</Text>
       <Feedback error={library.errors.muscles} onRetry={library.refresh} />
-      <View style={s.row}>
-        {library.muscles.map((m) => (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: muscles.includes(m.id) }}
-            key={m.id}
-            onPress={() =>
-              setMuscles((current) =>
-                current.includes(m.id)
-                  ? current.filter((id) => id !== m.id)
-                  : [...current, m.id],
-              )
-            }
-            style={[s.chip, muscles.includes(m.id) && s.selected]}
-          >
-            <Text style={s.text}>{m.displayName || m.commonName}</Text>
-          </Pressable>
-        ))}
-      </View>
+      {[
+        ['primary', t('primaryMuscles'), primaryMuscles],
+        ['secondary', t('secondaryMuscles'), secondaryMuscles],
+      ].map(([role, label, selectedIds]) => (
+        <View key={role}>
+          <Text style={s.heading}>{label}</Text>
+          <View style={s.row}>
+            {library.muscles.map((m) => (
+              <Pressable
+                accessibilityLabel={`${label}: ${m.displayName || m.commonName}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedIds.includes(m.id) }}
+                key={m.id}
+                onPress={() => {
+                  const next = toggleMuscleRole(
+                    { primaryIds: primaryMuscles, secondaryIds: secondaryMuscles },
+                    m.id,
+                    role,
+                  );
+                  setPrimaryMuscles(next.primaryIds);
+                  setSecondaryMuscles(next.secondaryIds);
+                }}
+                style={[s.chip, selectedIds.includes(m.id) && s.selected]}
+              >
+                <Text style={s.text}>{m.displayName || m.commonName}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ))}
       <Feedback error={error} />
       <Button disabled={saving} onPress={save}>
         {saving ? w.loading : w.save}

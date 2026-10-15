@@ -15,7 +15,8 @@ export function ExerciseFormModal({
   videoUrl,
   setVideoUrl,
   musclesList = [],
-  selectedMuscleIds,
+  primaryMuscleIds,
+  secondaryMuscleIds,
   onToggleMuscle,
   onSubmit,
   submitting,
@@ -60,32 +61,31 @@ export function ExerciseFormModal({
             onChangeText={setVideoUrl}
           />
 
-          <Text style={styles.label}>{t('selectTargetMuscles')}:</Text>
           <ScrollView style={styles.muscleList} nestedScrollEnabled>
-            <View style={styles.muscleSelectorContainer}>
-              {musclesList.map((m) => {
-                const isSelected = selectedMuscleIds.includes(m.id);
-                return (
-                  <TouchableOpacity
-                    key={m.id}
-                    style={[
-                      styles.selectableChip,
-                      isSelected && styles.selectableChipActive,
-                    ]}
-                    onPress={() => onToggleMuscle(m.id)}
-                  >
-                    <Text
-                      style={[
-                        styles.selectableChipText,
-                        isSelected && styles.selectableChipTextActive,
-                      ]}
+            {[
+              ['primary', t('primaryMuscles'), primaryMuscleIds],
+              ['secondary', t('secondaryMuscles'), secondaryMuscleIds],
+            ].map(([role, label, selectedIds]) => <View key={role} style={styles.muscleGroup}>
+              <Text style={styles.label}>{label}:</Text>
+              <View style={styles.muscleSelectorContainer}>
+                {musclesList.map((m) => {
+                  const isSelected = selectedIds.includes(m.id);
+                  return (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isSelected }}
+                      key={m.id}
+                      style={[styles.selectableChip, isSelected && styles.selectableChipActive]}
+                      onPress={() => onToggleMuscle(m.id, role)}
                     >
-                      {m.displayName || m.commonName}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                      <Text style={[styles.selectableChipText, isSelected && styles.selectableChipTextActive]}>
+                        {m.displayName || m.commonName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>)}
           </ScrollView>
 
           <View style={styles.modalButtons}>

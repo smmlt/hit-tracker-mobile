@@ -160,7 +160,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
         </View>
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsMuscleBalance')} style={[styles.card, styles.activityCard]}>
           <View style={styles.cardHeader}><Text style={styles.cardTitle}>{t('analyticsMuscleGroups')}</Text><Ionicons color={theme.textPrimary} name="chevron-forward" size={20} /></View>
-          {muscles.length ? muscles.slice(0, 4).map((item) => <View key={item.muscleId} style={styles.muscleRow}><Text numberOfLines={1} style={styles.muscleName}>{translateCatalogName(t, 'muscle', item.name)}</Text><View style={styles.muscleTrack}><View style={[styles.muscleFill, { width: `${Number(item.workingSets) / maxMuscle * 100}%` }]} /></View><Text style={styles.muscleCount}>{item.workingSets}</Text></View>) : <Text style={styles.muted}>{t('analyticsNoMuscleGroups')}</Text>}
+          {muscles.length ? muscles.slice(0, 4).map((item) => <View key={item.muscleId} style={styles.muscleRow}><Text numberOfLines={1} style={styles.muscleName}>{translateCatalogName(t, 'muscle', item.name)}</Text><View style={styles.muscleTrack}><View style={[styles.muscleFill, { width: `${Number(item.workingSets) / maxMuscle * 100}%` }]} /></View><Text style={styles.muscleCount}>{number(item.workingSets, 1)}</Text></View>) : <Text style={styles.muted}>{t('analyticsNoMuscleGroups')}</Text>}
         </Pressable>
       </View> : null}
 
@@ -212,8 +212,8 @@ export default function AnalyticsDashboardScreen({ navigation }) {
       </View>
 
       {!today ? <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsMuscleBalance')} style={styles.card}>
-        <View style={styles.cardHeader}><View><Text style={styles.cardTitle}>{t('analyticsMuscleGroups')}</Text><Text style={styles.micro}>{t('analyticsWorkingSets')}</Text></View><Ionicons color={theme.textPrimary} name="chevron-forward" size={22} /></View>
-        {muscles.length ? muscles.map((item) => <View key={item.muscleId} style={styles.muscleRow}><Text numberOfLines={1} style={styles.muscleName}>{translateCatalogName(t, 'muscle', item.name)}</Text><View style={styles.muscleTrack}><View style={[styles.muscleFill, { width: `${Number(item.workingSets) / maxMuscle * 100}%` }]} /></View><Text style={styles.muscleCount}>{item.workingSets}</Text></View>) : <Text style={styles.muted}>{t('analyticsNoMuscleGroups')}</Text>}
+        <View style={styles.cardHeader}><View><Text style={styles.cardTitle}>{t('analyticsMuscleGroups')}</Text><Text style={styles.micro}>{t('analyticsEstimatedSets')}</Text></View><Ionicons color={theme.textPrimary} name="chevron-forward" size={22} /></View>
+        {muscles.length ? muscles.map((item) => <View key={item.muscleId} style={styles.muscleRow}><Text numberOfLines={1} style={styles.muscleName}>{translateCatalogName(t, 'muscle', item.name)}</Text><View style={styles.muscleTrack}><View style={[styles.muscleFill, { width: `${Number(item.workingSets) / maxMuscle * 100}%` }]} /></View><Text style={styles.muscleCount}>{number(item.workingSets, 1)}</Text></View>) : <Text style={styles.muted}>{t('analyticsNoMuscleGroups')}</Text>}
       </Pressable> : null}
 
       {!today ? <Pressable accessibilityRole="button" onPress={() => navigation.navigate('AnalyticsStrength')} style={styles.card}>

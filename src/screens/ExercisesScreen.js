@@ -10,6 +10,7 @@ import { ExerciseFilterBar, ExerciseFormModal, ExerciseItem } from '../component
 
 import { palette } from '../constants/colors';
 import { useTheme } from '../context/ThemeContext';
+import { toggleMuscleRole } from '../utils/muscleRoles';
 export default function ExercisesScreen() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -28,7 +29,8 @@ export default function ExercisesScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [selectedMuscleIds, setSelectedMuscleIds] = useState([]);
+  const [primaryMuscleIds, setPrimaryMuscleIds] = useState([]);
+  const [secondaryMuscleIds, setSecondaryMuscleIds] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
@@ -83,7 +85,8 @@ export default function ExercisesScreen() {
           name: name.trim(),
           description: description.trim() || undefined,
           videoUrl: videoUrl.trim() || undefined,
-          muscleIds: selectedMuscleIds,
+          primaryMuscleIds,
+          secondaryMuscleIds,
         }),
       }, userToken);
 
@@ -91,7 +94,8 @@ export default function ExercisesScreen() {
         setName('');
         setDescription('');
         setVideoUrl('');
-        setSelectedMuscleIds([]);
+        setPrimaryMuscleIds([]);
+        setSecondaryMuscleIds([]);
         setIsModalVisible(false);
         showToast(t('exerciseCreated'), 'success');
         fetchData();
@@ -110,12 +114,10 @@ export default function ExercisesScreen() {
     }
   };
 
-  const toggleMuscleSelection = (id) => {
-    if (selectedMuscleIds.includes(id)) {
-      setSelectedMuscleIds(selectedMuscleIds.filter((mId) => mId !== id));
-    } else {
-      setSelectedMuscleIds([...selectedMuscleIds, id]);
-    }
+  const toggleMuscleSelection = (id, role) => {
+    const next = toggleMuscleRole({ primaryIds: primaryMuscleIds, secondaryIds: secondaryMuscleIds }, id, role);
+    setPrimaryMuscleIds(next.primaryIds);
+    setSecondaryMuscleIds(next.secondaryIds);
   };
 
   const filteredExercises = exercises.filter((ex) => {
@@ -178,7 +180,8 @@ export default function ExercisesScreen() {
               videoUrl={videoUrl}
               setVideoUrl={setVideoUrl}
               musclesList={musclesList}
-              selectedMuscleIds={selectedMuscleIds}
+              primaryMuscleIds={primaryMuscleIds}
+              secondaryMuscleIds={secondaryMuscleIds}
               onToggleMuscle={toggleMuscleSelection}
               onSubmit={handleCreateExercise}
               submitting={submitting}

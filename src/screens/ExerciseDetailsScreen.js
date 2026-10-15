@@ -19,6 +19,7 @@ import {
 import { ShareButton } from "../components/workshop/ShareButton";
 import { exerciseShareUrl } from "../utils/shareLinks";
 import { entityId } from '../utils/navigationPaths';
+import { splitMusclesByRole } from '../utils/muscleRoles';
 
 import { createStyles } from './ExerciseDetailsScreen.styles';
 export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
@@ -32,6 +33,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   const [error, setError] = useState("");
   const [videoFailed, setVideoFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const muscleGroups = splitMusclesByRole(exercise.muscles);
   const added = preparedWorkout?.exercises?.some(
     (item) => item.id === exercise.id,
   );
@@ -72,7 +74,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       <View style={styles.summary}>
         <Text style={s.title}>{exercise.displayName || exercise.name}</Text>
         <Text style={s.muted}>
-          {exercise.muscles?.map((m) => m.displayName || m.commonName || m.name).join(" · ") ||
+          {muscleGroups.primary.map((m) => m.displayName || m.commonName || m.name).join(" · ") ||
             w.noMuscles}
         </Text>
       </View>
@@ -84,23 +86,20 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
           style={styles.muscleImage}
         />
         <View style={styles.muscleList}>
-          {exercise.muscles?.length ? (
-            exercise.muscles.map((muscle) => (
-              <View key={muscle.id} style={styles.muscleItem}>
-                <Text style={styles.muscleDash}>—</Text>
-                <View style={styles.muscleName}>
-                  <Text style={styles.muscleText}>{muscle.displayName || muscle.commonName || muscle.name}</Text>
-                  {!!muscle.scientificName && (
-                    <Text style={[s.muted, { fontSize: 11 }]}>
-                      {muscle.scientificName}
-                    </Text>
-                  )}
+          {exercise.muscles?.length ? ['primary', 'secondary'].map((role) => (
+            muscleGroups[role].length ? <View key={role} style={styles.muscleGroup}>
+              <Text style={styles.muscleGroupTitle}>{t(role === 'primary' ? 'primaryMuscles' : 'secondaryMuscles')}</Text>
+              {muscleGroups[role].map((muscle) => (
+                <View key={muscle.id} style={styles.muscleItem}>
+                  <Text style={styles.muscleDash}>—</Text>
+                  <View style={styles.muscleName}>
+                    <Text style={styles.muscleText}>{muscle.displayName || muscle.commonName || muscle.name}</Text>
+                    {!!muscle.scientificName && <Text style={[s.muted, { fontSize: 11 }]}>{muscle.scientificName}</Text>}
+                  </View>
                 </View>
-              </View>
-            ))
-          ) : (
-            <Text style={s.muted}>{w.noMuscles}</Text>
-          )}
+              ))}
+            </View> : null
+          )) : <Text style={s.muted}>{w.noMuscles}</Text>}
         </View>
       </View>
       {!!exercise.description && (
