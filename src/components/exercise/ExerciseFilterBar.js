@@ -1,3 +1,5 @@
+// EN: Collects exercise search, muscle, difficulty, ownership, and saved-state filters for catalogue queries.
+// UK: Збирає фільтри пошуку, мʼязів, складності, ownership і saved-state для запитів каталогу вправ.
 import React, { useContext, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
