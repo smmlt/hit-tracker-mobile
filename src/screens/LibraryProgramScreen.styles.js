@@ -3,6 +3,7 @@
  */
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by LibraryProgramScreen. UK: Створює залежну від теми таблицю стилів для LibraryProgramScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   contentBlock: { gap: 16 },
   noMedia: { color: theme.textSecondary, fontSize: 12 },
