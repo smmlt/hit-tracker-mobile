@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by ActiveWorkoutBanner. UK: Створює залежну від теми таблицю стилів для ActiveWorkoutBanner. */
 export const createStyles = (theme) => StyleSheet.create({
   banner: {
     backgroundColor: theme.cardBackground,
