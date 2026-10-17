@@ -1,3 +1,6 @@
+// EN: Proves the production contract for history filters, date selection, pagination de-duplication, and screen/service wiring; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт фільтрів історії, вибору дати, усунення дублікатів під час пагінації та звʼязку екрана із сервісом; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
