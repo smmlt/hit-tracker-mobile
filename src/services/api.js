@@ -1,3 +1,7 @@
+// EN: Central HTTP boundary: resolves the API host, adds credentials, normalizes errors, refreshes expired sessions once, and retries safely.
+// UK: Центральна HTTP-межа: визначає API host, додає credentials, нормалізує помилки, один раз оновлює прострочену сесію та безпечно повторює запит.
+// EN: Relative endpoints are joined to API_URL; a 401 refresh is shared by unauthorized.js and the original request is retried once.
+// UK: Відносні endpoint-и доповнюються API_URL; після 401 unauthorized.js спільно оновлює токен і повторює початковий запит один раз.
 import { API_URL } from '../constants/config';
 import { isMultipartBody } from '../utils/requestBody';
 import { notifyAccountSuspended, notifyUnauthorized, refreshAccessToken } from './unauthorized';
