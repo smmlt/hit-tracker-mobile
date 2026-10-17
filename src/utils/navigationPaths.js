@@ -1,3 +1,5 @@
+// EN: Builds normalized route slugs and id-bearing entity references used by share links and deep-link parsing.
+// UK: Будує нормалізовані route slugs і references сутностей з ID для share links та deep-link parsing.
 export function routeSlug(value) {
   return String(value ?? '')
     .normalize('NFKC')
