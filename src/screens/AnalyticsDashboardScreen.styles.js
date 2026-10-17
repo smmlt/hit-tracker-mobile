@@ -3,6 +3,7 @@
  */
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by AnalyticsDashboardScreen. UK: Створює залежну від теми таблицю стилів для AnalyticsDashboardScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   screen: { backgroundColor: theme.background, flex: 1 },
   content: { alignSelf: 'center', gap: 10, maxWidth: 800, paddingBottom: 44, paddingHorizontal: 20, paddingTop: 18, width: '100%' },
