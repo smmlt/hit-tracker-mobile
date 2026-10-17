@@ -1,3 +1,6 @@
+// EN: Proves the production contract for username normalization, reserved-name rules, length limits, and availability race handling; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт нормалізації імені користувача, правил зарезервованих імен, обмежень довжини та перегонів під час перевірки доступності; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
