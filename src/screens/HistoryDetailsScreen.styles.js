@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by HistoryDetailsScreen. UK: Створює залежну від теми таблицю стилів для HistoryDetailsScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   safeArea: { backgroundColor: theme.background, flex: 1 },
   topBar: { alignItems: 'center', borderBottomColor: theme.border, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 },
