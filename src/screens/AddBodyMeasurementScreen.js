@@ -1,3 +1,6 @@
+/**
+ * Collects and validates a dated body measurement, loads the current user from AuthContext, and saves it before returning to the body-metrics flow. / Збирає та перевіряє вимірювання тіла з датою, отримує поточного користувача з AuthContext і зберігає дані перед поверненням до потоку показників тіла.
+ */
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Modal, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
