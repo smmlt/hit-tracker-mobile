@@ -1,3 +1,7 @@
+// EN: Derives a live elapsed duration from the active workout timestamps and stops scheduling updates when timing is inactive.
+// UK: Обчислює живу тривалість із часових міток активного тренування та припиняє оновлення, коли таймер неактивний.
+// EN: The interval derives elapsed time from the start timestamp and is cleared whenever the workout disappears or the hook unmounts.
+// UK: Інтервал обчислює тривалість від часу початку й очищається, коли тренування зникає або hook розмонтовується.
 // src/hooks/useWorkoutTimer.js
 import { useState, useEffect } from 'react';
 
