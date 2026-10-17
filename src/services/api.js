@@ -6,12 +6,10 @@ import { API_URL } from '../constants/config';
 import { isMultipartBody } from '../utils/requestBody';
 import { notifyAccountSuspended, notifyUnauthorized, refreshAccessToken } from './unauthorized';
 
-/**
- * Універсальна обгортка над стандартним fetch для автоматичного додавання
- * авторизації та обробки JSON.
- */
+/** EN: Sends one HTTP request, performs at most one shared token refresh, and returns a normalized response envelope. UK: Надсилає один HTTP-запит, виконує щонайбільше одне спільне оновлення токена та повертає нормалізовану відповідь. */
 export async function apiFetch(endpoint, options = {}, userToken = null) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
+  /** EN: Builds headers for the current body type, attaches an optional bearer token, and performs the underlying fetch. UK: Формує заголовки для поточного типу даних, додає необов’язковий bearer-токен і виконує базовий fetch-запит. */
   const send = (token) => {
     const isMultipart = isMultipartBody(options.body);
     const headers = {
@@ -53,6 +51,7 @@ export async function apiFetch(endpoint, options = {}, userToken = null) {
   };
 }
 
+/** EN: Returns successful response data or throws an Error enriched with status, details, and retry timing. UK: Повертає дані успішної відповіді або викидає Error зі статусом, деталями та часом повторної спроби. */
 export async function apiRequest(endpoint, options = {}, userToken = null, fallbackMessage = 'Request failed') {
   const response = await apiFetch(endpoint, options, userToken);
   if (response.ok) return response.data;
