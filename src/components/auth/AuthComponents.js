@@ -1,3 +1,5 @@
+// EN: Provides shared branded authentication fields, buttons, separators, and password controls used across auth screens.
+// UK: Надає спільні брендовані auth-поля, кнопки, розділювачі й password-controls для екранів автентифікації.
 import React, { useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
