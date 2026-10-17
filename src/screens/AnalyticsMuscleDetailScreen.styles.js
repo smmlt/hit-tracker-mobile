@@ -1,3 +1,6 @@
+/**
+ * Layout styles used by AnalyticsMuscleDetailScreen, defining its themed spacing, typography, controls, and responsive geometry. / Стилі макета для AnalyticsMuscleDetailScreen, що визначають тематичні відступи, типографіку, елементи керування та адаптивну геометрію.
+ */
 import { StyleSheet } from 'react-native';
 
 export const createStyles = (theme) => StyleSheet.create({
