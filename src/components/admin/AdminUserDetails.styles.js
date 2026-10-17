@@ -1,3 +1,5 @@
+// EN: Defines the theme-aware layout, spacing, and interaction styles used by AdminUserDetails.
+// UK: Визначає залежні від теми layout, spacing та interaction styles для AdminUserDetails.
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
