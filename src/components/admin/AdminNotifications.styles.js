@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by AdminNotifications. UK: Створює залежну від теми таблицю стилів для AdminNotifications. */
 export const createStyles = (theme) => StyleSheet.create({
   container: { alignSelf: 'center', gap: 16, maxWidth: 1040, width: '100%' },
   headingRow: { alignItems: 'flex-start', flexDirection: 'row', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between' },
