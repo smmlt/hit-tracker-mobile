@@ -1,3 +1,6 @@
+/**
+ * Layout styles used by AddBodyMeasurementScreen, defining its themed spacing, typography, controls, and responsive geometry. / Стилі макета для AddBodyMeasurementScreen, що визначають тематичні відступи, типографіку, елементи керування та адаптивну геометрію.
+ */
 import { Platform, StyleSheet } from 'react-native';
 
 export const createStyles = (theme) => StyleSheet.create({
