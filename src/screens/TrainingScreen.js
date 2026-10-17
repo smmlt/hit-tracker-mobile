@@ -28,35 +28,40 @@ const weekDayByDateIndex = {
   uk: ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
 };
 
+/** EN: Parses a calendar key at midday to avoid timezone shifts. UK: Перетворює календарний ключ на полуденну дату, щоб уникнути зсувів часового поясу. */
 const parseDate = (value) => new Date(`${value}T12:00:00`);
+/** EN: Serializes a local date as the API's YYYY-MM-DD key. UK: Перетворює локальну дату на ключ YYYY-MM-DD для API. */
 const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 const DATE_STRIP_DAYS = 15;
+/** EN: Returns a cloned date shifted by a number of calendar days. UK: Повертає копію дати, зміщену на задану кількість календарних днів. */
 const addDays = (date, count) => {
   const result = new Date(date);
   result.setDate(result.getDate() + count);
   return result;
 };
 
+/** EN: Loads and renders a scheduled program preview that opens its details. UK: Завантажує й показує попередній перегляд запланованої програми з переходом до деталей. */
 function ProgramCard({ assignment, navigation, t, theme, userToken, localeTag }) {
   const w = useWords();
   const [schedule, setSchedule] = useState([]);
 
-  useEffect(() => {
+  useEffect(/* EN: Loads the program schedule and ignores a response after unmount. UK: Завантажує розклад програми та ігнорує відповідь після демонтування. */ () => {
     let active = true;
-    apiFetch(`/workout-programs/${assignment.programId}`, {}, userToken).then((response) => {
+    apiFetch(`/workout-programs/${assignment.programId}`, {}, userToken).then(/* EN: Applies a successful program response while the card remains mounted. UK: Застосовує успішну відповідь програми, поки картка залишається змонтованою. */ (response) => {
       if (!active || !response.ok) return;
-      setSchedule(response.data.schedule.filter((entry) => entry.exercise));
+      setSchedule(response.data.schedule.filter(/* EN: Keeps only schedule rows linked to an exercise. UK: Залишає лише рядки розкладу, пов’язані з вправою. */ (entry) => entry.exercise));
     });
-    return () => { active = false; };
+    return /* EN: Marks the request result stale when the card unmounts. UK: Позначає результат запиту застарілим після демонтування картки. */ () => { active = false; };
   }, [assignment.programId, userToken]);
 
-  const preview = useMemo(() => schedule.reduce((items, entry) => (
-    items.some((exercise) => exercise.id === entry.exercise.id)
+  const preview = useMemo(/* EN: Builds a stable de-duplicated exercise preview for the card. UK: Формує стабільний попередній список вправ без дублікатів для картки. */ () => schedule.reduce(/* EN: Adds each exercise to the preview only once. UK: Додає кожну вправу до попереднього списку лише один раз. */ (items, entry) => (
+    items.some(/* EN: Detects whether the exercise is already present by identifier. UK: Визначає за ідентифікатором, чи вправу вже додано. */ (exercise) => exercise.id === entry.exercise.id)
       ? items
       : [...items, entry.exercise]
   ), []), [schedule]);
   const difficulty = programDifficulty(schedule);
 
+  /** EN: Opens the selected scheduled assignment in program details. UK: Відкриває вибране призначення розкладу в деталях програми. */
   const openDetails = () => navigation.navigate('ProgramDetails', {
     assignmentRef: entityRef(assignment.programName, assignment.id),
     date: assignment.scheduledFor,
@@ -77,7 +82,7 @@ function ProgramCard({ assignment, navigation, t, theme, userToken, localeTag })
       accessibilityLabel={`${t('viewProgram')}: ${assignment.programName}`}
       accessibilityRole="button"
       onPress={openDetails}
-      style={({ pressed }) => [styles.programCard, { backgroundColor: theme.cardBackground, borderLeftColor: statusColor }, pressed && styles.programCardPressed]}
+      style={/* EN: Adds pressed-state styling without changing the card's status color. UK: Додає стиль натискання, не змінюючи колір стану картки. */ ({ pressed }) => [styles.programCard, { backgroundColor: theme.cardBackground, borderLeftColor: statusColor }, pressed && styles.programCardPressed]}
     >
       <View style={styles.statusRow}>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
@@ -106,6 +111,7 @@ function ProgramCard({ assignment, navigation, t, theme, userToken, localeTag })
   );
 }
 
+/** EN: Coordinates schedule loading, date selection, range filtering, and training navigation. UK: Координує завантаження розкладу, вибір дати, фільтрування діапазону та навігацію тренувань. */
 export default function TrainingScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userToken } = useContext(AuthContext);
@@ -126,7 +132,7 @@ export default function TrainingScreen({ navigation, route }) {
   const dateStripRef = useRef(null);
   const { start: rangeStart, end: rangeEnd } = range;
 
-  useEffect(() => {
+  useEffect(/* EN: Synchronizes local date state when navigation supplies a new date. UK: Синхронізує локальний стан дати, коли навігація передає нову дату. */ () => {
     const routeDate = /^\d{4}-\d{2}-\d{2}$/.test(route.params?.date) ? route.params.date : today;
     if (routeDate !== selectedDate) {
       setSelectedDate(routeDate);
@@ -136,7 +142,7 @@ export default function TrainingScreen({ navigation, route }) {
     }
   }, [route.params?.date, selectedDate, today]);
 
-  const loadSchedule = useCallback(async () => {
+  const loadSchedule = useCallback(/* EN: Loads a three-month schedule window and exposes loading or error state. UK: Завантажує тримісячне вікно розкладу та оновлює стан завантаження або помилки. */ async () => {
     const from = dateKey(new Date(month.getFullYear(), month.getMonth() - 1, 1));
     const to = dateKey(new Date(month.getFullYear(), month.getMonth() + 2, 0));
     setLoading(true);
@@ -150,28 +156,30 @@ export default function TrainingScreen({ navigation, route }) {
     setLoading(false);
   }, [month, t, userToken]);
 
-  useFocusEffect(useCallback(() => { loadSchedule(); }, [loadSchedule]));
+  useFocusEffect(useCallback(/* EN: Refreshes the schedule whenever this tab regains focus. UK: Оновлює розклад щоразу, коли ця вкладка знову отримує фокус. */ () => { loadSchedule(); }, [loadSchedule]));
 
   const selected = parseDate(selectedDate);
-  const nearbyDates = useMemo(() => Array.from(
+  const nearbyDates = useMemo(/* EN: Builds the centered date strip around the selected day. UK: Формує стрічку дат, центровану навколо вибраного дня. */ () => Array.from(
     { length: DATE_STRIP_DAYS },
-    (_, index) => addDays(selected, index - Math.floor(DATE_STRIP_DAYS / 2)),
+    /* EN: Maps each strip position to its relative calendar date. UK: Перетворює кожну позицію стрічки на відповідну календарну дату. */ (_, index) => addDays(selected, index - Math.floor(DATE_STRIP_DAYS / 2)),
   ), [selectedDate]);
-  const selectedAssignments = sortScheduleAssignments(assignments.filter((item) => (
+  const selectedAssignments = sortScheduleAssignments(assignments.filter(/* EN: Keeps assignments inside the chosen range or on the selected day. UK: Залишає призначення в обраному діапазоні або на вибраний день. */ (item) => (
     rangeStart && rangeEnd
       ? item.scheduledFor >= rangeStart && item.scheduledFor <= rangeEnd
       : item.scheduledFor === selectedDate
   )));
-  const assignedDates = new Set(assignments.map((item) => item.scheduledFor));
+  const assignedDates = new Set(assignments.map(/* EN: Extracts scheduled date keys for calendar markers. UK: Витягує ключі запланованих дат для позначок календаря. */ (item) => item.scheduledFor));
+  /** EN: Reports whether a date belongs to the current partial or complete range. UK: Визначає, чи належить дата до поточного неповного або завершеного діапазону. */
   const isInRange = (key) => rangeStart && key >= rangeStart && (!rangeEnd ? key === rangeStart : key <= rangeEnd);
 
-  useEffect(() => {
+  useEffect(/* EN: Recenters the horizontal date strip after its width or selected day changes. UK: Повторно центрує горизонтальну стрічку після зміни її ширини або вибраного дня. */ () => {
     if (!dateStripWidth) return;
     const selectedIndex = Math.floor(DATE_STRIP_DAYS / 2);
     const offset = selectedIndex * (DATE_CELL_WIDTH + DATE_GAP) + DATE_CELL_WIDTH / 2 - dateStripWidth / 2;
     dateStripRef.current?.scrollTo({ x: Math.max(0, offset), animated: false });
   }, [dateStripWidth, selectedDate]);
 
+  /** EN: Selects one day, updates navigation state, and clears range selection. UK: Вибирає один день, оновлює стан навігації та очищає вибір діапазону. */
   const chooseDate = (date) => {
     const key = dateKey(date);
     setSelectedDate(key);
@@ -180,13 +188,14 @@ export default function TrainingScreen({ navigation, route }) {
     setRange({ start: null, end: null });
   };
 
+  /** EN: Extends or restarts the calendar range while keeping its endpoints ordered. UK: Розширює або починає заново календарний діапазон, зберігаючи правильний порядок меж. */
   const chooseRangeDate = (date) => {
     const key = dateKey(date);
     setSelectedDate(key);
     navigation.setParams({ date: key === today ? undefined : key });
     setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
 
-    setRange((current) => {
+    setRange(/* EN: Converts the next click into a start point or an ordered completed range. UK: Перетворює наступне натискання на початок або впорядкований завершений діапазон. */ (current) => {
       if (!current.start || current.end) return { start: key, end: null };
       return key < current.start
         ? { start: key, end: current.start }
@@ -196,7 +205,7 @@ export default function TrainingScreen({ navigation, route }) {
 
   const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
   const calendarStart = addDays(firstDay, -((firstDay.getDay() + 6) % 7));
-  const calendarDays = Array.from({ length: 42 }, (_, index) => addDays(calendarStart, index));
+  const calendarDays = Array.from({ length: 42 }, /* EN: Produces each cell in the six-week calendar grid. UK: Створює кожну клітинку шеститижневої календарної сітки. */ (_, index) => addDays(calendarStart, index));
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -206,27 +215,27 @@ export default function TrainingScreen({ navigation, route }) {
             <Text style={[styles.eyebrow, { color: theme.primary }]}>{t('trainingPlan').toUpperCase()}</Text>
             <Text style={[styles.title, { color: theme.textPrimary }]}>{t('training')}</Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel={t('openCalendar')} onPress={() => setCalendarOpen(true)} style={[styles.calendarButton, { borderColor: theme.border }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('openCalendar')} onPress={/* EN: Opens the calendar modal from the header action. UK: Відкриває календарне модальне вікно з дії заголовка. */ () => setCalendarOpen(true)} style={[styles.calendarButton, { borderColor: theme.border }]}>
             <Ionicons color={theme.textPrimary} name="calendar-outline" size={22} />
           </Pressable>
         </View>
 
-        <Pressable onPress={() => setCalendarOpen(true)}>
+        <Pressable onPress={/* EN: Opens the calendar when the selected-date label is pressed. UK: Відкриває календар після натискання на підпис вибраної дати. */ () => setCalendarOpen(true)}>
           <Text style={[styles.selectedDate, { color: theme.textPrimary }]}>{selected.toLocaleDateString(localeTag, { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
         </Pressable>
 
         <ScrollView
           horizontal
-          onLayout={(event) => setDateStripWidth(event.nativeEvent.layout.width)}
+          onLayout={/* EN: Stores the measured strip width for precise centering. UK: Зберігає виміряну ширину стрічки для точного центрування. */ (event) => setDateStripWidth(event.nativeEvent.layout.width)}
           ref={dateStripRef}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.dateStrip}
         >
-          {nearbyDates.map((date) => {
+          {nearbyDates.map(/* EN: Renders each nearby date with selection and assignment indicators. UK: Відображає кожну сусідню дату з позначками вибору та призначень. */ (date) => {
             const key = dateKey(date);
             const active = key === selectedDate || isInRange(key);
             return (
-              <Pressable key={key} onPress={() => chooseDate(date)} style={[styles.dateCell, { borderColor: theme.border }, active && { backgroundColor: theme.primary, borderColor: theme.primary }]}>
+              <Pressable key={key} onPress={/* EN: Selects this date-strip day. UK: Вибирає цей день у стрічці дат. */ () => chooseDate(date)} style={[styles.dateCell, { borderColor: theme.border }, active && { backgroundColor: theme.primary, borderColor: theme.primary }]}>
                 <Text style={[styles.dayName, { color: active ? palette.whitePure : theme.textSecondary }]}>{weekDayByDateIndex[locale][date.getDay()]}</Text>
                 <Text style={[styles.dayNumber, { color: active ? palette.whitePure : theme.textPrimary }]}>{date.getDate()}</Text>
                 {assignedDates.has(key) && <View style={[styles.dot, { backgroundColor: active ? palette.whitePure : theme.secondary }]} />}
@@ -240,7 +249,7 @@ export default function TrainingScreen({ navigation, route }) {
           <Text style={[styles.assignmentCount, { color: theme.textSecondary }]}>{selectedAssignments.length}</Text>
         </View>
 
-        {loading ? <ActivityIndicator color={theme.primary} /> : selectedAssignments.map((assignment) => (
+        {loading ? <ActivityIndicator color={theme.primary} /> : selectedAssignments.map(/* EN: Renders one program card per filtered assignment. UK: Відображає окрему картку програми для кожного відфільтрованого призначення. */ (assignment) => (
           <ProgramCard
             assignment={assignment}
             key={assignment.id}
@@ -256,23 +265,23 @@ export default function TrainingScreen({ navigation, route }) {
           <View style={[styles.empty, { borderColor: theme.border }]}>
             <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>{t('noScheduledWorkouts')}</Text>
             <Text style={[styles.description, { color: theme.textSecondary }]}>{t('scheduleEmptyHint')}</Text>
-            <Pressable onPress={() => navigation.getParent()?.navigate('Home')}><Text style={[styles.link, { color: theme.primary }]}>{t('openWorkshop')}</Text></Pressable>
+            <Pressable onPress={/* EN: Opens Workshop so the user can choose a program for an empty day. UK: Відкриває Майстерню, щоб користувач міг вибрати програму для порожнього дня. */ () => navigation.getParent()?.navigate('Home')}><Text style={[styles.link, { color: theme.primary }]}>{t('openWorkshop')}</Text></Pressable>
           </View>
         )}
         {!!error && <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>}
       </ScrollView>
 
-      <Modal visible={calendarOpen} transparent animationType="fade" onRequestClose={() => setCalendarOpen(false)}>
+      <Modal visible={calendarOpen} transparent animationType="fade" onRequestClose={/* EN: Closes the calendar for the platform back action. UK: Закриває календар у відповідь на системну дію повернення. */ () => setCalendarOpen(false)}>
         <View style={styles.overlay}>
           <View style={[styles.modal, { backgroundColor: theme.cardBackground }]}>
             <View style={styles.monthHeader}>
-              <Pressable onPress={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}><Text style={[styles.monthArrow, { color: theme.textPrimary }]}>‹</Text></Pressable>
+              <Pressable onPress={/* EN: Moves the calendar to the previous month. UK: Переміщує календар до попереднього місяця. */ () => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}><Text style={[styles.monthArrow, { color: theme.textPrimary }]}>‹</Text></Pressable>
               <Text style={[styles.monthTitle, { color: theme.textPrimary }]}>{month.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' })}</Text>
-              <Pressable onPress={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}><Text style={[styles.monthArrow, { color: theme.textPrimary }]}>›</Text></Pressable>
+              <Pressable onPress={/* EN: Moves the calendar to the next month. UK: Переміщує календар до наступного місяця. */ () => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}><Text style={[styles.monthArrow, { color: theme.textPrimary }]}>›</Text></Pressable>
             </View>
             <Text style={[styles.rangeHint, { color: theme.textSecondary }]}>{t('scheduleRangeHint')}</Text>
-            <View style={styles.weekHeader}>{weekDays[locale].map((day) => <Text key={day} style={[styles.weekLabel, { color: theme.textSecondary }]}>{day}</Text>)}</View>
-            <View style={styles.monthGrid}>{calendarDays.map((date) => {
+            <View style={styles.weekHeader}>{weekDays[locale].map(/* EN: Renders localized weekday headings. UK: Відображає локалізовані заголовки днів тижня. */ (day) => <Text key={day} style={[styles.weekLabel, { color: theme.textSecondary }]}>{day}</Text>)}</View>
+            <View style={styles.monthGrid}>{calendarDays.map(/* EN: Renders each calendar cell with range and schedule state. UK: Відображає кожну клітинку календаря зі станом діапазону та розкладу. */ (date) => {
               const key = dateKey(date);
               const {
                 active,
@@ -280,15 +289,15 @@ export default function TrainingScreen({ navigation, route }) {
                 endsSelection: rangeEndDay,
               } = calendarDaySelection(key, selectedDate, rangeStart, rangeEnd);
               const inMonth = date.getMonth() === month.getMonth();
-              return <Pressable key={key} onPress={() => chooseRangeDate(date)} style={styles.monthDay}>
+              return <Pressable key={key} onPress={/* EN: Adds this calendar day to the active range selection. UK: Додає цей календарний день до поточного вибору діапазону. */ () => chooseRangeDate(date)} style={styles.monthDay}>
                 {active && <View style={[styles.rangeFill, { backgroundColor: theme.primary }, rangeStartDay && styles.rangeStart, rangeEndDay && styles.rangeEnd]} />}
                 <Text style={[styles.monthDayText, { color: active ? palette.whitePure : inMonth ? theme.textPrimary : theme.textSecondary }]}>{date.getDate()}</Text>
                 {assignedDates.has(key) && <View style={[styles.dot, { backgroundColor: active ? palette.whitePure : theme.secondary }]} />}
               </Pressable>;
             })}</View>
             <View style={styles.modalActions}>
-              <Pressable onPress={() => chooseRangeDate(new Date())}><Text style={[styles.link, { color: theme.primary }]}>{t('today')}</Text></Pressable>
-              <Pressable onPress={() => setCalendarOpen(false)}><Text style={[styles.link, { color: theme.textPrimary }]}>{t('close')}</Text></Pressable>
+              <Pressable onPress={/* EN: Selects today as the next range endpoint. UK: Вибирає сьогодні як наступну межу діапазону. */ () => chooseRangeDate(new Date())}><Text style={[styles.link, { color: theme.primary }]}>{t('today')}</Text></Pressable>
+              <Pressable onPress={/* EN: Closes the calendar and keeps the current selection. UK: Закриває календар і зберігає поточний вибір. */ () => setCalendarOpen(false)}><Text style={[styles.link, { color: theme.textPrimary }]}>{t('close')}</Text></Pressable>
             </View>
           </View>
         </View>
