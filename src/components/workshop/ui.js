@@ -1,3 +1,5 @@
+// EN: Defines Workshop UI primitives such as sheets, chips, cards, and controls shared by catalogue editors and details.
+// UK: Визначає Workshop UI primitives — sheets, chips, cards і controls — для редакторів та деталей каталогу.
 import React, { useContext } from "react";
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { createStyles } from './ui.styles.js';
