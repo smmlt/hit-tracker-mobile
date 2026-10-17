@@ -1,3 +1,6 @@
+# EN: Creates one permanent high-entropy Android signing key and properties file without overwriting existing release credentials.
+# UK: Створює один постійний Android-ключ підпису з високою ентропією та файл властивостей, не перезаписуючи наявні релізні дані.
+
 $ErrorActionPreference = 'Stop'
 
 $javaCandidates = @(
