@@ -1,3 +1,6 @@
+// EN: Proves the production contract for body-measurement validation, date ranges, chart geometry, formatting, and localized metric labels; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт валідації вимірювань тіла, діапазонів дат, геометрії графіків, форматування й локалізованих назв показників; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
