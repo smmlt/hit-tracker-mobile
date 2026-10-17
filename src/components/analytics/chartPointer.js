@@ -1,3 +1,5 @@
+// EN: Calculates clamped chart pointer coordinates and labels so touch feedback stays inside responsive plots.
+// UK: Обчислює обмежені координати й labels chart pointer, щоб touch-feedback залишався всередині responsive-графіків.
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
