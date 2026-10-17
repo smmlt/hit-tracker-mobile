@@ -1,3 +1,5 @@
+// EN: Selects the exercise ordering mode and returns the chosen sort key to the catalogue owner.
+// UK: Вибирає порядок вправ і повертає вибраний sort key власнику каталогу.
 import React, { useState, useRef, useContext } from 'react';
 import { View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
 import { createStyles } from './ExerciseSortDropdown.styles.js';
