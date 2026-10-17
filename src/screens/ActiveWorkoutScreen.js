@@ -1,3 +1,6 @@
+/**
+ * Runs the active workout flow, reading the prepared session and exercise progress from workout state, while handling pause, completion, cancellation, and exercise logging side effects. / Керує активним тренуванням, читаючи підготовлену сесію та прогрес вправ зі стану тренування, а також обробляючи паузу, завершення, скасування й збереження підходів.
+ */
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -145,6 +148,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
 
   useEffect(() => {
     if (!activeVerified) return;
+    // These replacements keep preparation, session, and completion routes aligned with the authoritative workout lifecycle state. / Ці заміни узгоджують маршрути підготовки, сесії та завершення з авторитетним станом життєвого циклу тренування.
     if (route.name === 'WorkoutPreparation' && activeWorkout) {
       navigation.replace('WorkoutSession');
       return;
