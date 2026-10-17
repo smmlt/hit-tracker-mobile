@@ -1,3 +1,5 @@
+// EN: Defines supported body metrics and converts API records into localized, precision-aware display values.
+// UK: Визначає підтримувані body metrics і перетворює API-записи на локалізовані значення з потрібною точністю.
 // unitKey is a translation key; units are never hardcoded per language.
 export const BODY_METRICS = {
   weight: { unitKey: 'kgShort', precision: 1 },
