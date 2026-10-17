@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by ActiveExerciseCard. UK: Створює залежну від теми таблицю стилів для ActiveExerciseCard. */
 export const createStyles = (theme, compact = false) => StyleSheet.create({
   addSet: { alignItems: 'center', alignSelf: 'center', borderColor: theme.secondary, borderRadius: 8, borderWidth: 1, justifyContent: 'center', minHeight: 40, paddingHorizontal: 16 },
   addSetText: { color: theme.secondary, fontFamily: 'Inter-SemiBold', fontSize: 13 },
