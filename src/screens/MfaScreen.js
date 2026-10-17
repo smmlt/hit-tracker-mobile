@@ -1,3 +1,6 @@
+/**
+ * Verifies the multi-factor authentication code for the pending login, handling retry/error state before completing the AuthContext session transition. / Перевіряє код багатофакторної автентифікації для незавершеного входу, обробляє повтор і помилки перед завершенням переходу сесії через AuthContext.
+ */
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
