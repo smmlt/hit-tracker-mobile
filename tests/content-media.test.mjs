@@ -1,3 +1,6 @@
+// EN: Proves the production contract for content media multipart uploads and YouTube URL, identifier, and thumbnail normalization; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт multipart-завантаження медіа та нормалізації URL, ідентифікаторів і мініатюр YouTube; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
