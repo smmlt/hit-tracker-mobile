@@ -1,3 +1,5 @@
+// EN: Requests analytics summaries and detail series, preserving the shared period/filter contract expected by analytics screens.
+// UK: Запитує аналітичні підсумки й детальні ряди, зберігаючи спільний контракт періоду та фільтрів для analytics-екранів.
 import { apiRequest } from './api';
 
 const rangeQuery = ({ from, to } = {}) => {
