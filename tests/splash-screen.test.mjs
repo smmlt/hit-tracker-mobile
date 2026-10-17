@@ -1,3 +1,6 @@
+// EN: Proves the production contract for native splash asset configuration and animated brand-screen handoff timing; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт налаштування мобільних ресурсів заставки та часу анімованого переходу з брендового екрана; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
