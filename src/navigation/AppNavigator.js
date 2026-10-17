@@ -1,3 +1,7 @@
+// EN: Builds the public and authenticated navigation trees, nested tabs/stacks, deep-link handling, and global workout return banner.
+// UK: Будує публічне й авторизоване дерева навігації, вкладені tabs/stacks, deep links і глобальний банер повернення до тренування.
+// EN: Auth state selects the public or authenticated root; authenticated routes are grouped into nested tabs/stacks and deep links enter through linkingConfig.
+// UK: Стан автентифікації обирає публічний або захищений корінь; захищені маршрути згруповані у вкладені tab/stack, а deep link-и проходять через linkingConfig.
 import React, { useContext } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { createNavigationContainerRef, NavigationContainer } from '@react-navigation/native';
