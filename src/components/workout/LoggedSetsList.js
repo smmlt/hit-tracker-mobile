@@ -1,3 +1,5 @@
+// EN: Lists recorded workout sets and emits edit or removal actions for the selected set.
+// UK: Показує записані workout sets і передає дії редагування або видалення вибраного set.
 import React, { useContext } from 'react';
 import { View, Text } from 'react-native';
 import { createStyles } from './LoggedSetsList.styles.js';
