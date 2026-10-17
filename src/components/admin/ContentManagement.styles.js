@@ -1,3 +1,5 @@
+// EN: Defines the theme-aware layout, spacing, and interaction styles used by ContentManagement.
+// UK: Визначає залежні від теми layout, spacing та interaction styles для ContentManagement.
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
