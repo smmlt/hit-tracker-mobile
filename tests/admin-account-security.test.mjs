@@ -1,3 +1,6 @@
+// EN: Proves the production contract for admin session-revocation and account-suspension controls, including privileged-role and system-owner guards; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт адміністративного відкликання сесій і блокування облікових записів, зокрема захист привілейованих ролей та власника системи; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
