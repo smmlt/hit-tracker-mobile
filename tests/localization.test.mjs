@@ -1,3 +1,6 @@
+// EN: Proves the production contract for supported locale defaults, bilingual key parity, and official/custom catalog-name translation; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт типової мови, однакових ключів у двох мовах і перекладу офіційних та власних назв каталогу; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_LOCALE, isSupportedLocale } from '../src/localization/locale.js';
