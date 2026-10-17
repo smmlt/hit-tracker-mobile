@@ -31,6 +31,7 @@ import { palette } from '../constants/colors';
 import { createStyles } from './ActiveWorkoutScreen.styles.js';
 import { entityRef, isoDate } from '../utils/navigationPaths';
 
+/** EN: Calculates active workout seconds after subtracting completed and current pauses. UK: Обчислює активні секунди тренування після віднімання завершених і поточної пауз. */
 const activeSeconds = (workout, now) => {
   if (!workout?.createdAt) return 0;
   const total = Math.max(0, Math.floor((now - new Date(workout.createdAt).getTime()) / 1000));
@@ -40,7 +41,8 @@ const activeSeconds = (workout, now) => {
   return Math.max(0, total - (workout.pausedSeconds || 0) - currentPause);
 };
 
-const planFromSnapshot = (workout) => (workout?.historySnapshot?.plan || []).map((item) => ({
+/** EN: Reconstructs the displayable exercise plan from an immutable workout snapshot. UK: Відновлює придатний до показу план вправ із незмінного знімка тренування. */
+const planFromSnapshot = (workout) => (workout?.historySnapshot?.plan || []).map(/* EN: Converts one snapshot row to the active-card shape. UK: Перетворює один рядок знімка на форму картки активної вправи. */ (item) => ({
   id: item.exerciseId,
   name: item.name,
   exercise: { id: item.exerciseId, name: item.name },
@@ -49,6 +51,7 @@ const planFromSnapshot = (workout) => (workout?.historySnapshot?.plan || []).map
   weight: item.weight,
 }));
 
+/** EN: Coordinates preparation, live set logging, pause/cancel/finish transitions, and completion results. UK: Координує підготовку, запис підходів, переходи паузи/скасування/завершення та підсумки тренування. */
 export default function ActiveWorkoutScreen({ navigation, route }) {
   const { width } = useWindowDimensions();
   const compact = width < 390;
@@ -69,7 +72,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     setCompletedWorkoutResult: setResult,
     startWorkout,
     togglePauseWorkout,
-  } = useWorkout(useShallow((state) => ({
+  } = useWorkout(useShallow(/* EN: Selects only workout state and actions required by this screen. UK: Вибирає лише стан і дії тренування, потрібні цьому екрану. */ (state) => ({
     activeWorkout: state.activeWorkout,
     activeVerified: state.activeVerified,
     cancelWorkout: state.cancelWorkout,
@@ -113,19 +116,19 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     : 0;
 
   const setsFor = useCallback(
-    (exerciseId) => loggedSets.filter((set) => set.exerciseId === exerciseId),
+    /* EN: Returns recorded sets belonging to one exercise. UK: Повертає записані підходи, що належать одній вправі. */ (exerciseId) => loggedSets.filter(/* EN: Matches a set to the requested exercise identifier. UK: Зіставляє підхід із запитаним ідентифікатором вправи. */ (set) => set.exerciseId === exerciseId),
     [loggedSets],
   );
   const plannedSets = useMemo(
-    () => plan.reduce((total, item) => total + (Number(item.sets) || 0), 0),
+    /* EN: Computes the total planned set count for progress display. UK: Обчислює загальну заплановану кількість підходів для показу прогресу. */ () => plan.reduce(/* EN: Adds this exercise's planned sets to the total. UK: Додає заплановані підходи цієї вправи до загальної кількості. */ (total, item) => total + (Number(item.sets) || 0), 0),
     [plan],
   );
   const isPlanComplete = useMemo(
-    () => !!plan.length && plan.every((item) => exercisePlanProgress(item, setsFor(item.id)).complete),
+    /* EN: Reports whether every planned exercise has met its set and rep targets. UK: Визначає, чи кожна запланована вправа виконала цілі підходів і повторень. */ () => !!plan.length && plan.every(/* EN: Checks completion for one exercise against its recorded sets. UK: Перевіряє завершеність однієї вправи за її записаними підходами. */ (item) => exercisePlanProgress(item, setsFor(item.id)).complete),
     [plan, setsFor],
   );
-  const incompleteMessage = useMemo(() => {
-    const rows = plan.flatMap((item) => {
+  const incompleteMessage = useMemo(/* EN: Builds a localized explanation of unmet exercise targets before finishing. UK: Формує локалізоване пояснення невиконаних цілей вправ перед завершенням. */ () => {
+    const rows = plan.flatMap(/* EN: Emits a warning row only for an incomplete exercise. UK: Створює рядок попередження лише для незавершеної вправи. */ (item) => {
       const progress = exercisePlanProgress(item, setsFor(item.id));
       const missing = [
         progress.actualSets < progress.plannedSets
@@ -134,7 +137,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         progress.actualReps < progress.targetReps
           ? t('incompleteReps', { actual: progress.actualReps, planned: progress.targetReps })
           : null,
-      ].filter(Boolean);
+      ].filter(/* EN: Removes absent set or repetition warnings. UK: Видаляє відсутні попередження про підходи чи повторення. */ Boolean);
       return missing.length
         ? [`• ${translateCatalogName(t, 'exercise', item.name)}: ${missing.join(', ')}`]
         : [];
@@ -142,11 +145,11 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     return `${t('finishIncompleteIntro')}\n${rows.join('\n')}\n\n${t('finishIncompleteContinue')}`;
   }, [plan, setsFor, t]);
 
-  useEffect(() => {
+  useEffect(/* EN: Clears stale completion results when a new prepared workout appears. UK: Очищає застарілий результат завершення після появи нового підготовленого тренування. */ () => {
     if (preparedWorkout && result) setResult(null);
   }, [preparedWorkout, result, setResult]);
 
-  useEffect(() => {
+  useEffect(/* EN: Reconciles the current route with the verified authoritative workout lifecycle. UK: Узгоджує поточний маршрут із перевіреним авторитетним життєвим циклом тренування. */ () => {
     if (!activeVerified) return;
     // These replacements keep preparation, session, and completion routes aligned with the authoritative workout lifecycle state. / Ці заміни узгоджують маршрути підготовки, сесії та завершення з авторитетним станом життєвого циклу тренування.
     if (route.name === 'WorkoutPreparation' && activeWorkout) {
@@ -170,11 +173,11 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     }
   }, [activeVerified, activeWorkout, navigation, preparedWorkout, result, route.name, route.params?.date, route.params?.workoutRef]);
 
-  useEffect(() => {
+  useEffect(/* EN: Restores a missing active plan from its program when the snapshot lacks exercises. UK: Відновлює відсутній активний план із програми, якщо знімок не містить вправ. */ () => {
     if (!activeWorkout?.programId || plan.length) return;
-    apiFetch(`/workout-programs/${activeWorkout.programId}`, {}, userToken).then((response) => {
+    apiFetch(`/workout-programs/${activeWorkout.programId}`, {}, userToken).then(/* EN: Uses a successful program response to hydrate the prepared plan. UK: Використовує успішну відповідь програми для наповнення підготовленого плану. */ (response) => {
       if (response.ok) {
-        prepareWorkout((current) => current?.exercises?.length ? current : {
+        prepareWorkout(/* EN: Preserves an already hydrated plan or installs the fetched exercises. UK: Зберігає вже наповнений план або встановлює завантажені вправи. */ (current) => current?.exercises?.length ? current : {
           exercises: fromProgram(response.data),
           programId: response.data.id,
           title: response.data.name,
@@ -183,7 +186,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     });
   }, [activeWorkout?.programId, plan.length, prepareWorkout, userToken]);
 
-  useEffect(() => {
+  useEffect(/* EN: Converts a program passed through navigation into prepared workout state once. UK: Один раз перетворює програму з навігації на стан підготовленого тренування. */ () => {
     if (route.params?.program && !preparedWorkout && !result) {
       prepareWorkout({
         exercises: fromProgram(route.params.program),
@@ -193,12 +196,13 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     }
   }, [prepareWorkout, preparedWorkout, result, route.params?.program]);
 
-  useEffect(() => {
+  useEffect(/* EN: Advances the live timer only while an active workout is not paused. UK: Оновлює живий таймер лише під час активного тренування без паузи. */ () => {
     if (!activeWorkout || paused) return undefined;
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
+    const timer = setInterval(/* EN: Captures the current time for the next elapsed-time render. UK: Фіксує поточний час для наступного показу тривалості. */ () => setNow(Date.now()), 1000);
+    return /* EN: Stops the timer when pausing, leaving, or replacing the workout. UK: Зупиняє таймер під час паузи, виходу або заміни тренування. */ () => clearInterval(timer);
   }, [activeWorkout, paused]);
 
+  /** EN: Starts the prepared workout and replaces preparation with the live session. UK: Починає підготовлене тренування та замінює екран підготовки активною сесією. */
   const begin = async () => {
     const workout = await startWorkout(
       title,
@@ -208,9 +212,10 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     if (workout) navigation.replace('WorkoutSession');
   };
 
+  /** EN: Creates or edits one set, reconciles returned workout state, and tracks pending saves. UK: Створює або редагує один підхід, узгоджує повернений стан тренування та відстежує незавершені збереження. */
   const saveSet = async (item, values, existingSet) => {
     if (!activeWorkout) return false;
-    setPendingSaves((count) => count + 1);
+    setPendingSaves(/* EN: Blocks finishing while this set mutation is pending. UK: Блокує завершення, поки ця зміна підходу очікує відповіді. */ (count) => count + 1);
     try {
       const response = await apiFetch(
         existingSet
@@ -224,25 +229,27 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       );
       if (!response.ok || !response.data?.set) return false;
       if (response.data.workout) setActiveWorkout(response.data.workout);
-      setLoggedSets((current) => replaceRecordedSet(current, {
+      setLoggedSets(/* EN: Replaces an edited set or appends the newly recorded set. UK: Замінює відредагований підхід або додає щойно записаний. */ (current) => replaceRecordedSet(current, {
         ...existingSet,
         ...response.data.set,
         exerciseName: item.name,
       }));
       return true;
     } finally {
-      setPendingSaves((count) => Math.max(0, count - 1));
+      setPendingSaves(/* EN: Releases the pending-save slot even after a failed request. UK: Звільняє місце очікуваного збереження навіть після невдалого запиту. */ (count) => Math.max(0, count - 1));
     }
   };
 
+  /** EN: Removes one exercise from the mutable prepared plan and collapses it if open. UK: Видаляє одну вправу зі змінюваного підготовленого плану та згортає її, якщо вона відкрита. */
   const removeExercise = (id) => {
-    prepareWorkout((current) => ({
+    prepareWorkout(/* EN: Produces prepared state without the removed exercise. UK: Формує підготовлений стан без видаленої вправи. */ (current) => ({
       ...current,
-      exercises: (current?.exercises || plan).filter((item) => item.id !== id),
+      exercises: (current?.exercises || plan).filter(/* EN: Keeps every exercise except the requested identifier. UK: Залишає всі вправи, крім запитаного ідентифікатора. */ (item) => item.id !== id),
     }));
     if (expandedExerciseId === id) setExpandedExerciseId(null);
   };
 
+  /** EN: Finalizes the workout, derives completion statistics, and opens the immutable result route. UK: Завершує тренування, обчислює підсумкову статистику та відкриває незмінний маршрут результату. */
   const finish = async () => {
     const completedPlan = plan;
     const completedTitle = title;
@@ -250,30 +257,30 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     const completedWorkout = await finishWorkout(notes);
     if (!completedWorkout) return;
     setFinishOpen(false);
-    const rpeSets = loggedSets.filter((set) => set.rpe);
+    const rpeSets = loggedSets.filter(/* EN: Keeps sets that contribute to average RPE. UK: Залишає підходи, що беруть участь у середньому RPE. */ (set) => set.rpe);
     const plannedReps = plan.reduce(
-      (total, item) => total + (Number(item.sets) || 0) * (Number(item.reps) || 0),
+      /* EN: Adds this exercise's planned repetitions to the workout target. UK: Додає заплановані повторення цієї вправи до цілі тренування. */ (total, item) => total + (Number(item.sets) || 0) * (Number(item.reps) || 0),
       0,
     );
-    const actualReps = loggedSets.reduce((total, set) => total + (Number(set.reps) || 0), 0);
+    const actualReps = loggedSets.reduce(/* EN: Totals repetitions actually recorded across all sets. UK: Підсумовує фактично записані повторення в усіх підходах. */ (total, set) => total + (Number(set.reps) || 0), 0);
     const nextResult = {
       actualReps,
-      avgRpe: rpeSets.reduce((sum, set) => sum + set.rpe, 0) / (rpeSets.length || 1),
+      avgRpe: rpeSets.reduce(/* EN: Sums available RPE values for the result average. UK: Підсумовує наявні значення RPE для середнього результату. */ (sum, set) => sum + set.rpe, 0) / (rpeSets.length || 1),
       elapsed: typeof completedWorkout.durationSeconds === 'number'
         ? completedWorkout.durationSeconds
         : elapsed,
-      exerciseIds: plan.map((item) => item.id).filter(Number.isInteger),
+      exerciseIds: plan.map(/* EN: Extracts exercise identifiers for matching an existing program. UK: Витягує ідентифікатори вправ для пошуку відповідної програми. */ (item) => item.id).filter(Number.isInteger),
       exercises: plan.length,
-      failure: loggedSets.filter((set) => set.isFailure).length,
+      failure: loggedSets.filter(/* EN: Counts sets explicitly marked as muscular failure. UK: Підраховує підходи, явно позначені як виконані до відмови. */ (set) => set.isFailure).length,
       plannedReps,
       sets: loggedSets.length,
       totalTime: completedWorkout.finishedAt
         ? Math.max(0, Math.floor((new Date(completedWorkout.finishedAt).getTime() - new Date(completedWorkout.createdAt).getTime()) / 1000))
         : totalTime,
-      volume: loggedSets.reduce((sum, set) => sum + set.weight * set.reps, 0),
+      volume: loggedSets.reduce(/* EN: Totals training volume as weight multiplied by repetitions. UK: Підсумовує обсяг тренування як вагу, помножену на повторення. */ (sum, set) => sum + set.weight * set.reps, 0),
       programDraft: {
         description: '',
-        exercises: plan.map((item) => ({
+        exercises: plan.map(/* EN: Converts completed-plan exercises into a reusable program draft. UK: Перетворює вправи завершеного плану на чернетку програми для повторного використання. */ (item) => ({
           exerciseId: item.id,
           reps: Number(item.reps) || undefined,
           sets: Math.max(Number(item.sets) || 1, setsFor(item.id).length),
@@ -294,12 +301,14 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     });
   };
 
+  /** EN: Clears completion state and returns to the root training plan. UK: Очищає стан завершення та повертає до кореневого плану тренувань. */
   const returnToTrainingPlan = () => {
     setResult(null);
     if (navigation.canGoBack()) navigation.popToTop();
     else navigation.navigate('TrainingHome');
   };
 
+  /** EN: Checks for an equivalent saved program before deciding whether to offer creation. UK: Перевіряє наявність рівноцінної збереженої програми перед пропозицією створення. */
   const completeResult = async () => {
     if (checkingProgram || !result) return;
     if (!result.exerciseIds.length) {
@@ -326,6 +335,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     }
   };
 
+  /** EN: Leaves the result flow and opens Workshop in new-program mode. UK: Залишає підсумковий потік і відкриває Майстерню в режимі створення програми. */
   const createProgramFromResult = () => {
     setSavePromptOpen(false);
     const tabs = navigation.getParent();
@@ -345,7 +355,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       <View style={styles.empty}>
         <Text style={styles.emptyTitle}>{t('noWorkoutSelected')}</Text>
         <Text style={styles.muted}>{t('selectWorkoutHint')}</Text>
-        <Pressable onPress={() => navigation.goBack()}><Text style={styles.link}>{t('backToTrainingPlan')}</Text></Pressable>
+        <Pressable onPress={/* EN: Returns from the empty state to the previous training screen. UK: Повертає з порожнього стану до попереднього екрана тренувань. */ () => navigation.goBack()}><Text style={styles.link}>{t('backToTrainingPlan')}</Text></Pressable>
       </View>
     </SafeAreaView>;
   }
@@ -425,7 +435,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   return <SafeAreaView style={styles.safe}>
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Pressable accessibilityLabel={t('back')} accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.headerButton}>
+        <Pressable accessibilityLabel={t('back')} accessibilityRole="button" onPress={/* EN: Returns to the previous route without mutating workout state. UK: Повертає до попереднього маршруту без зміни стану тренування. */ () => navigation.goBack()} style={styles.headerButton}>
           <Ionicons color={theme.textPrimary} name="chevron-back" size={26} />
         </Pressable>
         <Text style={styles.headerTitle}>{t('activeWorkout').toUpperCase()}</Text>
@@ -456,7 +466,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       </View>
 
       <View style={styles.exerciseList}>
-        {plan.map((item, index) => <ActiveExerciseCard
+        {plan.map(/* EN: Renders an interactive logging card for each planned exercise. UK: Відображає інтерактивну картку запису для кожної запланованої вправи. */ (item, index) => <ActiveExerciseCard
           compact={compact}
           expanded={expandedExerciseId === item.id}
           index={index}
@@ -465,7 +475,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           onDetails={setSelectedExercise}
           onRemove={removeExercise}
           onSave={saveSet}
-          onToggle={() => setExpandedExerciseId((current) => current === item.id ? null : item.id)}
+          onToggle={/* EN: Expands this exercise or collapses it when already open. UK: Розгортає цю вправу або згортає її, якщо вона вже відкрита. */ () => setExpandedExerciseId(/* EN: Toggles the captured exercise identifier against the current expansion. UK: Перемикає ідентифікатор вибраної вправи відносно поточного розгортання. */ (current) => current === item.id ? null : item.id)}
           recordingDisabled={!activeWorkout}
           sets={setsFor(item.id)}
           t={t}
@@ -485,7 +495,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       <Pressable
         accessibilityRole="button"
         disabled={!activeWorkout || pendingSaves > 0}
-        onPress={() => setFinishOpen(true)}
+        onPress={/* EN: Opens finish confirmation after all set saves settle. UK: Відкриває підтвердження завершення після збереження всіх підходів. */ () => setFinishOpen(true)}
         style={[
           styles.finishButton,
           activeWorkout && pendingSaves === 0 && styles.finishActive,
@@ -496,7 +506,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       </Pressable>
       <Pressable
         accessibilityRole="button"
-        onPress={() => {
+        onPress={/* EN: Confirms cancellation for an active workout or discards preparation immediately. UK: Запитує підтвердження для активного тренування або одразу скидає підготовку. */ () => {
           if (activeWorkout) setCancelOpen(true);
           else { clearPreparedWorkout(); returnToTrainingPlan(); }
         }}
@@ -506,12 +516,12 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       </Pressable>
     </ScrollView>
 
-    <ExerciseDetailsModal exercise={selectedExercise} onClose={() => setSelectedExercise(null)} visible={!!selectedExercise} />
+    <ExerciseDetailsModal exercise={selectedExercise} onClose={/* EN: Closes exercise details and clears their selection. UK: Закриває деталі вправи та очищає її вибір. */ () => setSelectedExercise(null)} visible={!!selectedExercise} />
     <ConfirmDialog
       cancelLabel={t('keepTraining')}
       confirmLabel={t('finish')}
       message={isPlanComplete ? t('finishSaveMessage') : incompleteMessage}
-      onCancel={() => setFinishOpen(false)}
+      onCancel={/* EN: Dismisses finish confirmation and continues the workout. UK: Закриває підтвердження завершення та продовжує тренування. */ () => setFinishOpen(false)}
       onConfirm={finish}
       title={t('finishWorkout')}
       visible={finishOpen}
@@ -520,8 +530,8 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       cancelLabel={t('keepWorkout')}
       confirmLabel={t('cancelWorkout').replace('?', '')}
       message={t('cancelWorkoutMessage')}
-      onCancel={() => setCancelOpen(false)}
-      onConfirm={async () => { await cancelWorkout(); setCancelOpen(false); returnToTrainingPlan(); }}
+      onCancel={/* EN: Dismisses cancellation and keeps the workout active. UK: Закриває скасування та залишає тренування активним. */ () => setCancelOpen(false)}
+      onConfirm={/* EN: Cancels the workout on the server, closes the dialog, and returns to training. UK: Скасовує тренування на сервері, закриває діалог і повертає до тренувань. */ async () => { await cancelWorkout(); setCancelOpen(false); returnToTrainingPlan(); }}
       title={t('cancelWorkout')}
       visible={cancelOpen}
     />
