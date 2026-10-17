@@ -1,3 +1,5 @@
+// EN: Wraps notification inbox, preference, device-registration, read-state, and delivery-related API calls.
+// UK: Інкапсулює API-виклики inbox, налаштувань, реєстрації пристрою, read-state та доставки сповіщень.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import { apiRequest } from './api';
