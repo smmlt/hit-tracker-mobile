@@ -2,6 +2,7 @@
 // UK: Визначає залежні від теми layout, spacing та interaction styles для AnalyticsPeriodPicker.
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by AnalyticsPeriodPicker. UK: Створює залежну від теми таблицю стилів для AnalyticsPeriodPicker. */
 export const createStyles = (theme) => StyleSheet.create({
   periodScroll: { width: '100%' },
   periodRow: { alignItems: 'center', flexDirection: 'row', flexGrow: 1, gap: 6, width: '100%' },
