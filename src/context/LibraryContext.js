@@ -1,3 +1,5 @@
+// EN: Adapts the Zustand library store to the legacy context-shaped API and localizes catalog entities for consuming screens.
+// UK: Адаптує Zustand-сховище бібліотеки до сумісного context API та локалізує сутності каталогу для екранів.
 import { useContext, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { LanguageContext } from '../localization/LanguageContext';
