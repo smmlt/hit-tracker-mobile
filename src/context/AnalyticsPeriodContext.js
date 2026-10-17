@@ -1,3 +1,5 @@
+// EN: Shares the selected analytics period across overview and detail screens so every chart requests the same time window.
+// UK: Передає вибраний період аналітики між оглядовим і детальними екранами, щоб усі графіки запитували однаковий часовий проміжок.
 import React, { createContext, useContext, useMemo, useState } from 'react';
 
 const AnalyticsPeriodContext = createContext(null);
