@@ -1,3 +1,5 @@
+// EN: Normalizes partial observability API data into stable component, metric, alert, log, and trace models for the admin UI.
+// UK: Нормалізує часткові observability-дані API у стабільні моделі компонентів, метрик, alerts, logs і traces для admin UI.
 const componentIds = [
   'api', 'relay', 'analytics', 'search', 'postgres', 'prometheus',
   'loki', 'jaeger', 'grafana', 'minio', 'event-pipeline',
