@@ -1,3 +1,6 @@
+// EN: Proves the production contract for scheduled-card tones, date selection, and stable planned/completed grouping; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт кольорових станів картки розкладу, вибору дати та стабільного групування запланованих і завершених тренувань; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { calendarDaySelection, scheduleCardTone, sortScheduleAssignments } from '../src/utils/scheduleCard.js';
