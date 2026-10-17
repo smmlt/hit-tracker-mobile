@@ -1,3 +1,6 @@
+// EN: Proves the production contract for analytics request construction, normalized failures, workout summaries, and localized exercise names; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт формування аналітичних запитів, нормалізованих помилок, підсумків тренувань і локалізованих назв вправ; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
