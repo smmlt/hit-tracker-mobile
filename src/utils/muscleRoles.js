@@ -1,3 +1,5 @@
+// EN: Normalizes muscle roles and splits selected muscles into primary and secondary groups for forms and summaries.
+// UK: Нормалізує ролі мʼязів і розділяє вибрані мʼязи на primary/secondary групи для форм і підсумків.
 export const muscleRole = (role) => role === 'secondary' ? 'secondary' : 'primary';
 
 export const splitMusclesByRole = (muscles = []) => muscles.reduce(
