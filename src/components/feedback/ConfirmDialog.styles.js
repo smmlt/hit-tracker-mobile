@@ -1,3 +1,5 @@
+// EN: Defines the theme-aware layout, spacing, and interaction styles used by ConfirmDialog.
+// UK: Визначає залежні від теми layout, spacing та interaction styles для ConfirmDialog.
 import { StyleSheet } from 'react-native';
 
 export const createStyles = (theme, compact = false) => StyleSheet.create({
