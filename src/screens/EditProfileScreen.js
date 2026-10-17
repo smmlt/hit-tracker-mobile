@@ -1,3 +1,6 @@
+/**
+ * Edits profile fields for the authenticated user, validating and saving changes before returning to the profile flow. / Редагує поля профілю автентифікованого користувача, перевіряє й зберігає зміни перед поверненням до потоку профілю.
+ */
 import React, { useContext, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
