@@ -1,3 +1,5 @@
+// EN: Application composition: providers, startup hydration, splash handling, and the root navigator.
+// UK: Композиція застосунку: провайдери, початкове відновлення даних, splash-екран і кореневий навігатор.
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, AppState, Easing, Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
