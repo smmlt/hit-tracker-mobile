@@ -1,3 +1,5 @@
+// EN: Transforms analytics API values into chart rows, comparisons, labels, and localized exercise summaries.
+// UK: Перетворює analytics API-значення на ряди графіків, порівняння, labels і локалізовані підсумки вправ.
 import { translateCatalogName } from '../localization/catalog.js';
 
 export const volumeDelta = (thisWeek, lastWeek) =>
