@@ -1,3 +1,5 @@
+// EN: Lets forms choose, preview, replace, or remove an image and reports the resulting media state upward.
+// UK: Дозволяє формам вибирати, переглядати, замінювати або видаляти image та передає новий media-state власнику.
 import React from 'react';
 import { View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
