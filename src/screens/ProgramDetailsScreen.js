@@ -1,3 +1,6 @@
+/**
+ * Displays a workout program’s schedule and actions, combining API data with workout state and confirming destructive program operations before navigation. / Показує розклад і дії програми тренувань, поєднує дані API зі станом тренування та підтверджує небезпечні операції над програмою перед навігацією.
+ */
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -120,6 +123,7 @@ export default function ProgramDetailsScreen({ navigation, route }) {
       )}
 
       <ConfirmDialog
+        // Removing a program changes the library, so the destructive operation stays behind an explicit confirmation. / Видалення програми змінює бібліотеку, тому небезпечна операція доступна лише після явного підтвердження.
         visible={removeOpen}
         title={t('removePlanTitle')}
         message={t('removePlanMessage')}
