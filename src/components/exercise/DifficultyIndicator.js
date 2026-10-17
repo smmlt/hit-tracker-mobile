@@ -1,3 +1,5 @@
+// EN: Visualizes an exercise or program difficulty level with the shared five-step color scale.
+// UK: Візуалізує складність вправи або програми спільною пʼятиступеневою кольоровою шкалою.
 import React from 'react';
 import { View } from 'react-native';
 import DifficultyBar from '../../assets/workshop/DifficultyBar.svg';
