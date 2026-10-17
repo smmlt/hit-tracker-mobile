@@ -1,3 +1,5 @@
+// EN: Renders remote or local media with a stable placeholder and load-error fallback.
+// UK: Відображає remote/local media зі стабільним placeholder і fallback після помилки завантаження.
 import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
