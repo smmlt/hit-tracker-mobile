@@ -2,6 +2,7 @@
 // UK: Визначає залежні від теми layout, spacing та interaction styles для ConfirmDialog.
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by ConfirmDialog. UK: Створює залежну від теми таблицю стилів для ConfirmDialog. */
 export const createStyles = (theme, compact = false) => StyleSheet.create({
   modalOverlay: {
     position: 'absolute',
