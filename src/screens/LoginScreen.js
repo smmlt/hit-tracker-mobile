@@ -1,3 +1,6 @@
+/**
+ * Authenticates a user through credentials or OAuth, persists the resulting session through AuthContext, and replaces the auth route with the main app on success. / Автентифікує користувача за обліковими даними або OAuth, зберігає сесію через AuthContext і замінює маршрут автентифікації головним застосунком після успіху.
+ */
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -103,6 +106,7 @@ export default function LoginScreen({ navigation, route }) {
         fadeAnim.setValue(0);
         setToastVisible(false);
         void AsyncStorage.setItem('pendingRegistrationEmail', emailRef.current.trim().toLowerCase())
+          // Replace the auth route only after the pending email is stored for the registration flow. / Замінюємо auth-маршрут лише після збереження email для потоку реєстрації.
           .finally(() => navigation.replace('Register'));
       },
     });
