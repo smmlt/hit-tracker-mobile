@@ -2,6 +2,7 @@
 // UK: Визначає залежні від теми layout, spacing та interaction styles для ProgramCard.
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by ProgramCard. UK: Створює залежну від теми таблицю стилів для ProgramCard. */
 export const createStyles = (theme) => StyleSheet.create({
   info: { flex: 1, gap: 4, minWidth: 0 },
   card: {
