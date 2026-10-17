@@ -1,3 +1,5 @@
+// EN: Defines mobile authentication requests for registration, verification, login, refresh, password recovery, OAuth, and MFA.
+// UK: Визначає mobile-запити автентифікації для реєстрації, підтвердження, входу, refresh, відновлення пароля, OAuth і MFA.
 import { Platform } from 'react-native';
 import { apiRequest } from './api';
 
