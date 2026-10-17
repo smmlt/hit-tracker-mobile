@@ -1,3 +1,5 @@
+// EN: Theme color tokens define the shared light and dark palette consumed by ThemeContext and reusable UI.
+// UK: Токени кольорів теми визначають спільні світлу й темну палітри для ThemeContext і повторно використовуваного UI.
 export const palette = {
   accent: '#F00D22',
   orange: '#F98300',
