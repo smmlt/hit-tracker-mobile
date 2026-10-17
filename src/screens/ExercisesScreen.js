@@ -1,3 +1,6 @@
+/**
+ * Browses the exercise catalog with search and category/filter state, loading results from the catalog service and opening exercise details. / Переглядає каталог вправ зі станом пошуку та категорій/фільтрів, завантажує результати з сервісу каталогу й відкриває деталі вправи.
+ */
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
