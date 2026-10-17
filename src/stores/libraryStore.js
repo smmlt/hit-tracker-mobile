@@ -1,3 +1,5 @@
+// EN: Owns the exercise/program library cache, filters, reactions, personal edits, and request sequencing shared by Workshop screens.
+// UK: Керує кешем вправ/програм, фільтрами, реакціями, персональними змінами та послідовністю запитів для Workshop-екранів.
 import { create } from 'zustand';
 import { apiRequest } from '../services/api';
 
