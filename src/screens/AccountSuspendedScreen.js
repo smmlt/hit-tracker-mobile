@@ -1,3 +1,6 @@
+/**
+ * Explains the suspended-account state and lets the authenticated user dismiss the suspension notice; it reads suspension data from AuthContext and returns through the supplied navigation flow. / Пояснює стан призупиненого облікового запису та дає автентифікованому користувачеві змогу закрити повідомлення; дані бере з AuthContext і повертається через переданий навігаційний потік.
+ */
 import React, { useContext } from 'react';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
