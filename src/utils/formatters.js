@@ -1,3 +1,5 @@
+// EN: Formats workout durations for the live timer and human-readable summaries.
+// UK: Форматує тривалість тренування для live timer і зрозумілих підсумків.
 // src/utils/formatters.js
 
 // ⏱️ Формат для живого таймера (00:00:00)
