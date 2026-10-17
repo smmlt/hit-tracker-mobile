@@ -1,3 +1,5 @@
+// EN: Defines the theme-aware layout, spacing, and interaction styles used by ui.
+// UK: Визначає залежні від теми layout, spacing та interaction styles для ui.
 import { StyleSheet } from 'react-native';
 
 export const createStyles = (theme) => StyleSheet.create({
