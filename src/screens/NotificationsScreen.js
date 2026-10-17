@@ -1,3 +1,6 @@
+/**
+ * Loads and refreshes the user’s notifications, marks items read, and safely opens notification links while preserving loading and error feedback. / Завантажує й оновлює сповіщення користувача, позначає елементи прочитаними та безпечно відкриває посилання зі збереженням зворотного зв’язку про завантаження й помилки.
+ */
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Linking, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
