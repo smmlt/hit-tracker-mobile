@@ -1,3 +1,5 @@
+// EN: Shows an administrative user profile and emits guarded role, session, suspension, and deletion actions.
+// UK: Показує admin-профіль користувача та передає захищені дії ролі, сесій, блокування й видалення.
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, Text, View } from 'react-native';
 
