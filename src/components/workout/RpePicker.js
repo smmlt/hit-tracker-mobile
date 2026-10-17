@@ -1,3 +1,5 @@
+// EN: Captures perceived exertion on the bounded 1–10 scale and reports the selected value to a set form.
+// UK: Збирає perceived exertion у межах шкали 1–10 і передає вибране значення формі підходу.
 import React from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
