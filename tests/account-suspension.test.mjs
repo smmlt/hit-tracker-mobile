@@ -1,3 +1,6 @@
+// EN: Proves the production contract for account suspension date normalization, server-error persistence, and the guarded suspension workflow; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт нормалізації дати блокування облікового запису, збереження помилок сервера та захищеного процесу блокування; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
