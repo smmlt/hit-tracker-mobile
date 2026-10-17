@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
+/** EN: Builds the theme-aware style sheet used by AuthComponents. UK: Створює залежну від теми таблицю стилів для AuthComponents. */
 export const createStyles = (theme) => StyleSheet.create({
   backButton: { height: 40, justifyContent: 'center', marginBottom: 16, marginTop: 8, width: 40 },
   inputGroup: { marginBottom: 16 },
