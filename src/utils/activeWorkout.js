@@ -1,3 +1,5 @@
+// EN: Contains presentation helpers for active-workout effort, set values, status labels, and exercise progress.
+// UK: Містить presentation helpers для навантаження, значень підходів, status labels і прогресу вправ активного тренування.
 import { palette } from '../constants/colors.js';
 
 const rpeColors = [
