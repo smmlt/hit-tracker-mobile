@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by OnboardingScreen. UK: Створює залежну від теми таблицю стилів для OnboardingScreen. */
 export const createStyles = (width, height) => {
   const compact = width < 360 || height < 740;
   const contentWidth = Math.min(width, 430) - 28;
