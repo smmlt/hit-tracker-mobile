@@ -1,3 +1,5 @@
+// EN: Embeds supported exercise videos in the browser while preserving the native player interface.
+// UK: Вбудовує підтримувані відео вправ у browser зі збереженням інтерфейсу native-player.
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { styles } from './ExerciseVideoPlayer.web.styles.js';
