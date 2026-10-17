@@ -1,3 +1,5 @@
+// EN: Presents service health, metrics, alerts, logs, and traces from the normalized observability model.
+// UK: Показує стан сервісів, метрики, alerts, logs і traces з нормалізованої observability-моделі.
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
