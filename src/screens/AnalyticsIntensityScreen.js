@@ -1,3 +1,6 @@
+/**
+ * Visualizes workout intensity across the selected period from analytics-service data, with period changes triggering a fresh request and chart transformation. / Візуалізує інтенсивність тренувань за вибраний період на основі сервісних даних; зміна періоду запускає новий запит і перетворення графіка.
+ */
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
