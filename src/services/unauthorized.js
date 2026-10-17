@@ -1,3 +1,5 @@
+// EN: Registers the single global handler that turns an unrecoverable authenticated 401 response into local session cleanup.
+// UK: Реєструє єдиний глобальний handler, який після невідновлюваної авторизованої відповіді 401 очищає локальну сесію.
 let handler = null;
 let refreshHandler = null;
 let refreshPromise = null;
