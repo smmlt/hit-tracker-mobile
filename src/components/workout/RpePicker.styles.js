@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by RpePicker. UK: Створює залежну від теми таблицю стилів для RpePicker. */
 export const createStyles = (theme, compact = false) => StyleSheet.create({
   disabled: { opacity: 0.45 },
   dot: { borderRadius: 7, height: 14, width: 14 },
