@@ -1,3 +1,5 @@
+// EN: Stores refresh credentials in SecureStore on native platforms while intentionally keeping web access tokens outside persistent storage.
+// UK: Зберігає refresh credentials у SecureStore на native-платформах і навмисно не зберігає web access tokens у постійному сховищі.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
