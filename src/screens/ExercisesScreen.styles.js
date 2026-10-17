@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../constants/colors';
+/** EN: Builds the theme-aware style sheet used by ExercisesScreen. UK: Створює залежну від теми таблицю стилів для ExercisesScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.background },
   mainContainer: { flex: 1, padding: 20 },
