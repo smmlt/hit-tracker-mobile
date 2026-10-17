@@ -2,6 +2,7 @@
 // UK: Приймає notification links лише для налаштованого web origin, не дозволяючи push data відкрити довільну зовнішню адресу.
 import { WEB_APP_URL } from './shareLinks.js';
 
+/** EN: Returns a normalized HTTPS app or YouTube URL and rejects malformed or untrusted notification destinations. UK: Повертає нормалізовану HTTPS-адресу застосунку або YouTube та відхиляє пошкоджені чи недовірені адреси зі сповіщень. */
 export function safeNotificationUrl(raw) {
   if (typeof raw !== 'string') return null;
   try {
