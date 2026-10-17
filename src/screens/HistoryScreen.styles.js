@@ -1,3 +1,6 @@
+/**
+ * Layout styles used by HistoryScreen, defining its themed spacing, typography, controls, and responsive geometry. / Стилі макета для HistoryScreen, що визначають тематичні відступи, типографіку, елементи керування та адаптивну геометрію.
+ */
 import { Platform, StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
