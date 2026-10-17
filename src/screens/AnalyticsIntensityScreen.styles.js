@@ -3,6 +3,7 @@
  */
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by AnalyticsIntensityScreen. UK: Створює залежну від теми таблицю стилів для AnalyticsIntensityScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   screen: { backgroundColor: theme.background, flex: 1 },
   content: { alignSelf: 'center', gap: 10, maxWidth: 800, paddingBottom: 36, paddingHorizontal: 20, paddingTop: 8, width: '100%' },
