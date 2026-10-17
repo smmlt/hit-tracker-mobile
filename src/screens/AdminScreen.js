@@ -28,12 +28,14 @@ const colors = {
   super_admin: palette.accent,
 };
 
+/** EN: Verifies staff access and coordinates user, notification, observability, and catalog administration. UK: Перевіряє доступ персоналу та координує керування користувачами, сповіщеннями, спостережуваністю й каталогом. */
 export default function AdminScreen({ navigation }) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const s = useWorkshopStyles();
   const { userToken } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
+  /** EN: Returns the localized display label for an account role. UK: Повертає локалізовану назву ролі облікового запису. */
   const roleLabel = (roleName) => t(`role_${roleName}`);
   const {
     profile,
@@ -62,14 +64,14 @@ export default function AdminScreen({ navigation }) {
   const [notificationTarget, setNotificationTarget] = useState(null);
   const [notificationComposerRevision, setNotificationComposerRevision] = useState(0);
   const [hasNotificationDraft, setHasNotificationDraft] = useState(false);
-  const handleDraftStateChange = useCallback((value) => setHasNotificationDraft(value), []);
+  const handleDraftStateChange = useCallback(/* EN: Mirrors whether the notification composer has a recoverable draft. UK: Відображає, чи має редактор сповіщень чернетку, яку можна відновити. */ (value) => setHasNotificationDraft(value), []);
   const canContent = ["moderator", "admin", "super_admin"].includes(verifiedRole);
   const canUsers = ["admin", "super_admin"].includes(verifiedRole);
   const isSystemOwner = profile?.isSystemOwner === true;
   const sections = canUsers
     ? ["users", "notifications", "system", "programs", "exercises"]
     : ["programs", "exercises"];
-  const verifyAccess = useCallback(async () => {
+  const verifyAccess = useCallback(/* EN: Refreshes the profile and derives server-authoritative admin access. UK: Оновлює профіль і визначає підтверджений сервером адміністративний доступ. */ async () => {
     setAccessState("checking");
     const freshProfile = await refreshProfile();
     const nextRole = freshProfile?.role || null;
@@ -80,24 +82,24 @@ export default function AdminScreen({ navigation }) {
         : "denied",
     );
   }, [refreshProfile]);
-  useEffect(() => {
+  useEffect(/* EN: Verifies access on entry and whenever profile refresh behavior changes. UK: Перевіряє доступ під час входу та після зміни механізму оновлення профілю. */ () => {
     verifyAccess();
   }, [verifyAccess]);
-  useEffect(() => {
+  useEffect(/* EN: Checks whether this administrator has a non-expired saved notification draft. UK: Перевіряє, чи має цей адміністратор незастарілу збережену чернетку сповіщення. */ () => {
     if (!profile?.id) return undefined;
     let active = true;
-    AsyncStorage.getItem(ADMIN_NOTIFICATION_DRAFT_KEY(profile.id)).then((raw) => {
+    AsyncStorage.getItem(ADMIN_NOTIFICATION_DRAFT_KEY(profile.id)).then(/* EN: Validates draft age before showing the resume reminder. UK: Перевіряє вік чернетки перед показом нагадування про відновлення. */ (raw) => {
       if (!active) return;
       if (!raw) { setHasNotificationDraft(false); return; }
       try { setHasNotificationDraft(Date.now() - JSON.parse(raw).updatedAt <= ADMIN_NOTIFICATION_DRAFT_TTL_MS); } catch (_) { setHasNotificationDraft(false); }
     });
-    return () => { active = false; };
+    return /* EN: Prevents a late storage result from updating an unmounted screen. UK: Не дозволяє пізньому результату сховища оновити демонтований екран. */ () => { active = false; };
   }, [profile?.id]);
-  useEffect(() => {
+  useEffect(/* EN: Redirects moderators away from sections reserved for administrators. UK: Перенаправляє модераторів із розділів, призначених лише для адміністраторів. */ () => {
     if (!canUsers && ["users", "notifications", "system"].includes(section)) setSection("programs");
   }, [canUsers, section]);
   const loadUsers = useCallback(
-    async (targetPage = 1) => {
+    /* EN: Loads one filtered user page only after administrative access is confirmed. UK: Завантажує одну відфільтровану сторінку користувачів лише після підтвердження адміністративного доступу. */ async (targetPage = 1) => {
       if (accessState !== "allowed" || !canUsers) return;
       setLoading(true);
       setError("");
@@ -117,17 +119,18 @@ export default function AdminScreen({ navigation }) {
     },
     [accessState, canUsers, onlineOnly, search, userToken],
   );
-  useEffect(() => {
+  useEffect(/* EN: Refreshes the user list when its memoized filters or access state change. UK: Оновлює список користувачів після зміни збережених фільтрів або стану доступу. */ () => {
     loadUsers();
   }, [loadUsers]);
+  /** EN: Persists the selected role and refreshes list and detail views consistently. UK: Зберігає вибрану роль та узгоджено оновлює список і деталі користувача. */
   const updateRole = async () => {
     setBusy(true);
     setError("");
     try {
       await adminService.updateRole(selected.id, role, userToken);
       await loadUsers(page);
-      setDetailUser((current) => current?.id === selected.id ? { ...current, role } : current);
-      setDetailsRevision((current) => current + 1);
+      setDetailUser(/* EN: Updates the open detail record only when it is the edited user. UK: Оновлює відкритий запис деталей лише для редагованого користувача. */ (current) => current?.id === selected.id ? { ...current, role } : current);
+      setDetailsRevision(/* EN: Forces dependent security details to reload after a role change. UK: Примушує залежні дані безпеки оновитися після зміни ролі. */ (current) => current + 1);
       setSelected(null);
       setMessage(t('roleUpdated'));
     } catch (e) {
@@ -136,6 +139,7 @@ export default function AdminScreen({ navigation }) {
       setBusy(false);
     }
   };
+  /** EN: Deletes the selected account, closes related views, and reloads a valid page. UK: Видаляє вибраний обліковий запис, закриває пов’язані подання та перезавантажує чинну сторінку. */
   const deleteUser = async () => {
     if (busy) return;
     setBusy(true);
@@ -143,7 +147,7 @@ export default function AdminScreen({ navigation }) {
     try {
       await adminService.deleteUser(selected.id, userToken);
       setConfirmDelete(false);
-      setDetailUser((current) => current?.id === selected.id ? null : current);
+      setDetailUser(/* EN: Closes details if they display the deleted account. UK: Закриває деталі, якщо вони показують видалений обліковий запис. */ (current) => current?.id === selected.id ? null : current);
       setSelected(null);
       await loadUsers(users.length === 1 && page > 1 ? page - 1 : page);
       setMessage(t('userDeleted'));
@@ -168,6 +172,7 @@ export default function AdminScreen({ navigation }) {
       </View>
     );
   const totalPages = Math.max(1, Math.ceil(total / 25));
+  /** EN: Opens role management for a user and clears stale action errors. UK: Відкриває керування роллю користувача та очищає застарілі помилки дій. */
   const openManage = (user) => {
     setSelected(user);
     setRole(user.role);
@@ -185,7 +190,7 @@ export default function AdminScreen({ navigation }) {
             </Text>
           </View>
           <View style={styles.topActions}>
-            <Button secondary onPress={() => navigation.replace('MainApp')}>{t('backToApp')}</Button>
+            <Button secondary onPress={/* EN: Replaces the admin route with the main application. UK: Замінює адміністративний маршрут основним застосунком. */ () => navigation.replace('MainApp')}>{t('backToApp')}</Button>
             <View style={styles.identity}>
               <View
               style={[styles.dot, { backgroundColor: colors[verifiedRole] }]}
@@ -197,7 +202,7 @@ export default function AdminScreen({ navigation }) {
           </View>
         </View>
         {hasNotificationDraft && (
-          <Pressable accessibilityRole="button" accessibilityLabel={t('adminNotificationDraftReminder')} onPress={() => { setSection('notifications'); setNotificationTarget(null); setNotificationComposerRevision((value) => value + 1); }} style={styles.draftReminder}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('adminNotificationDraftReminder')} onPress={/* EN: Reopens the general notification composer and requests draft hydration. UK: Повторно відкриває загальний редактор сповіщень і запускає відновлення чернетки. */ () => { setSection('notifications'); setNotificationTarget(null); setNotificationComposerRevision(/* EN: Remounts the composer so it reloads the saved draft. UK: Перемонтовує редактор, щоб він повторно завантажив збережену чернетку. */ (value) => value + 1); }} style={styles.draftReminder}>
             <Text style={s.text}>{t('adminNotificationDraftReminder')}</Text>
           </Pressable>
         )}
@@ -207,13 +212,13 @@ export default function AdminScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabRow}
           >
-            {sections.map((item) => (
+            {sections.map(/* EN: Renders one role-appropriate administration tab. UK: Відображає одну доступну для ролі вкладку адміністрування. */ (item) => (
               <Pressable
                 accessibilityRole="tab"
                 accessibilityState={{ selected: section === item }}
                 key={item}
                 style={[styles.tab, section === item && styles.activeTab]}
-                onPress={() => {
+                onPress={/* EN: Switches sections and clears state owned by the previous section. UK: Перемикає розділ і очищає стан, що належав попередньому розділу. */ () => {
                   setSection(item);
                   setNotificationTarget(null);
                   setDetailUser(null);
@@ -237,16 +242,16 @@ export default function AdminScreen({ navigation }) {
           <AdminUserDetails
             userId={detailUser.id}
             revision={detailsRevision}
-            onBack={() => setDetailUser(null)}
+            onBack={/* EN: Returns from user details to the user grid. UK: Повертає з деталей користувача до сітки користувачів. */ () => setDetailUser(null)}
             onManage={openManage}
-            onNotify={(user) => {
+            onNotify={/* EN: Opens the notification composer targeted to this user. UK: Відкриває редактор сповіщення, адресованого цьому користувачеві. */ (user) => {
               setNotificationTarget(user.id);
               setDetailUser(null);
               setSection('notifications');
             }}
             manageDisabled={detailUser.id === profile.id || (!isSystemOwner && detailUser.role === "super_admin")}
             canSecurityActions={verifiedRole === "super_admin" && detailUser.id !== profile.id && !detailUser.isSystemOwner && (isSystemOwner || detailUser.role !== "super_admin")}
-            onSecurityChanged={() => loadUsers(page)}
+            onSecurityChanged={/* EN: Refreshes presence and security-sensitive account state after an action. UK: Оновлює присутність і чутливий стан облікового запису після безпекової дії. */ () => loadUsers(page)}
           />
         ) : section === "users" ? (
           <View style={styles.usersSection}>
@@ -255,7 +260,7 @@ export default function AdminScreen({ navigation }) {
                 <Text style={s.title}>{t('users')}</Text>
                 <Text style={s.muted}>{t('accountsRoles', { count: total })}</Text>
               </View>
-              <Button secondary onPress={() => loadUsers(page)}>
+              <Button secondary onPress={/* EN: Reloads the current user page without changing filters. UK: Повторно завантажує поточну сторінку користувачів без зміни фільтрів. */ () => loadUsers(page)}>
                 {t('refresh')}
               </Button>
             </View>
@@ -265,17 +270,17 @@ export default function AdminScreen({ navigation }) {
                 label={t('searchEmailUsername')}
                 value={query}
                 onChangeText={setQuery}
-                onSubmitEditing={() => setSearch(query.trim())}
+                onSubmitEditing={/* EN: Commits the trimmed search query from the keyboard. UK: Застосовує очищений пошуковий запит із клавіатури. */ () => setSearch(query.trim())}
               />
-              <Button onPress={() => setSearch(query.trim())}>{t('search')}</Button>
-              <Button secondary={!onlineOnly} onPress={() => setOnlineOnly((value) => !value)}>
+              <Button onPress={/* EN: Applies the current user search query. UK: Застосовує поточний запит пошуку користувачів. */ () => setSearch(query.trim())}>{t('search')}</Button>
+              <Button secondary={!onlineOnly} onPress={/* EN: Toggles the online-only user filter. UK: Перемикає фільтр лише активних користувачів. */ () => setOnlineOnly(/* EN: Inverts the previous online-only filter value. UK: Інвертує попереднє значення фільтра активності. */ (value) => !value)}>
                 {t('online')}
               </Button>
             </View>
             <Feedback
               loading={loading}
               error={!selected && error}
-              onRetry={() => loadUsers(page)}
+              onRetry={/* EN: Retries loading the current filtered page. UK: Повторює завантаження поточної відфільтрованої сторінки. */ () => loadUsers(page)}
             />
             {!!message && (
               <Text accessibilityRole="alert" style={s.muted}>
@@ -283,7 +288,7 @@ export default function AdminScreen({ navigation }) {
               </Text>
             )}
             <View style={styles.grid}>
-              {users.map((user) => {
+              {users.map(/* EN: Renders one account card with role, presence, and protection state. UK: Відображає картку облікового запису з роллю, присутністю та станом захисту. */ (user) => {
                 const protectedUser =
                   user.id === profile.id ||
                   (!isSystemOwner && user.role === "super_admin");
@@ -291,8 +296,8 @@ export default function AdminScreen({ navigation }) {
                   <Pressable
                     accessibilityRole="button"
                     key={user.id}
-                    onPress={() => setDetailUser(user)}
-                    style={({ pressed }) => [styles.userCard, pressed && styles.userCardPressed]}
+                    onPress={/* EN: Opens the selected user's administrative details. UK: Відкриває адміністративні деталі вибраного користувача. */ () => setDetailUser(user)}
+                    style={/* EN: Adds visual feedback while the user card is pressed. UK: Додає візуальний відгук під час натискання картки користувача. */ ({ pressed }) => [styles.userCard, pressed && styles.userCardPressed]}
                   >
                     <View style={s.header}>
                       <View style={styles.avatar}>
@@ -331,7 +336,7 @@ export default function AdminScreen({ navigation }) {
                       <Button
                         secondary
                         disabled={protectedUser}
-                        onPress={(event) => {
+                        onPress={/* EN: Opens role management without also opening the surrounding detail card. UK: Відкриває керування роллю без одночасного відкриття зовнішньої картки деталей. */ (event) => {
                           event?.stopPropagation?.();
                           openManage(user);
                         }}
@@ -350,7 +355,7 @@ export default function AdminScreen({ navigation }) {
               <Button
                 secondary
                 disabled={page === 1 || loading}
-                onPress={() => loadUsers(page - 1)}
+                onPress={/* EN: Loads the previous user page. UK: Завантажує попередню сторінку користувачів. */ () => loadUsers(page - 1)}
               >
                 {t('previous')}
               </Button>
@@ -360,7 +365,7 @@ export default function AdminScreen({ navigation }) {
               <Button
                 secondary
                 disabled={page >= totalPages || loading}
-                onPress={() => loadUsers(page + 1)}
+                onPress={/* EN: Loads the next user page. UK: Завантажує наступну сторінку користувачів. */ () => loadUsers(page + 1)}
               >
                 {t('next')}
               </Button>
@@ -377,19 +382,19 @@ export default function AdminScreen({ navigation }) {
       {selected && (
         <Sheet
           title={t('manageUser', { name: selected.username ? `@${selected.username}` : selected.displayName || selected.email })}
-          onClose={() => !busy && setSelected(null)}
+          onClose={/* EN: Closes role management only when no mutation is running. UK: Закриває керування роллю лише за відсутності активної зміни. */ () => !busy && setSelected(null)}
         >
           <Text style={s.muted}>{selected.email}</Text>
           <Text style={s.heading}>{t('role')}</Text>
           <View style={s.row}>
             {roles
-              .filter((key) => isSystemOwner || key !== "super_admin")
-              .map((key) => (
+              .filter(/* EN: Hides the super-admin role from non-owner administrators. UK: Приховує роль super_admin від адміністраторів, які не є власниками системи. */ (key) => isSystemOwner || key !== "super_admin")
+              .map(/* EN: Renders one assignable role choice. UK: Відображає один доступний варіант ролі. */ (key) => (
                 <Button
                   key={key}
                   secondary={role !== key}
                   disabled={busy}
-                  onPress={() => setRole(key)}
+                  onPress={/* EN: Selects this role for the pending update. UK: Вибирає цю роль для майбутнього оновлення. */ () => setRole(key)}
                 >
                   {roleLabel(key)}
                 </Button>
@@ -408,7 +413,7 @@ export default function AdminScreen({ navigation }) {
           <Button
             secondary
             disabled={busy}
-            onPress={() => setConfirmDelete(true)}
+            onPress={/* EN: Opens destructive confirmation for the selected account. UK: Відкриває підтвердження видалення вибраного облікового запису. */ () => setConfirmDelete(true)}
           >
             {t('deleteUser')}
           </Button>
@@ -420,7 +425,7 @@ export default function AdminScreen({ navigation }) {
         message={t('deleteUserMessage')}
         cancelLabel={t('cancel')}
         confirmLabel={busy ? t('deleting') : t('deleteUser')}
-        onCancel={() => !busy && setConfirmDelete(false)}
+        onCancel={/* EN: Cancels deletion unless the request is already running. UK: Скасовує видалення, якщо запит ще не виконується. */ () => !busy && setConfirmDelete(false)}
         onConfirm={deleteUser}
       />
     </SafeAreaView>
