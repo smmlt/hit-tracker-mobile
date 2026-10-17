@@ -1,3 +1,5 @@
+// EN: Coordinates browsing and selecting exercises when a program or active workout needs additional movements.
+// UK: Координує перегляд і вибір вправ, коли програмі або активному тренуванню потрібні додаткові рухи.
 import React, { useContext, useState } from 'react';
 import { ScrollView, TouchableOpacity, Text, View } from 'react-native';
 import { createStyles } from './ExerciseSelector.styles.js';
