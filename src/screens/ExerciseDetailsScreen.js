@@ -1,3 +1,6 @@
+/**
+ * Displays a catalog exercise and its actions, loading exercise data and routing into sharing, editing, or workout-preparation flows. / Показує вправу каталогу та її дії, завантажує дані вправи й переходить до поширення, редагування або підготовки тренування.
+ */
 import React, { useContext, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
