@@ -1,3 +1,5 @@
+// EN: Hosts the administrator catalogue-management workspace and coordinates exercise editing and list refreshes.
+// UK: Містить admin-простір керування каталогом і координує редагування вправ та оновлення списку.
 import React, { useState } from "react";
 import { Text, View } from "react-native";
 import { useLibrary } from "../../context/LibraryContext";
