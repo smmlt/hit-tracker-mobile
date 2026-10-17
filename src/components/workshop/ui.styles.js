@@ -2,6 +2,7 @@
 // UK: Визначає залежні від теми layout, spacing та interaction styles для ui.
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by ui. UK: Створює залежну від теми таблицю стилів для ui. */
 export const createStyles = (theme) => StyleSheet.create({
   spinner: { margin: 24 },
   screen: { flex: 1, backgroundColor: theme.background },
