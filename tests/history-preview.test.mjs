@@ -1,3 +1,6 @@
+// EN: Proves the production contract for history exercise-preview fitting and remaining-count presentation; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт розміщення попереднього списку вправ в історії та показу кількості прихованих елементів; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { visibleExercisePreviewCount } from '../src/utils/historyPreview.js';
