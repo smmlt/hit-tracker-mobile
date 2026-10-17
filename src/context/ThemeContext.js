@@ -1,3 +1,5 @@
+// EN: Restores and persists the light/dark preference, then exposes the resolved theme tokens and a toggle to the component tree.
+// UK: Відновлює й зберігає світлу/темну тему та надає дереву компонентів готові токени й перемикач.
 // context/ThemeContext.js
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
