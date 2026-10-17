@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by ActiveWorkoutScreen. UK: Створює залежну від теми таблицю стилів для ActiveWorkoutScreen. */
 export const createStyles = (theme, compact = false) => StyleSheet.create({
   cancelButton: { alignItems: 'center', alignSelf: 'center', justifyContent: 'center', minHeight: 44, paddingHorizontal: 16 },
   cancelText: { color: theme.error, fontFamily: 'Inter-SemiBold', fontSize: 13 },
