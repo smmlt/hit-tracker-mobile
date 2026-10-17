@@ -1,3 +1,5 @@
+// EN: Provides the shared accessible confirmation surface for destructive or irreversible user actions.
+// UK: Надає спільний доступний confirmation UI для destructive або незворотних дій користувача.
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { createStyles } from './ConfirmDialog.styles.js';
