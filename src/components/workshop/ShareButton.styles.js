@@ -2,6 +2,7 @@
 // UK: Визначає залежні від теми layout, spacing та interaction styles для ShareButton.
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by ShareButton. UK: Створює залежну від теми таблицю стилів для ShareButton. */
 export const createStyles = (theme) => StyleSheet.create({
   busy: { opacity: 0.5 },
   message: {
