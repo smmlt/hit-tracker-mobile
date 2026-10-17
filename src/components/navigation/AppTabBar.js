@@ -1,3 +1,5 @@
+// EN: Renders the authenticated bottom navigation tabs with accessibility, safe-area, and active-route handling.
+// UK: Відображає bottom navigation tabs з accessibility, safe-area та обробкою активного route.
 import React, { useContext } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BottomTabBarHeightCallbackContext } from '@react-navigation/bottom-tabs';
