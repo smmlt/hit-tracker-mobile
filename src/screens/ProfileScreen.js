@@ -1,3 +1,6 @@
+/**
+ * Displays the authenticated profile from useProfile and provides navigation into profile editing, username, settings, and account actions. / Показує автентифікований профіль через useProfile і переходить до редагування профілю, імені користувача, налаштувань та дій облікового запису.
+ */
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
