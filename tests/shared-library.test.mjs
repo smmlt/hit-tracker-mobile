@@ -1,3 +1,6 @@
+// EN: Proves the production contract for shared personal-program ownership and complete exercise-multiset matching; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт власника поширеної персональної програми та повного зіставлення наборів вправ з урахуванням повторів; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { findMatchingPersonalProgram, hasSameExerciseMultiset } from '../src/utils/sharedLibrary.js';
