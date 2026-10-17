@@ -3,6 +3,7 @@
  */
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by AnalyticsMuscleBalanceScreen. UK: Створює залежну від теми таблицю стилів для AnalyticsMuscleBalanceScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   screen: { backgroundColor: theme.background, flex: 1 },
   content: { alignSelf: 'center', gap: 12, maxWidth: 800, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 8, width: '100%' },
