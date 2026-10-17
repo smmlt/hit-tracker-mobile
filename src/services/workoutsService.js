@@ -1,3 +1,5 @@
+// EN: Wraps workout lifecycle and history endpoints so screens do not construct session URLs or request payloads themselves.
+// UK: Інкапсулює endpoints життєвого циклу й історії тренувань, щоб екрани не формували URL і payload сесій самостійно.
 import { apiRequest } from './api';
 
 export const workoutsService = {
