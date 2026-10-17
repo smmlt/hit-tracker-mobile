@@ -1,3 +1,5 @@
+// EN: Provides client-side email and password checks used for immediate form feedback before server validation.
+// UK: Надає client-side перевірки email і password для миттєвого feedback форми перед server validation.
 // Validate email format
 export const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
