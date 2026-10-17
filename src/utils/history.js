@@ -1,3 +1,5 @@
+// EN: Provides local-date keys, parsing, range comparison, and grouping helpers used by workout history filters.
+// UK: Надає local-date keys, парсинг, порівняння діапазонів і групування для фільтрів історії тренувань.
 export const dateKey = (date) => (
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 );
