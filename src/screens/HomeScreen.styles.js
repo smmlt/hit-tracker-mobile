@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by HomeScreen. UK: Створює залежну від теми таблицю стилів для HomeScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   screen: { backgroundColor: theme.background, flex: 1 },
   heading: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 16, lineHeight: 23, marginBottom: 20 },
