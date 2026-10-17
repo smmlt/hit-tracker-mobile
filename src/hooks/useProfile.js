@@ -1,3 +1,5 @@
+// EN: Loads and mutates the current profile while a request guard prevents an older read from overwriting a newer update.
+// UK: Завантажує та змінює поточний профіль, а request guard не дає старішому read-запиту перезаписати новіше оновлення.
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { profileService } from '../services/profileService';
