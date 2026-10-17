@@ -1,3 +1,6 @@
+/**
+ * Lists strength-analysis exercises for the selected period, applying search/filter state to service data and opening a focused strength screen. / Показує вправи для аналізу сили за вибраний період, застосовує пошук і фільтри до сервісних даних та відкриває детальний екран сили.
+ */
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
