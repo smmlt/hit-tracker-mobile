@@ -1,3 +1,5 @@
+// EN: Creates and opens the canonical share action for an exercise or program.
+// UK: Створює й відкриває canonical share-action для вправи або програми.
 import React, { useContext, useState } from "react";
 import { Platform, Pressable, Share, Text, View } from "react-native";
 import Icon from "../../assets/workshop/Share.svg";
