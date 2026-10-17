@@ -1,3 +1,5 @@
+// EN: Renders one exercise catalogue row with difficulty, muscles, reactions, media preview, and selection actions.
+// UK: Відображає один рядок каталогу вправ зі складністю, мʼязами, реакціями, media preview та діями вибору.
 import React, { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { createStyles } from './ExerciseItem.styles.js';
