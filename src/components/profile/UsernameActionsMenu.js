@@ -1,3 +1,5 @@
+// EN: Offers profile username actions and delegates rename or related account commands to the owning screen.
+// UK: Пропонує дії з username профілю та передає rename й повʼязані account-команди екрану-власнику.
 import React, { useContext } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
