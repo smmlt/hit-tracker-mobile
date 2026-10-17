@@ -1,3 +1,6 @@
+// EN: Proves the production contract for settings logout confirmation wiring for current-device and all-device sign-out; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт підтвердження виходу в налаштуваннях для поточного або всіх пристроїв; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
