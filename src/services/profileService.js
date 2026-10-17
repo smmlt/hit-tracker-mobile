@@ -1,3 +1,5 @@
+// EN: Provides the current-user profile contract, including profile updates, avatar lifecycle, and account deletion.
+// UK: Надає контракт профілю поточного користувача, включно з оновленням, життєвим циклом аватара та видаленням акаунта.
 import { apiRequest } from './api';
 import { createAvatarFormData } from './avatarFormData';
 
