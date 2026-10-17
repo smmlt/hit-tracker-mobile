@@ -1,3 +1,5 @@
+// EN: Returns one stable per-installation identifier and coalesces concurrent first-use reads so only one UUID is persisted.
+// UK: Повертає стабільний ID інсталяції та обʼєднує паралельні перші читання, щоб зберігався лише один UUID.
 const STORAGE_KEY = 'appInstallationId';
 let pendingId;
 
