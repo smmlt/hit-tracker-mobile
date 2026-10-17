@@ -1,3 +1,5 @@
+// EN: Creates, parses, validates, and formats moderator account-suspension timestamps in the local date-time input format.
+// UK: Створює, парсить, перевіряє й форматує moderator timestamps блокування акаунта у локальному форматі date-time input.
 const pad = (value) => String(value).padStart(2, '0');
 
 export function defaultSuspensionInput(now = new Date()) {
