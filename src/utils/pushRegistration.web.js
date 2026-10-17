@@ -1,3 +1,5 @@
+// EN: Initializes Firebase Messaging when supported, obtains a browser push token, and listens for foreground messages.
+// UK: Ініціалізує Firebase Messaging за наявності підтримки, отримує browser push token і слухає foreground-повідомлення.
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getMessaging, getToken, isSupported, onMessage } from 'firebase/messaging';
 
