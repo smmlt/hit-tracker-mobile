@@ -1,3 +1,6 @@
+/**
+ * Browses scheduled training by date, loading assignments and applying calendar/filter transitions before opening program or active-workout flows. / Переглядає заплановані тренування за датою, завантажує призначення та застосовує переходи календаря/фільтрів перед відкриттям програми або активного тренування.
+ */
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
