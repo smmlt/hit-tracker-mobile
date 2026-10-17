@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
+/** EN: Builds the theme-aware style sheet used by ExerciseFormModal. UK: Створює залежну від теми таблицю стилів для ExerciseFormModal. */
 export const createStyles = (theme) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
