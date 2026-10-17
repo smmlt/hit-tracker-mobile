@@ -1,3 +1,6 @@
+/**
+ * Collects and validates registration credentials, submits account creation and OAuth flows, and routes successful registration to email verification. / Збирає та перевіряє дані реєстрації, надсилає створення облікового запису й OAuth-потоки та після успішної реєстрації переходить до підтвердження email.
+ */
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
