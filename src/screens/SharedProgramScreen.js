@@ -1,3 +1,6 @@
+/**
+ * Renders a shared program link as a read-only program detail flow, loading the shared entity and reconciling it with the user’s library. / Відображає спільне посилання на програму як режим перегляду деталей, завантажує спільну сутність і узгоджує її з бібліотекою користувача.
+ */
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
