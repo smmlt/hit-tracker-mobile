@@ -1,3 +1,6 @@
+# EN: Builds a validated Expo web release and serves the resulting static bundle from a minimal Nginx image.
+# UK: Створює перевірений вебреліз Expo та обслуговує готовий статичний пакет із мінімального образу Nginx.
+
 FROM node:22-alpine AS build
 
 WORKDIR /app
