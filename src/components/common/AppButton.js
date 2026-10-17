@@ -1,3 +1,5 @@
+// EN: Renders the shared accessible application button with consistent variants, loading state, and disabled behavior.
+// UK: Відображає спільну доступну кнопку застосунку зі сталими variants, loading state і disabled-поведінкою.
 import React from 'react';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
