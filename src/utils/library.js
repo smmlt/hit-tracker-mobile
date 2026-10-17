@@ -1,3 +1,5 @@
+// EN: Contains shared catalog/program transformations for difficulty colors, schedules, exercise merging, and card metadata.
+// UK: Містить спільні перетворення каталогу/програм для difficulty colors, schedule, обʼєднання вправ і metadata карток.
 import { difficultyColors, palette } from '../constants/colors.js';
 
 export const difficultyBarColors = (difficulty = 1) =>
