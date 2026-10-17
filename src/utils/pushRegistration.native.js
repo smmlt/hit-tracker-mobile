@@ -1,3 +1,5 @@
+// EN: Requests native notification permission, obtains an Expo push token, and exposes foreground response listeners.
+// UK: Запитує native-дозвіл на сповіщення, отримує Expo push token і надає listeners foreground-відповідей.
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
