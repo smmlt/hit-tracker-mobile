@@ -1,3 +1,6 @@
+// EN: Proves the production contract for workout-library difficulty rendering and exercise/program merge behavior; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт відображення складності в бібліотеці тренувань і обʼєднання вправ та програм; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
