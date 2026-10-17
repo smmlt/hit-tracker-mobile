@@ -1,3 +1,6 @@
+/**
+ * Verifies the registration code, completes the auth flow through the verification helper, and replaces navigation with login or the authenticated destination. / Перевіряє код реєстрації, завершує auth-потік через helper підтвердження та замінює навігацію входом або автентифікованим призначенням.
+ */
 import React, { useContext, useRef, useState } from 'react';
 import { Animated, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
