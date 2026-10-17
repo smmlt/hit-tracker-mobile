@@ -1,3 +1,6 @@
+// EN: Initializes Firebase messaging in the web service worker and routes notification clicks to an existing or new application window.
+// UK: Ініціалізує Firebase Messaging у веб-працівнику та спрямовує натискання сповіщення до наявного або нового вікна застосунку.
+
 /* global firebase */
 importScripts('https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging-compat.js');
