@@ -1,3 +1,6 @@
+/**
+ * Lists workout history with loading, refresh, and filter state, fetching records from the history service and opening workout details. / Показує історію тренувань зі станами завантаження, оновлення та фільтрів, отримує записи з сервісу історії й відкриває деталі тренування.
+ */
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
