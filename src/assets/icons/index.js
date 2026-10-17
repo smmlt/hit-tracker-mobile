@@ -1,3 +1,6 @@
+// EN: Re-exports the shared SVG icon components from one stable module so screens do not depend on individual asset paths.
+// UK: Повторно експортує спільні SVG-компоненти іконок з одного стабільного модуля, щоб екрани не залежали від окремих шляхів до ресурсів.
+
 import ChartIcon from './ChartIcon.svg';
 import ChevronDownIcon from './ChevronDownIcon.svg';
 import GridIcon from './GridIcon.svg';
