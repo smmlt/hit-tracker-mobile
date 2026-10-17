@@ -1,12 +1,12 @@
 // EN: Provides client-side email and password checks used for immediate form feedback before server validation.
 // UK: Надає client-side перевірки email і password для миттєвого feedback форми перед server validation.
-// Validate email format
+/** EN: Checks a trimmed email value against the basic address shape accepted by the form. UK: Перевіряє очищену електронну адресу за базовим форматом, який приймає форма. */
 export const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email.trim());
 };
 
-// Check password criteria
+/** EN: Evaluates each password rule separately so the interface can show live requirement feedback. UK: Окремо перевіряє кожну вимогу до пароля, щоб інтерфейс показував поточний стан правил. */
 export const getPasswordCriteria = (password) => {
   return {
     minLength: password.length >= 12,
@@ -15,7 +15,7 @@ export const getPasswordCriteria = (password) => {
   };
 };
 
-// Full password validity check
+/** EN: Accepts a password only when all client-side criteria pass. UK: Приймає пароль лише тоді, коли виконано всі клієнтські вимоги. */
 export const isValidPassword = (password) => {
   const criteria = getPasswordCriteria(password);
   return criteria.minLength && criteria.hasNumber && criteria.hasUpper;
