@@ -1,3 +1,5 @@
+// EN: Maps API profile values into editable strings and resets the form when a different profile snapshot arrives.
+// UK: Перетворює значення API-профілю на редаговані рядки та скидає форму після отримання іншого знімка профілю.
 import { useEffect, useState } from 'react';
 
 const toForm = (profile = {}) => ({
