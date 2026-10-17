@@ -2,6 +2,7 @@
 // UK: Визначає залежні від теми layout, spacing та interaction styles для ProgramEditor.
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by ProgramEditor. UK: Створює залежну від теми таблицю стилів для ProgramEditor. */
 export const createStyles = (theme) => StyleSheet.create({
   mediaPreview: { aspectRatio: 333 / 226, alignSelf: "center", borderRadius: 8, maxWidth: 520, width: "100%" },
   picker: { gap: 8 },
