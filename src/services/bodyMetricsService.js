@@ -1,3 +1,5 @@
+// EN: Wraps authenticated body-measurement history, creation, update, and deletion endpoints.
+// UK: Інкапсулює авторизовані endpoints історії, створення, оновлення та видалення вимірювань тіла.
 import { apiRequest } from './api';
 
 export const bodyMetricsService = {
