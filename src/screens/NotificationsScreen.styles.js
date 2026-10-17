@@ -3,6 +3,7 @@
  */
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by NotificationsScreen. UK: Створює залежну від теми таблицю стилів для NotificationsScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   screen: { backgroundColor: theme.background, flex: 1 },
   header: { alignItems: 'center', alignSelf: 'center', flexDirection: 'row', gap: 12, maxWidth: 720, minHeight: 68, paddingHorizontal: 16, width: '100%' },
