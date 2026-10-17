@@ -1,3 +1,5 @@
+// EN: Displays transient success, warning, and error feedback and cleans up its dismissal animation and timer.
+// UK: Показує тимчасовий success/warning/error feedback та очищає animation і timer закриття.
 import React from 'react';
 import { Text, TouchableOpacity, Animated, Platform } from 'react-native';
 import { styles } from './CustomToast.styles.js';
