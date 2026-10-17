@@ -1,3 +1,6 @@
+// EN: Contains the complete English and Ukrainian UI dictionary; both locale branches are kept in the same key-shaped catalog.
+// UK: Містить повний словник інтерфейсу англійською та українською; обидві гілки мов зберігають однакову структуру ключів.
+
 export const translations = {
   en: {
     skip: 'Skip',
