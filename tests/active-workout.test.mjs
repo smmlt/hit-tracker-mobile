@@ -1,3 +1,6 @@
+// EN: Proves the production contract for active workout progress, set-draft validation, replacement behavior, and RPE presentation helpers; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт прогресу активного тренування, валідації чернетки підходу, заміни вправ і допоміжного представлення RPE; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
