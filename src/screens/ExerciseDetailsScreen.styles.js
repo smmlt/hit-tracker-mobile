@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by ExerciseDetailsScreen. UK: Створює залежну від теми таблицю стилів для ExerciseDetailsScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   contentBlock: { gap: 16 },
   noMedia: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 12 },
