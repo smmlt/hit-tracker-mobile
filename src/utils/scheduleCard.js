@@ -1,3 +1,5 @@
+// EN: Derives schedule-card status, distinguishes late completion, and orders assignments consistently within a day.
+// UK: Визначає status картки розкладу, відрізняє пізнє виконання й стабільно сортує призначення всередині дня.
 export function scheduleCardTone({ completedAt, scheduledFor, status }) {
   if (status !== 'completed') return status;
   return completedAt?.slice(0, 10) === scheduledFor ? 'completed' : 'completedLate';
