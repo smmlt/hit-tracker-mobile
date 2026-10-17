@@ -1,3 +1,6 @@
+/**
+ * Composes the authenticated home dashboard from profile, workout, and recommendation state, with shortcuts into training and library flows. / Складає головну панель автентифікованого користувача зі станів профілю, тренування та рекомендацій, надаючи переходи до тренувань і бібліотеки.
+ */
 import React, { useContext, useState } from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { createStyles } from './HomeScreen.styles.js';
