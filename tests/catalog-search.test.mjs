@@ -1,3 +1,6 @@
+// EN: Proves the production contract for library catalog search, cancellation, filtering, and store response handling; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт пошуку в каталозі бібліотеки, скасування запитів, фільтрації та обробки відповіді у сховищі стану; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
