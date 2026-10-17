@@ -1,3 +1,6 @@
+/**
+ * Displays strength progression for one exercise, combining analytics results with library exercise metadata and returning to the strength list. / Показує прогрес сили однієї вправи, поєднуючи аналітичні результати з метаданими вправи з бібліотеки та повертаючись до списку сили.
+ */
 import React, { useCallback, useContext, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
