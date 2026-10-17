@@ -1,3 +1,6 @@
+// EN: Proves the production contract for notification URL allowlisting for the configured app host and YouTube HTTPS links; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт списку дозволених URL зі сповіщень для налаштованого домену застосунку та HTTPS-посилань YouTube; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
