@@ -1,3 +1,6 @@
+# EN: Produces a signed Android release APK from Expo configuration while keeping permanent signing credentials outside the repository.
+# UK: Створює підписаний релізний APK для Android з конфігурації Expo, зберігаючи постійні дані підпису поза репозиторієм.
+
 $ErrorActionPreference = 'Stop'
 $env:NODE_ENV = 'production'
 $env:RELEASE_BUILD = '1'
