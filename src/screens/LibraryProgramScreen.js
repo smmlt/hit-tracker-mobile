@@ -1,3 +1,6 @@
+/**
+ * Shows a saved library program and its exercises, loading program content and routing to edit, share, or workout-preparation actions. / Показує збережену програму бібліотеки та її вправи, завантажує вміст програми й переходить до редагування, поширення або підготовки тренування.
+ */
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
