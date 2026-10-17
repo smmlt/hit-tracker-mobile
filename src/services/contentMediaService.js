@@ -1,3 +1,5 @@
+// EN: Uploads and removes exercise/program media while keeping multipart construction platform-independent.
+// UK: Завантажує й видаляє media вправ/програм, залишаючи створення multipart незалежним від платформи.
 import { apiRequest } from './api';
 import { createMediaFormData } from './mediaFormData';
 
