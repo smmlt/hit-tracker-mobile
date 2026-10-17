@@ -1,3 +1,5 @@
+// EN: Recognizes machine-readable authentication errors so login and recovery screens can branch without parsing messages.
+// UK: Розпізнає machine-readable auth-помилки, щоб екрани входу й відновлення розгалужували flow без парсингу повідомлень.
 export const UNKNOWN_USER_CODE = 'USER_NOT_FOUND';
 
 export function isUnknownUserError(error) {
