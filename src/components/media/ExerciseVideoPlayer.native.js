@@ -1,3 +1,5 @@
+// EN: Implements native exercise video playback while preserving the same media contract as the web player.
+// UK: Реалізує native-відтворення відео вправи зі спільним із web-player media-контрактом.
 import React, { useEffect, useState } from 'react';
 import { useEvent } from 'expo';
 import { StyleSheet, View } from 'react-native';
