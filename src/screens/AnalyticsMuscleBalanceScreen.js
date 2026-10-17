@@ -1,3 +1,6 @@
+/**
+ * Compares muscle-group workload over a selectable period, loading analytics data and linking to the corresponding muscle detail view. / Порівнює навантаження на групи м’язів за вибраний період, завантажує аналітичні дані та веде до деталей відповідної групи м’язів.
+ */
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
