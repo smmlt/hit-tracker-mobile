@@ -1,3 +1,5 @@
+// EN: Edits exercise metadata, primary/secondary muscles, media, and moderation fields before saving through admin services.
+// UK: Редагує metadata вправи, primary/secondary мʼязи, media й moderation-поля перед збереженням через admin services.
 import React, { useContext, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
