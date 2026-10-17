@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../constants/colors';
+/** EN: Builds the theme-aware style sheet used by AdminScreen. UK: Створює залежну від теми таблицю стилів для AdminScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   headingGroup: { gap: 6 },
   usersSection: { gap: 20 },
