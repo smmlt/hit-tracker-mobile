@@ -1,3 +1,5 @@
+// EN: Composes notification campaigns, media attachments, audience selection, test delivery, and delivery feedback for administrators.
+// UK: Створює notification campaigns, media-вкладення, вибір аудиторії, тестову доставку та feedback для адміністраторів.
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Crypto from 'expo-crypto';
