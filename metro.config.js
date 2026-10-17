@@ -3,7 +3,7 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
 
-module.exports = (() => {
+module.exports = (/** EN: Creates the Metro configuration that routes SVG imports through the component transformer. UK: Створює конфігурацію Metro, яка спрямовує імпорти SVG через перетворювач компонентів. */ () => {
   const config = getDefaultConfig(__dirname);
 
   const { transformer, resolver } = config;
@@ -14,7 +14,7 @@ module.exports = (() => {
   };
   config.resolver = {
     ...resolver,
-    assetExts: resolver.assetExts.filter((ext) => ext !== 'svg'),
+    assetExts: resolver.assetExts.filter(/* EN: Removes SVG from opaque asset extensions so the transformer receives it. UK: Вилучає SVG зі списку непрозорих ресурсів, щоб файл отримав перетворювач. */ (ext) => ext !== 'svg'),
     sourceExts: [...resolver.sourceExts, 'svg'],
   };
 
