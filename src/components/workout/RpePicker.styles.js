@@ -1,3 +1,5 @@
+// EN: Defines the theme-aware layout, spacing, and interaction styles used by RpePicker.
+// UK: Визначає залежні від теми layout, spacing та interaction styles для RpePicker.
 import { StyleSheet } from 'react-native';
 import { palette } from '../../constants/colors';
 
