@@ -1,3 +1,6 @@
+/**
+ * Guides a new user through onboarding slides and completion persistence, using AuthContext and device dimensions before entering the main app. / Проводить нового користувача слайдами онбордингу та зберігає завершення, використовуючи AuthContext і розміри пристрою перед входом до головного застосунку.
+ */
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Animated, Easing, Image, Platform, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { BlurView } from 'expo-blur';
