@@ -1,3 +1,6 @@
+// EN: Proves the production contract for Zustand store persistence, API integration, hydration, and reset behavior across library/workout state; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт збереження стану Zustand, інтеграції з API, відновлення та скидання стану бібліотеки й тренувань; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
