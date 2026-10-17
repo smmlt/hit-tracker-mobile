@@ -1,3 +1,6 @@
+/**
+ * Provides the administrator flow for loading users and managing observability and catalog content, with role checks from the profile/authentication state. / Реалізує адміністративний потік завантаження користувачів і керування спостережуваністю та каталогом із перевіркою ролі через стан профілю й автентифікації.
+ */
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
