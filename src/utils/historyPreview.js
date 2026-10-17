@@ -1,3 +1,5 @@
+// EN: Calculates how many exercise names and the overflow counter fit into a responsive history-card preview.
+// UK: Обчислює, скільки назв вправ і overflow-лічильник поміщаються у responsive preview картки історії.
 export function visibleExercisePreviewCount({
   containerWidth,
   counterLabel,
