@@ -1,3 +1,5 @@
+// EN: Defines the theme-aware layout, spacing, and interaction styles used by ExerciseItem.
+// UK: Визначає залежні від теми layout, spacing та interaction styles для ExerciseItem.
 import { StyleSheet } from 'react-native';
 
 export const createStyles = (theme) => StyleSheet.create({
