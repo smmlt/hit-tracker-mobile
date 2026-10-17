@@ -1,3 +1,5 @@
+// EN: Runtime configuration supplies API endpoints, OAuth settings, and environment-derived limits consumed by services and navigation.
+// UK: Конфігурація середовища надає API-адреси, параметри OAuth і ліміти, які використовують сервіси та навігація.
 import Constants from 'expo-constants';
 
 /**
