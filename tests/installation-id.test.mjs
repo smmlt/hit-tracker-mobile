@@ -1,3 +1,6 @@
+// EN: Proves the production contract for one persisted installation UUID under concurrent reads and generation; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт одного збереженого UUID інсталяції за одночасного читання та генерування; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { getInstallationId } from '../src/utils/installationId.js';
