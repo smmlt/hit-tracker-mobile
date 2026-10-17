@@ -1,3 +1,6 @@
+// EN: Proves the production contract for onboarding persistence, bilingual copy, adaptive screen wiring, and completion behavior; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт збереження стану початкового налаштування, двомовних текстів, адаптивного екрана та завершення процесу; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
