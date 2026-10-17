@@ -1,3 +1,5 @@
+// EN: Wraps moderator and owner API operations for users, roles, observability, and notification campaigns.
+// UK: Інкапсулює moderator/owner API-операції для користувачів, ролей, observability та notification campaigns.
 import { apiRequest } from './api';
 import { normalizeObservability } from '../utils/adminObservability';
 import { createMediaFormData } from './mediaFormData';
