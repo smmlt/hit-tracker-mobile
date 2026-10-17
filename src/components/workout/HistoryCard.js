@@ -1,3 +1,5 @@
+// EN: Summarizes a completed workout and exposes details or deletion actions without mutating its snapshot.
+// UK: Підсумовує завершене тренування та надає дії деталей/видалення без зміни його snapshot.
 import React, { useContext, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { LanguageContext } from '../../localization/LanguageContext';
