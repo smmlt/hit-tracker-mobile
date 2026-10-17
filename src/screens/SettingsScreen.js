@@ -13,6 +13,7 @@ import { ConfirmDialog } from '../components/feedback';
 import { notificationService, syncPushRegistration } from '../services/notificationService';
 import { authService } from '../services/authService';
 
+/** EN: Renders one labeled boolean preference switch. UK: Відображає один підписаний перемикач логічного налаштування. */
 const Toggle = ({ label, value, onChange, theme }) => (
   <View style={styles.row}>
     <Text style={[styles.rowText, { color: theme.textPrimary }]}>{label}</Text>
@@ -20,16 +21,17 @@ const Toggle = ({ label, value, onChange, theme }) => (
   </View>
 );
 
+/** EN: Renders an accessible segmented selector for one value. UK: Відображає доступний сегментований вибір одного значення. */
 const Choice = ({ options, value, onChange, theme }) => (
   <View style={[styles.segment, { borderColor: theme.textPrimary }]}>
-    {options.map((option) => {
+    {options.map(/* EN: Renders each option with its selected visual state. UK: Відображає кожен варіант із його візуальним станом вибору. */ (option) => {
       const selected = value === option.value;
       return (
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ selected }}
           key={option.value}
-          onPress={() => onChange(option.value)}
+          onPress={/* EN: Reports this option's value to the parent control. UK: Передає значення цього варіанта батьківському елементу керування. */ () => onChange(option.value)}
           style={[styles.segmentItem, selected && { backgroundColor: theme.primary }]}
         >
           {option.icon ? <Ionicons color={selected ? theme.onPrimary : theme.textSecondary} name={option.icon} size={22} /> : null}
@@ -43,16 +45,17 @@ const Choice = ({ options, value, onChange, theme }) => (
 const reminderDays = [1, 2, 3, 4, 5, 6, 0];
 const reminderFrequencies = ['daily', 'every_other_day', 'weekly', 'twice_weekly', 'hourly'];
 
+/** EN: Renders the allowed reminder frequencies as selectable chips. UK: Відображає дозволені частоти нагадувань як вибірні кнопки. */
 const FrequencyPicker = ({ frequencies, value, onChange, theme, t }) => (
   <View style={styles.frequencyRow}>
-    {frequencies.map((frequency) => {
+    {frequencies.map(/* EN: Renders one localized frequency choice. UK: Відображає один локалізований варіант частоти. */ (frequency) => {
       const selected = value === frequency;
       return (
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ selected }}
           key={frequency}
-          onPress={() => onChange(frequency)}
+          onPress={/* EN: Selects this reminder frequency. UK: Вибирає цю частоту нагадування. */ () => onChange(frequency)}
           style={[styles.frequency, { borderColor: selected ? theme.primary : theme.border }, selected && { backgroundColor: theme.primary }]}
         >
           <Text style={[styles.frequencyText, { color: selected ? theme.onPrimary : theme.textPrimary }]}>{t(`reminderFrequency_${frequency}`)}</Text>
@@ -62,6 +65,7 @@ const FrequencyPicker = ({ frequencies, value, onChange, theme, t }) => (
   </View>
 );
 
+/** EN: Edits the frequency, time, and optional weekdays for one reminder category. UK: Редагує частоту, час і необов’язкові дні тижня для однієї категорії нагадувань. */
 const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, onTimeBlur, onDayChange, theme, t }) => {
   const frequency = notifications[`${kind}ReminderFrequency`];
   const days = notifications[`${kind}ReminderDays`] || [];
@@ -93,14 +97,14 @@ const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, 
         <>
           <Text style={[styles.reminderLabel, { color: theme.textSecondary }]}>{t('reminderDays')}</Text>
           <View style={styles.daysRow}>
-            {reminderDays.map((day) => {
+            {reminderDays.map(/* EN: Renders one selectable weekday for the reminder. UK: Відображає один вибірний день тижня для нагадування. */ (day) => {
               const selected = days.includes(day);
               return (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
                   key={day}
-                  onPress={() => onDayChange(day)}
+                  onPress={/* EN: Toggles this weekday in the reminder schedule. UK: Перемикає цей день тижня в розкладі нагадування. */ () => onDayChange(day)}
                   style={[styles.day, { borderColor: selected ? theme.primary : theme.border }, selected && { backgroundColor: theme.primary }]}
                 >
                   <Text style={[styles.dayText, { color: selected ? theme.onPrimary : theme.textPrimary }]}>{t(`reminderDay_${day}`)}</Text>
@@ -114,6 +118,7 @@ const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, 
   );
 };
 
+/** EN: Coordinates preferences, notification delivery, MFA controls, and logout actions. UK: Координує налаштування, доставлення сповіщень, керування MFA та дії виходу. */
 export default function SettingsScreen({ navigation }) {
   const { logout, logoutAll, userData, userToken } = useContext(AuthContext);
   const { theme, themeName, toggleTheme } = useTheme();
@@ -135,11 +140,13 @@ export default function SettingsScreen({ navigation }) {
   const [mfaRecoveryCodes, setMfaRecoveryCodes] = useState(null);
   const [logoutConfirmation, setLogoutConfirmation] = useState(null);
   const canOpenAdmin = ['moderator', 'admin', 'super_admin'].includes(userData?.role);
+  /** EN: Normalizes API reminder times to editable HH:mm values with defaults. UK: Нормалізує час нагадувань з API до редагованого формату HH:mm зі стандартними значеннями. */
   const normalizeNotifications = (preferences) => ({
     ...preferences,
     workoutReminderTime: preferences.workoutReminderTime?.slice(0, 5) || '18:00',
     measurementReminderTime: preferences.measurementReminderTime?.slice(0, 5) || '18:00',
   });
+  /** EN: Optimistically updates preferences, serializes writes, and reconciles the latest server result. UK: Оптимістично оновлює налаштування, послідовно виконує записи та узгоджує останній результат сервера. */
   const persistNotifications = (next) => {
     notificationRef.current = next;
     setNotifications(next);
@@ -164,8 +171,8 @@ export default function SettingsScreen({ navigation }) {
     notificationPendingRef.current += 1;
     setNotificationBusy(true);
     const write = notificationWriteRef.current
-      .catch(() => {})
-      .then(async () => {
+      .catch(/* EN: Keeps the write queue alive after an earlier rejected request. UK: Зберігає чергу записів працездатною після попереднього відхиленого запиту. */ () => {})
+      .then(/* EN: Persists this queued snapshot and applies only the newest response. UK: Зберігає цей знімок із черги та застосовує лише найновішу відповідь. */ async () => {
         try {
           const confirmed = normalizeNotifications(await notificationService.updatePreferences(payload, userToken));
           if (writeId === notificationWriteIdRef.current) {
@@ -187,18 +194,20 @@ export default function SettingsScreen({ navigation }) {
           return false;
         }
       })
-      .finally(() => {
+      .finally(/* EN: Releases one pending-write slot and updates the busy indicator. UK: Звільняє одне місце очікуваного запису та оновлює індикатор зайнятості. */ () => {
         notificationPendingRef.current -= 1;
         setNotificationBusy(notificationPendingRef.current > 0);
       });
     notificationWriteRef.current = write;
     return write;
   };
-  const setNotification = (key) => (value) => {
+  /** EN: Creates a setter that persists one boolean notification preference. UK: Створює функцію, яка зберігає одне логічне налаштування сповіщень. */
+  const setNotification = (key) => /* EN: Applies the supplied value to the captured preference key. UK: Застосовує передане значення до збереженого ключа налаштування. */ (value) => {
     const current = notificationRef.current || notifications;
     void persistNotifications({ ...current, [key]: value });
   };
-  const setReminderTime = (key) => (value) => {
+  /** EN: Creates a validated HH:mm editor for one reminder-time field. UK: Створює перевірений редактор HH:mm для одного поля часу нагадування. */
+  const setReminderTime = (key) => /* EN: Keeps invalid input visible locally or persists a valid time. UK: Залишає помилкове введення видимим локально або зберігає правильний час. */ (value) => {
     const current = notificationRef.current || notifications;
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
       setNotifications({ ...current, [key]: value });
@@ -207,12 +216,14 @@ export default function SettingsScreen({ navigation }) {
     }
     persistNotifications({ ...current, [key]: value });
   };
-  const restoreReminderTime = (key) => () => {
+  /** EN: Creates a blur handler that restores the last confirmed reminder time. UK: Створює обробник втрати фокуса, який відновлює останній підтверджений час нагадування. */
+  const restoreReminderTime = (key) => /* EN: Replaces unfinished input with the confirmed value. UK: Замінює незавершене введення підтвердженим значенням. */ () => {
     const confirmed = notificationRef.current || notifications;
     const value = confirmed[key] || '18:00';
-    setNotifications((current) => ({ ...current, [key]: value }));
+    setNotifications(/* EN: Preserves other preferences while restoring this time field. UK: Зберігає інші налаштування під час відновлення цього поля часу. */ (current) => ({ ...current, [key]: value }));
     setNotificationError('');
   };
+  /** EN: Loads notification preferences and stores their editable normalized form. UK: Завантажує налаштування сповіщень і зберігає їхню нормалізовану форму для редагування. */
   const loadNotifications = async () => {
     setNotificationError('');
     try {
@@ -224,24 +235,25 @@ export default function SettingsScreen({ navigation }) {
       setNotificationError(error.message);
     }
   };
-  useEffect(() => {
+  useEffect(/* EN: Reloads notification preferences when the authenticated token changes. UK: Повторно завантажує налаштування сповіщень після зміни токена автентифікації. */ () => {
     void loadNotifications();
   }, [userToken]);
-  useEffect(() => {
+  useEffect(/* EN: Loads MFA status and suppresses stale updates after unmount. UK: Завантажує стан MFA та не допускає застарілих оновлень після демонтування. */ () => {
     let active = true;
     authService
       .getMfaStatus(userToken)
-      .then((status) => {
+      .then(/* EN: Stores MFA status only while the screen remains active. UK: Зберігає стан MFA лише поки екран залишається активним. */ (status) => {
         if (active) setMfa(status);
       })
-      .catch(() => {
+      .catch(/* EN: Shows a localized failure when MFA status cannot be loaded. UK: Показує локалізовану помилку, якщо стан MFA не вдалося завантажити. */ () => {
         if (active) setMfaMessage(t('mfaStatusFailed'));
       });
-    return () => {
+    return /* EN: Marks later MFA responses stale when the screen unmounts. UK: Позначає пізніші відповіді MFA застарілими після демонтування екрана. */ () => {
       active = false;
     };
   }, [locale, userToken]);
 
+  /** EN: Verifies the authenticator code and replaces all MFA recovery codes. UK: Перевіряє код автентифікатора та замінює всі коди відновлення MFA. */
   const regenerateRecoveryCodes = async () => {
     setMfaBusy(true);
     setMfaMessage('');
@@ -249,7 +261,7 @@ export default function SettingsScreen({ navigation }) {
       const result = await authService.regenerateMfaRecoveryCodes(mfaCode.trim(), userToken);
       setMfaRecoveryCodes(result.recoveryCodes);
       setMfaCode('');
-      setMfa((current) => ({
+      setMfa(/* EN: Updates only the remaining-code count after regeneration. UK: Оновлює лише кількість кодів, що залишилися після повторного створення. */ (current) => ({
         ...current,
         recoveryCodesRemaining: result.recoveryCodes.length,
       }));
@@ -260,6 +272,7 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
+  /** EN: Disables optional MFA after code verification and reports role-policy failures. UK: Вимикає необов’язкову MFA після перевірки коду та повідомляє про обмеження ролі. */
   const disableMfa = async () => {
     setMfaBusy(true);
     setMfaMessage('');
@@ -275,6 +288,7 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
+  /** EN: Registers or unregisters this device before persisting the push preference. UK: Реєструє або скасовує реєстрацію цього пристрою перед збереженням налаштування push-сповіщень. */
   const togglePush = async (enabled) => {
     setNotificationError('');
     setNotificationMessage('');
@@ -283,7 +297,7 @@ export default function SettingsScreen({ navigation }) {
         const registration = await syncPushRegistration(userToken, true);
         if (registration.permissionStatus !== 'granted') throw new Error(t('pushPermissionDenied'));
       } else {
-        await notificationService.unregister(userToken).catch(() => {});
+        await notificationService.unregister(userToken).catch(/* EN: Treats an already-absent device registration as a successful disable. UK: Вважає вже відсутню реєстрацію пристрою успішним вимкненням. */ () => {});
       }
       const saved = await persistNotifications({
         ...(notificationRef.current || notifications),
@@ -295,7 +309,8 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
-  const setReminderFrequency = (kind) => (frequency) => {
+  /** EN: Creates a frequency setter that also normalizes required weekday counts. UK: Створює функцію зміни частоти, яка також нормалізує потрібну кількість днів тижня. */
+  const setReminderFrequency = (kind) => /* EN: Persists the chosen frequency and compatible day selection. UK: Зберігає вибрану частоту та сумісний набір днів. */ (frequency) => {
     const current = notificationRef.current || notifications;
     const daysKey = `${kind}ReminderDays`;
     const currentDays = current[daysKey] || [1];
@@ -308,6 +323,7 @@ export default function SettingsScreen({ navigation }) {
     });
   };
 
+  /** EN: Updates reminder weekdays while enforcing one day weekly or at most two twice-weekly. UK: Оновлює дні нагадування, забезпечуючи один день щотижня або не більше двох двічі на тиждень. */
   const toggleReminderDay = (kind, day) => {
     const current = notificationRef.current || notifications;
     {
@@ -319,12 +335,12 @@ export default function SettingsScreen({ navigation }) {
       if (frequency === 'twice_weekly' && !selected.includes(day) && selected.length >= 2) {
         return void persistNotifications({
           ...current,
-          [daysKey]: [selected[1], day].sort((left, right) => left - right),
+          [daysKey]: [selected[1], day].sort(/* EN: Keeps weekday numbers in calendar order. UK: Зберігає номери днів у календарному порядку. */ (left, right) => left - right),
         });
       }
       return void persistNotifications({
         ...current,
-        [daysKey]: selected.includes(day) ? selected.filter((value) => value !== day) : [...selected, day].sort((left, right) => left - right),
+        [daysKey]: selected.includes(day) ? selected.filter(/* EN: Removes the toggled weekday. UK: Видаляє перемкнений день тижня. */ (value) => value !== day) : [...selected, day].sort(/* EN: Orders newly selected weekdays for stable API payloads. UK: Упорядковує нові вибрані дні для стабільних даних API. */ (left, right) => left - right),
       });
     }
   };
@@ -333,7 +349,7 @@ export default function SettingsScreen({ navigation }) {
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable accessibilityLabel={t('back')} onPress={() => navigation.goBack()} style={styles.back}>
+          <Pressable accessibilityLabel={t('back')} onPress={/* EN: Returns to the previous profile screen. UK: Повертає до попереднього екрана профілю. */ () => navigation.goBack()} style={styles.back}>
             <Ionicons color={theme.textPrimary} name="arrow-back" size={24} />
           </Pressable>
           <Text style={[styles.title, { color: theme.textPrimary }]}>{t('settings')}</Text>
@@ -342,7 +358,7 @@ export default function SettingsScreen({ navigation }) {
         <Pressable
           accessibilityLabel={t('language')}
           accessibilityRole="button"
-          onPress={() => changeLanguage(locale === 'uk' ? 'en' : 'uk')}
+          onPress={/* EN: Switches between the supported English and Ukrainian locales. UK: Перемикає між підтримуваними англійською та українською мовами. */ () => changeLanguage(locale === 'uk' ? 'en' : 'uk')}
           style={[styles.languageField, { borderColor: theme.textPrimary }]}
         >
           <Text style={[styles.languageText, { color: theme.textPrimary }]}>{locale === 'uk' ? t('ukrainian') : t('english')}</Text>
@@ -374,7 +390,7 @@ export default function SettingsScreen({ navigation }) {
           </View>
         ) : (
           <>
-            <Pressable accessibilityRole="button" disabled={notificationBusy} onPress={() => navigation.navigate('Notifications')} style={[styles.action, { borderColor: theme.border }]}>
+            <Pressable accessibilityRole="button" disabled={notificationBusy} onPress={/* EN: Opens the user's notification inbox. UK: Відкриває скриньку сповіщень користувача. */ () => navigation.navigate('Notifications')} style={[styles.action, { borderColor: theme.border }]}>
               <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('openNotificationInbox')}</Text>
             </Pressable>
             <Toggle label={t('pushNotifications')} value={notifications.pushEnabled} onChange={togglePush} theme={theme} />
@@ -386,7 +402,7 @@ export default function SettingsScreen({ navigation }) {
               onFrequencyChange={setReminderFrequency('workout')}
               onTimeChange={setReminderTime('workoutReminderTime')}
               onTimeBlur={restoreReminderTime('workoutReminderTime')}
-              onDayChange={(day) => toggleReminderDay('workout', day)}
+              onDayChange={/* EN: Toggles a weekday for workout reminders. UK: Перемикає день тижня для нагадувань про тренування. */ (day) => toggleReminderDay('workout', day)}
               theme={theme}
               t={t}
             />
@@ -397,7 +413,7 @@ export default function SettingsScreen({ navigation }) {
               onFrequencyChange={setReminderFrequency('measurement')}
               onTimeChange={setReminderTime('measurementReminderTime')}
               onTimeBlur={restoreReminderTime('measurementReminderTime')}
-              onDayChange={(day) => toggleReminderDay('measurement', day)}
+              onDayChange={/* EN: Toggles a weekday for measurement reminders. UK: Перемикає день тижня для нагадувань про вимірювання. */ (day) => toggleReminderDay('measurement', day)}
               theme={theme}
               t={t}
             />
@@ -477,16 +493,16 @@ export default function SettingsScreen({ navigation }) {
         ) : (
           <ActivityIndicator color={theme.primary} />
         )}
-        <Pressable accessibilityRole="button" onPress={() => setLogoutConfirmation('all')} style={[styles.action, { borderColor: theme.border, marginTop: 12 }]}>
+        <Pressable accessibilityRole="button" onPress={/* EN: Opens confirmation for ending every authenticated session. UK: Відкриває підтвердження завершення всіх автентифікованих сеансів. */ () => setLogoutConfirmation('all')} style={[styles.action, { borderColor: theme.border, marginTop: 12 }]}>
           <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('logoutAllDevices')}</Text>
         </Pressable>
         {canOpenAdmin ? (
-          <Pressable accessibilityRole="button" onPress={() => navigation.navigate('Admin')} style={[styles.admin, { borderColor: theme.primary }]}>
+          <Pressable accessibilityRole="button" onPress={/* EN: Opens the administration panel for an authorized role. UK: Відкриває панель адміністрування для уповноваженої ролі. */ () => navigation.navigate('Admin')} style={[styles.admin, { borderColor: theme.primary }]}>
             <Ionicons color={theme.primary} name="shield-checkmark-outline" size={21} />
             <Text style={[styles.adminText, { color: theme.textPrimary }]}>{t('openAdminPanel')}</Text>
           </Pressable>
         ) : null}
-        <Pressable accessibilityRole="button" onPress={() => setLogoutConfirmation('current')} style={styles.logout}>
+        <Pressable accessibilityRole="button" onPress={/* EN: Opens confirmation for ending the current session. UK: Відкриває підтвердження завершення поточного сеансу. */ () => setLogoutConfirmation('current')} style={styles.logout}>
           <Text style={[styles.logoutText, { color: theme.primary }]}>{t('logout')}</Text>
         </Pressable>
       </ScrollView>
@@ -494,8 +510,8 @@ export default function SettingsScreen({ navigation }) {
         cancelLabel={t('cancel')}
         confirmLabel={logoutConfirmation === 'all' ? t('logoutAllDevices') : t('logout')}
         message={logoutConfirmation === 'all' ? t('logoutAllDevicesConfirmMessage') : t('logoutConfirmMessage')}
-        onCancel={() => setLogoutConfirmation(null)}
-        onConfirm={async () => {
+        onCancel={/* EN: Dismisses logout confirmation without ending a session. UK: Закриває підтвердження виходу без завершення сеансу. */ () => setLogoutConfirmation(null)}
+        onConfirm={/* EN: Runs the selected current-device or all-device logout action. UK: Виконує вибрану дію виходу з поточного або з усіх пристроїв. */ async () => {
           const action = logoutConfirmation === 'all' ? logoutAll : logout;
           setLogoutConfirmation(null);
           await action();
