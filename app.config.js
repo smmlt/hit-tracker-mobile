@@ -1,7 +1,7 @@
 // EN: Validates public release origins and injects the Android Firebase configuration without exposing build secrets in app.json.
 // UK: Перевіряє публічні адреси релізу та підключає Android-конфігурацію Firebase, не розкриваючи секрети збірки в app.json.
 
-module.exports = ({ config }) => {
+module.exports = /** EN: Builds the final Expo configuration, rejecting unsafe release URLs and attaching the Android Firebase file when available. UK: Формує остаточну конфігурацію Expo, відхиляє небезпечні адреси релізу та за наявності підключає Android-файл Firebase. */ ({ config }) => {
   const releaseBuild = ['preview', 'production'].includes(process.env.EAS_BUILD_PROFILE)
     || process.env.RELEASE_BUILD === '1';
 
