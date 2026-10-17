@@ -1,3 +1,6 @@
+// EN: Proves the production contract for deep-link path/state round trips and stable entity, date, and route slug encoding; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт взаємного перетворення глибоких посилань і стану навігації та стабільного кодування сутностей, дат і маршрутів; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getPathFromState, getStateFromPath } from '@react-navigation/core';
