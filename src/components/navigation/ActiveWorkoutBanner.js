@@ -1,3 +1,5 @@
+// EN: Keeps an active workout reachable above navigation by showing its status and return action.
+// UK: Залишає активне тренування доступним над навігацією, показуючи status і дію повернення.
 import React, { useContext, useEffect, useRef } from 'react';
 import { Animated, View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
