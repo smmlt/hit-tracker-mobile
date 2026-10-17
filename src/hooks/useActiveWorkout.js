@@ -1,3 +1,5 @@
+// EN: Coordinates the server-backed workout session with local workout state, including loading, mutations, and stale-response protection.
+// UK: Узгоджує серверну workout-сесію з локальним станом, включно із завантаженням, змінами та захистом від застарілих відповідей.
 import { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
