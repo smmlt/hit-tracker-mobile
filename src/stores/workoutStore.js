@@ -1,3 +1,5 @@
+// EN: Owns prepared, active, paused, completed, and cancelled workout state and coordinates persistence with server lifecycle calls.
+// UK: Керує станами prepared, active, paused, completed і cancelled та узгоджує локальне збереження із server lifecycle-викликами.
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { apiFetch, apiRequest } from '../services/api';
