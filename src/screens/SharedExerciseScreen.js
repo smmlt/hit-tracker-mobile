@@ -1,3 +1,6 @@
+/**
+ * Renders a shared exercise link as a read-only exercise detail flow, loading the shared entity and offering the appropriate authenticated action. / Відображає спільне посилання на вправу як режим перегляду деталей, завантажує спільну сутність і надає відповідну дію для автентифікованого користувача.
+ */
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
