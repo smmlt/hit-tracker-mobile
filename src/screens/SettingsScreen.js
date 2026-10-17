@@ -1,3 +1,6 @@
+/**
+ * Manages account preferences such as theme, language, notifications, and logout, using AuthContext and confirmation for destructive account actions. / Керує налаштуваннями облікового запису — темою, мовою, сповіщеннями та виходом — через AuthContext із підтвердженням небезпечних дій.
+ */
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
