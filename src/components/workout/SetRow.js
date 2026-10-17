@@ -1,3 +1,5 @@
+// EN: Edits and validates weight, repetitions, and RPE for one planned or recorded workout set.
+// UK: Редагує й перевіряє вагу, повторення та RPE одного планового або записаного workout set.
 import React, { useContext } from 'react';
 import { View, Text } from 'react-native';
 import { createStyles } from './SetRow.styles.js';
