@@ -1,3 +1,6 @@
+/**
+ * Handles an unknown route by showing an authenticated or public recovery action and replacing navigation with the appropriate home/login destination. / Обробляє невідомий маршрут, показуючи автентифіковану або публічну дію відновлення та замінюючи навігацію відповідним домашнім екраном або входом.
+ */
 import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
