@@ -1,6 +1,7 @@
 // EN: Creates theme-aware layout styles used by the root navigator, loading state, tab shell, and workout banner.
 // UK: Створює залежні від теми стилі кореневої навігації, loading state, оболонки вкладок і workout-банера.
 import { StyleSheet } from 'react-native';
+/** EN: Builds the theme-aware style sheet used by AppNavigator. UK: Створює залежну від теми таблицю стилів для AppNavigator. */
 export const createStyles = (theme) => StyleSheet.create({
   analyticsPlaceholder: { backgroundColor: theme.background, flex: 1 },
   container: { flex: 1 },
