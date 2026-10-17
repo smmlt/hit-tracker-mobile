@@ -1,3 +1,6 @@
+/**
+ * Layout styles used by UsernameSettingsScreen, defining its themed spacing, typography, controls, and responsive geometry. / Стилі макета для UsernameSettingsScreen, що визначають тематичні відступи, типографіку, елементи керування та адаптивну геометрію.
+ */
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
