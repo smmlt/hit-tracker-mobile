@@ -4,6 +4,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../constants/colors';
+/** EN: Builds the theme-aware style sheet used by ResetPasswordScreen. UK: Створює залежну від теми таблицю стилів для ResetPasswordScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   fill: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: theme.background },
