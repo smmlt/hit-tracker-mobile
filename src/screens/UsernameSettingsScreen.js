@@ -1,3 +1,6 @@
+/**
+ * Checks username availability while editing the profile username, saves the validated value through profileService, and returns to profile settings. / Перевіряє доступність імені користувача під час редагування, зберігає перевірене значення через profileService і повертається до налаштувань профілю.
+ */
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
