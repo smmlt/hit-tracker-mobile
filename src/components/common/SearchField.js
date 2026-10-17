@@ -1,3 +1,5 @@
+// EN: Renders the reusable search input and clear action used by catalog and list screens.
+// UK: Відображає повторно використовуване поле пошуку й clear-action для каталогу та списків.
 import React, { useContext } from 'react';
 import { TextInput, View } from 'react-native';
 import SearchIcon from '../../assets/workshop/Search.svg';
