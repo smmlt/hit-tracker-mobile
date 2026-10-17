@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 import { palette } from '../../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by HistoryCard. UK: Створює залежну від теми таблицю стилів для HistoryCard. */
 export const createStyles = (theme) => StyleSheet.create({
   card: {
     backgroundColor: theme.cardBackground,
