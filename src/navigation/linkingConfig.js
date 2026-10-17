@@ -1,3 +1,5 @@
+// EN: Maps web and app URLs to nested routes while retaining aliases for legacy share and OAuth callback paths.
+// UK: Зіставляє web/app URL із вкладеними маршрутами та зберігає aliases для старих share- і OAuth callback-шляхів.
 const legacy = (path) => ({ path, exact: true });
 
 export const linkingConfig = {
