@@ -1,3 +1,5 @@
+// EN: Coordinates one active exercise, its planned targets, editable set rows, RPE input, and completion progress.
+// UK: Координує одну активну вправу, планові цілі, редаговані set rows, RPE та прогрес виконання.
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
