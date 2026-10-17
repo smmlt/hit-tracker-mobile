@@ -1,3 +1,6 @@
+// EN: Extends Expo's Metro defaults so SVG files are transformed into React Native components instead of bundled as opaque assets.
+// UK: Розширює стандартну конфігурацію Metro від Expo, щоб SVG перетворювалися на компоненти React Native, а не на непрозорі ресурси.
+
 const { getDefaultConfig } = require('expo/metro-config');
 
 module.exports = (() => {
