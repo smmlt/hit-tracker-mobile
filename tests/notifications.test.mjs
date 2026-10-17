@@ -1,3 +1,6 @@
+// EN: Proves the production contract for native-only push registration, permission handling, foreground refresh, and web boundary behavior; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт реєстрації push-сповіщень лише на мобільних платформах, дозволів, оновлення у передньому плані та меж вебплатформи; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
