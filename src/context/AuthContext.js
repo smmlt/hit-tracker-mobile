@@ -1,3 +1,5 @@
+// EN: Owns authentication bootstrap, access-token refresh, OAuth callbacks, presence, and logout while exposing one session API to the UI.
+// UK: Керує запуском автентифікації, оновленням access token, OAuth callback, присутністю та виходом і надає UI єдиний API сесії.
 import React, { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
