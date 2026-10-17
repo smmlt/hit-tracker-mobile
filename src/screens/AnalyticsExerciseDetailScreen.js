@@ -1,3 +1,6 @@
+/**
+ * Displays period-based analytics for one exercise, fetching the focused exercise history and navigating back to the exercise analytics list. / Показує аналітику однієї вправи за період, завантажує історію вибраної вправи та повертається до списку аналітики вправ.
+ */
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
