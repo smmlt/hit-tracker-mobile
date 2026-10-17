@@ -1,3 +1,5 @@
+// EN: Collects a date and recurrence choice before assigning a program to the training calendar.
+// UK: Збирає дату й recurrence перед призначенням програми до training calendar.
 import React, { useContext, useState } from "react";
 import { Text, View } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
