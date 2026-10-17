@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
+/** EN: Builds the theme-aware style sheet used by ExerciseFilterBar. UK: Створює залежну від теми таблицю стилів для ExerciseFilterBar. */
 export const createStyles = (theme) => StyleSheet.create({
   container: { marginBottom: 16, width: '100%' },
   rowContainer: { alignItems: 'flex-end', borderBottomColor: theme.border, borderBottomWidth: 1, flexDirection: 'row' },
