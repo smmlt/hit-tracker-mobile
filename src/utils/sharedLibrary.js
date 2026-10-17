@@ -1,3 +1,5 @@
+// EN: Compares shared and saved programs by their exercise multiset to detect equivalent library content.
+// UK: Порівнює shared і saved programs за multiset вправ, щоб знаходити еквівалентний вміст бібліотеки.
 const exerciseIds = (program) => (program?.schedule || [])
   .map((row) => row.exercise?.id ?? row.exerciseId)
   .filter(Number.isInteger)
