@@ -1,3 +1,6 @@
+/**
+ * Collects an email for password recovery, submits the request through the auth API, and navigates to the reset-password flow on success. / Збирає email для відновлення пароля, надсилає запит через auth API та після успіху переходить до потоку скидання пароля.
+ */
 import React, { useContext, useState, useRef } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
