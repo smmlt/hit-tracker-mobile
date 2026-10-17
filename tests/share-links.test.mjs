@@ -1,3 +1,6 @@
+// EN: Proves the production contract for public web share URL construction for exercises and programs; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт побудови публічних вебпосилань для поширення вправ і програм; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { exerciseShareUrl, programShareUrl } from '../src/utils/shareLinks.js';
