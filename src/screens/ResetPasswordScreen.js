@@ -1,3 +1,6 @@
+/**
+ * Accepts a reset token and new password, validates the form, submits the auth request, and returns the user to login after success. / Приймає токен скидання та новий пароль, перевіряє форму, надсилає auth-запит і після успіху повертає користувача до входу.
+ */
 import React, { useContext, useState, useRef } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
