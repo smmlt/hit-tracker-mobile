@@ -1,3 +1,6 @@
+/**
+ * Layout styles used by ExercisesScreen, defining its themed spacing, typography, controls, and responsive geometry. / Стилі макета для ExercisesScreen, що визначають тематичні відступи, типографіку, елементи керування та адаптивну геометрію.
+ */
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../constants/colors';
