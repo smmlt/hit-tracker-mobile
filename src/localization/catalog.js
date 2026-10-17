@@ -1,3 +1,6 @@
+// EN: Converts catalog kinds and names into stable translation keys, then falls back to source content when no catalog translation exists.
+// UK: Перетворює типи й назви каталогу на стабільні ключі перекладу та повертає вихідний текст, якщо переклад каталогу відсутній.
+
 export function catalogTranslationKey(kind, value) {
   const slug = String(value || '')
     .trim()
