@@ -1,3 +1,6 @@
+/**
+ * Presents exercise-level analytics for the selected period, transforming service results into charts and opening per-exercise details. / Подає аналітику вправ за вибраний період, перетворює результати сервісу на графіки та відкриває деталі окремої вправи.
+ */
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
