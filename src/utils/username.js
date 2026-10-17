@@ -1,3 +1,5 @@
+// EN: Centralizes username length, reserved-name, normalization, and validation rules shared by auth and profile forms.
+// UK: Централізує правила довжини, reserved names, нормалізації та валідації username для auth/profile форм.
 export const MIN_USERNAME_LENGTH = 3;
 export const MAX_USERNAME_LENGTH = 24;
 
