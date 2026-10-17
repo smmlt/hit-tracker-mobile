@@ -1,3 +1,5 @@
+// EN: Owns the create/edit exercise form, validation, muscle roles, media choices, and save/cancel callbacks.
+// UK: Керує формою створення/редагування вправи, валідацією, ролями мʼязів, media та save/cancel callbacks.
 import React, { useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
 import { createStyles } from './ExerciseFormModal.styles.js';
