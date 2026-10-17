@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
+/** EN: Builds the theme-aware style sheet used by SetRow. UK: Створює залежну від теми таблицю стилів для SetRow. */
 export const createStyles = (theme) => StyleSheet.create({
   setRow: {
     flexDirection: 'row',
