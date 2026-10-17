@@ -1,3 +1,6 @@
+// EN: Proves the production contract for admin observability response normalization and allowlisted component/metric data; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт нормалізації відповіді адміністративного моніторингу та дозволених даних про компоненти й метрики; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
