@@ -1,3 +1,6 @@
+/**
+ * Shows one completed workout from history, loading its details and providing back/navigation actions for the history flow. / Показує одне завершене тренування з історії, завантажує його деталі та надає дії повернення й навігації в потоці історії.
+ */
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
