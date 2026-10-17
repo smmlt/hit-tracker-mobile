@@ -2,6 +2,7 @@
 // UK: Визначає залежні від теми layout, spacing та interaction styles для ExerciseItem.
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by ExerciseItem. UK: Створює залежну від теми таблицю стилів для ExerciseItem. */
 export const createStyles = (theme) => StyleSheet.create({
   card: { backgroundColor: theme.cardBackground, overflow: "hidden" },
   body: {
