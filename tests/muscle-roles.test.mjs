@@ -1,3 +1,6 @@
+// EN: Proves the production contract for legacy muscle defaults and exclusive primary/secondary role transitions; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт типових ролей мʼязів зі старих даних і взаємовиключних переходів між основною та допоміжною роллю; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
