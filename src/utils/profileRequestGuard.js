@@ -1,3 +1,5 @@
+// EN: Versions profile mutations so a read started earlier cannot overwrite state after a later successful write.
+// UK: Версіонує зміни профілю, щоб раніше розпочатий read не перезаписав стан після пізнішого успішного write.
 export function createProfileRequestGuard() {
   let mutationVersion = 0;
 
