@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
+/** EN: Builds the theme-aware style sheet used by LoggedSetsList. UK: Створює залежну від теми таблицю стилів для LoggedSetsList. */
 export const createStyles = (theme) => StyleSheet.create({
   details: { flex: 1 },
   emptyCard: { backgroundColor: theme.cardBackground, padding: 16, borderRadius: 10, alignItems: 'center' },
