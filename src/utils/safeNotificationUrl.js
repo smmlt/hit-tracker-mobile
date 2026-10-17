@@ -1,3 +1,5 @@
+// EN: Accepts notification links only for the configured web origin, preventing arbitrary external navigation from push data.
+// UK: Приймає notification links лише для налаштованого web origin, не дозволяючи push data відкрити довільну зовнішню адресу.
 import { WEB_APP_URL } from './shareLinks.js';
 
 export function safeNotificationUrl(raw) {
