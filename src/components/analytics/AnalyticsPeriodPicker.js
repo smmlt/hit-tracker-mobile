@@ -1,3 +1,5 @@
+// EN: Lets analytics screens select preset or custom date windows and reports the normalized period to their data loaders.
+// UK: Дозволяє analytics-екранам вибрати preset або custom date window і передає нормалізований період завантажувачам даних.
 import React, { useContext, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
