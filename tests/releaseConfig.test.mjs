@@ -1,3 +1,6 @@
+// EN: Proves the production contract for release configuration rejecting placeholder or non-public API/web origins; fixtures model user-visible behavior and integration boundaries rather than implementation details.
+// UK: Перевіряє робочий контракт відхилення заповнювачів і непублічних адрес API або вебсайту в конфігурації релізу; фікстури відтворюють поведінку користувача й межі інтеграції, а не деталі реалізації.
+
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import test from 'node:test';
