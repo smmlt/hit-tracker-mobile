@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
 
+/** EN: Builds the theme-aware style sheet used by AdminObservability. UK: Створює залежну від теми таблицю стилів для AdminObservability. */
 export const createStyles = (theme) => StyleSheet.create({
   page: { gap: 24 },
   hero: {
