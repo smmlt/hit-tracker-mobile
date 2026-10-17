@@ -1,3 +1,5 @@
+// EN: Displays a workout-program summary with ownership, difficulty, schedule, reaction, and open/share actions.
+// UK: Показує підсумок workout program з ownership, складністю, schedule, reaction та open/share діями.
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { createStyles } from './ProgramCard.styles.js';
