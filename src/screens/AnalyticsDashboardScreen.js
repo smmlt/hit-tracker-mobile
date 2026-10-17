@@ -1,3 +1,6 @@
+/**
+ * Shows the analytics overview for the selected period, combining profile/activity data with transformed chart summaries and drill-down navigation. / Показує огляд аналітики за вибраний період, поєднуючи дані профілю й активності з перетвореними підсумками графіків і переходами до деталей.
+ */
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
