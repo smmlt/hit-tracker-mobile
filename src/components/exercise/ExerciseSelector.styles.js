@@ -3,6 +3,7 @@
 import { StyleSheet } from 'react-native';
 
 import { palette } from '../../constants/colors';
+/** EN: Builds the theme-aware style sheet used by ExerciseSelector. UK: Створює залежну від теми таблицю стилів для ExerciseSelector. */
 export const createStyles = (theme) => StyleSheet.create({
   filterContainer: { flexDirection: 'row', marginBottom: 10 },
   filterChip: { backgroundColor: theme.filterChipBackground, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 6, borderWidth: 1, borderColor: theme.border },
