@@ -1,3 +1,6 @@
+/**
+ * Shows detailed period analytics for one muscle group, deriving summary values from the analytics service and supporting back navigation. / Показує детальну аналітику однієї групи м’язів за період, обчислює підсумкові значення з аналітичного сервісу та підтримує повернення назад.
+ */
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
