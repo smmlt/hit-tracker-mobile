@@ -3,6 +3,7 @@
  */
 import { StyleSheet } from 'react-native';
 
+/** EN: Builds the theme-aware style sheet used by AccountSuspendedScreen. UK: Створює залежну від теми таблицю стилів для AccountSuspendedScreen. */
 export const createStyles = (theme) => StyleSheet.create({
   safeArea: {
     alignItems: 'center',
