@@ -1,3 +1,6 @@
+// EN: Owns the current locale, restores a supported choice from storage, persists changes, and exposes translated strings through React context.
+// UK: Зберігає поточну мову, відновлює підтримуваний вибір зі сховища, зберігає зміни й надає переклади через React-контекст.
+
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translations } from './translations';
