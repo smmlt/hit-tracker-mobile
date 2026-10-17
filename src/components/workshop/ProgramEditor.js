@@ -1,3 +1,5 @@
+// EN: Owns official or personal program editing, exercise schedule rows, validation, media, and save/cancel callbacks.
+// UK: Керує редагуванням official/personal program, schedule rows вправ, валідацією, media та save/cancel callbacks.
 
 import React, { useContext, useState } from "react";
 import { Text, View } from "react-native";
