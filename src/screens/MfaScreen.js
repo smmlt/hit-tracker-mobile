@@ -11,6 +11,8 @@ import { useTheme } from '../context/ThemeContext';
 import { CustomInput, PrimaryButton } from '../components/auth';
 import { createStyles } from './MfaScreen.styles';
 
+// EN: Renders either MFA enrollment or verification and hands the completed authenticated session back to AuthContext.
+// UK: Показує enrollment або перевірку MFA та передає завершену автентифіковану сесію назад до AuthContext.
 export default function MfaScreen() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -24,27 +26,46 @@ export default function MfaScreen() {
   const [loading, setLoading] = useState(Boolean(pendingMfa?.enrollmentRequired));
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let active = true;
-    if (!pendingMfa?.enrollmentRequired)
-      return () => {
+  useEffect(
+    /* EN: Starts TOTP enrollment only when the pending login requires it and ignores results after the screen unmounts. */
+    /* UK: Починає TOTP enrollment лише коли цього вимагає pending login, та ігнорує результат після unmount екрана. */
+    () => {
+      let active = true;
+      if (!pendingMfa?.enrollmentRequired)
+        return /* EN: Marks the no-enrollment effect inactive during cleanup. */ /* UK: Позначає effect без enrollment неактивним під час cleanup. */ () => {
+          active = false;
+        };
+      beginMfaEnrollment()
+      .then(
+        /* EN: Stores the manual TOTP setup data only while this screen is still active. */
+        /* UK: Зберігає дані ручного TOTP setup лише доки цей екран залишається активним. */
+        (value) => {
+          if (active) setSetup(value);
+        }
+      )
+      .catch(
+        /* EN: Converts an enrollment request failure into the localized screen error. */
+        /* UK: Перетворює помилку enrollment-запиту на локалізоване повідомлення екрана. */
+        () => {
+          if (active) setError(t('mfaSetupFailed'));
+        }
+      )
+      .finally(
+        /* EN: Ends the loading state after either a successful or failed setup request. */
+        /* UK: Завершує loading-стан після успішного або невдалого setup-запиту. */
+        () => {
+          if (active) setLoading(false);
+        }
+      );
+      return /* EN: Prevents late asynchronous enrollment results from updating an unmounted screen. */ /* UK: Не дозволяє пізньому асинхронному результату enrollment оновити unmounted-екран. */ () => {
         active = false;
       };
-    beginMfaEnrollment()
-      .then((value) => {
-        if (active) setSetup(value);
-      })
-      .catch(() => {
-        if (active) setError(t('mfaSetupFailed'));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [beginMfaEnrollment, pendingMfa?.enrollmentRequired]);
+    },
+    [beginMfaEnrollment, pendingMfa?.enrollmentRequired]
+  );
 
+  // EN: Submits either the enrollment TOTP, a normal TOTP, or a recovery code and maps throttling to a distinct user message.
+  // UK: Надсилає enrollment TOTP, звичайний TOTP або recovery-код і показує окреме повідомлення для throttling.
   const submit = async () => {
     setLoading(true);
     setError('');
@@ -64,6 +85,8 @@ export default function MfaScreen() {
     }
   };
 
+  // EN: Accepts the completed enrollment session only after the user confirms that the one-time recovery codes were saved.
+  // UK: Приймає завершену enrollment-сесію лише після підтвердження, що одноразові recovery-коди збережено.
   const finishEnrollment = async () => {
     setLoading(true);
     try {
@@ -83,7 +106,14 @@ export default function MfaScreen() {
           <Text selectable style={styles.secret}>
             {recoveryText}
           </Text>
-          <TouchableOpacity accessibilityRole="button" onPress={() => Clipboard.setStringAsync(recoveryText)}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={
+              /* EN: Copies all newly issued recovery codes so the user can store them safely. */
+              /* UK: Копіює всі щойно видані recovery-коди, щоб користувач міг безпечно їх зберегти. */
+              () => Clipboard.setStringAsync(recoveryText)
+            }
+          >
             <Text style={styles.link}>{t('copyRecoveryCodes')}</Text>
           </TouchableOpacity>
           <PrimaryButton title={t('savedRecoveryCodes')} onPress={finishEnrollment} isLoading={loading} />
@@ -103,7 +133,14 @@ export default function MfaScreen() {
             <Text selectable style={styles.secret}>
               {setup.secret}
             </Text>
-            <TouchableOpacity accessibilityRole="button" onPress={() => Clipboard.setStringAsync(setup.secret)}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={
+                /* EN: Copies the manual TOTP secret for authenticator apps that cannot scan the setup data. */
+                /* UK: Копіює ручний TOTP secret для authenticator-застосунків, які не можуть зчитати setup-дані. */
+                () => Clipboard.setStringAsync(setup.secret)
+              }
+            >
               <Text style={styles.link}>{t('copySecret')}</Text>
             </TouchableOpacity>
           </View>
@@ -111,11 +148,15 @@ export default function MfaScreen() {
         {!pendingMfa?.enrollmentRequired && (
           <TouchableOpacity
             accessibilityRole="button"
-            onPress={() => {
+            onPress={
+              /* EN: Switches between TOTP and recovery-code input while clearing stale validation state. */
+              /* UK: Перемикає введення між TOTP і recovery-кодом та очищає застарілий стан перевірки. */
+              () => {
               setUseRecovery(!useRecovery);
               setCode('');
               setError('');
-            }}
+              }
+            }
           >
             <Text style={styles.link}>{useRecovery ? t('useAuthenticatorCode') : t('useRecoveryCode')}</Text>
           </TouchableOpacity>
