@@ -64,6 +64,8 @@ const WorkshopStackNavigator = createNativeStackNavigator();
 const HistoryStackNavigator = createNativeStackNavigator();
 const AnalyticsStackNavigator = createNativeStackNavigator();
 
+// EN: Groups the history list and workout-detail views so the History tab preserves its own back stack.
+// UK: Групує список історії та деталі тренування, щоб вкладка History зберігала власний back stack.
 function HistoryStack() {
   return (
     <HistoryStackNavigator.Navigator screenOptions={{ headerShown: false }}>
@@ -73,6 +75,8 @@ function HistoryStack() {
   );
 }
 
+// EN: Shares one analytics period across overview and drill-down screens while keeping content above the bottom tab bar.
+// UK: Надає один analytics period для overview і drill-down екранів та утримує контент над нижньою tab bar.
 function AnalyticsStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
@@ -100,6 +104,8 @@ function AnalyticsStack() {
   );
 }
 
+// EN: Keeps Workshop browsing, program details, and exercise details in one independently navigable tab stack.
+// UK: Об'єднує Workshop, деталі програми й вправи в окремий навігаційний stack вкладки.
 function WorkshopStack() {
   return (
     <WorkshopStackNavigator.Navigator screenOptions={{ headerShown: false }}>
@@ -109,11 +115,15 @@ function WorkshopStack() {
     </WorkshopStackNavigator.Navigator>
   );
 }
+// EN: Supplies an empty themed surface while analytics content is being prepared or replaced.
+// UK: Показує порожню тематизовану поверхню, доки analytics-контент готується або замінюється.
 const AnalyticsPlaceholder = () => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   return <View style={styles.analyticsPlaceholder} />;
 };
+// EN: Groups training preparation, active session, completion, program, and exercise routes under the Training tab.
+// UK: Групує routes підготовки, активної сесії, завершення, програми та вправ під вкладкою Training.
 function TrainingStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
@@ -155,6 +165,8 @@ function TrainingStack() {
     </TrainingStackNavigator.Navigator>
   );
 }
+// EN: Groups profile and account-setting screens while applying consistent tab-bar spacing and theme colors.
+// UK: Групує профіль і налаштування акаунта та застосовує узгоджені відступи tab bar і кольори теми.
 function ProfileStack() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
@@ -175,11 +187,22 @@ function ProfileStack() {
     </ProfileStackNavigator.Navigator>
   );
 }
+// EN: Creates the five authenticated bottom tabs and translates their visible labels without changing stable route names.
+// UK: Створює п'ять авторизованих нижніх вкладок і перекладає їх labels, не змінюючи стабільні route names.
 function MainTabs() {
   const { t } = useContext(LanguageContext);
 
   return (
-    <Tab.Navigator initialRouteName="Home" backBehavior="history" tabBar={(props) => <AppTabBar {...props} />} screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      initialRouteName="Home"
+      backBehavior="history"
+      tabBar={
+        /* EN: Delegates rendering to the project's custom tab bar while forwarding React Navigation state and actions. */
+        /* UK: Передає rendering власній tab bar проєкту разом зі state та actions від React Navigation. */
+        (props) => <AppTabBar {...props} />
+      }
+      screenOptions={{ headerShown: false }}
+    >
       <Tab.Screen name="History" component={HistoryStack} options={{ title: t('history') }} />
       <Tab.Screen name="ActiveWorkout" component={TrainingStack} options={{ title: t('training') }} />
       <Tab.Screen name="Home" component={WorkshopStack} options={{ title: t('home') }} />
@@ -194,6 +217,8 @@ const linking = {
   config: linkingConfig,
 };
 
+// EN: Chooses the root navigation branch from initialization, onboarding, suspension, MFA, session, and admin state.
+// UK: Обирає кореневу гілку navigation за станами initialization, onboarding, suspension, MFA, session та admin.
 export default function AppNavigator({ onOnboardingComplete, showOnboarding = false }) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -202,6 +227,8 @@ export default function AppNavigator({ onOnboardingComplete, showOnboarding = fa
   const pendingNotificationOpen = React.useRef(false);
 
   const openNotifications = React.useCallback(
+    /* EN: Opens a validated notification deep link, or queues the inbox until the navigation container becomes ready. */
+    /* UK: Відкриває перевірений notification deep link або ставить inbox у чергу до готовності navigation container. */
     (actionUrl) => {
       if (!userToken) return;
       const safeActionUrl = safeNotificationUrl(actionUrl);
@@ -215,12 +242,26 @@ export default function AppNavigator({ onOnboardingComplete, showOnboarding = fa
     [userToken],
   );
 
-  React.useEffect(() => {
+  React.useEffect(
+    /* EN: Subscribes to push interactions only for an authenticated session and returns the listener cleanup function. */
+    /* UK: Підписується на push-взаємодії лише для авторизованої сесії та повертає функцію cleanup listeners. */
+    () => {
     if (!userToken) return undefined;
-    return addPushListeners(openNotifications, () => {});
-  }, [openNotifications, userToken]);
+    return addPushListeners(
+      openNotifications,
+      /* EN: Intentionally ignores foreground receipt here because the inbox screen fetches authoritative server state. */
+      /* UK: Навмисно ігнорує foreground receipt тут, бо inbox-екран читає авторитетний серверний стан. */
+      () => {}
+    );
+    },
+    [openNotifications, userToken]
+  );
 
-  const [isAdminRoute] = React.useState(() => Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/admin'));
+  const [isAdminRoute] = React.useState(
+    /* EN: Captures the initial web URL once so a direct /admin load can select the admin root without reacting to later path changes. */
+    /* UK: Один раз фіксує початковий web URL, щоб пряме відкриття /admin обрало admin-root без реакції на подальші зміни path. */
+    () => Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/admin')
+  );
 
   if (isInitializing) {
     return (
@@ -234,12 +275,16 @@ export default function AppNavigator({ onOnboardingComplete, showOnboarding = fa
     <NavigationContainer
       linking={linking}
       ref={navigationRef}
-      onReady={() => {
+      onReady={
+        /* EN: Replays a queued notification navigation after the container can safely accept route actions. */
+        /* UK: Повторює відкладену notification-навігацію після готовності container приймати route actions. */
+        () => {
         if (pendingNotificationOpen.current) {
           pendingNotificationOpen.current = false;
           navigationRef.navigate('Notifications');
         }
-      }}
+        }
+      }
     >
       <View style={styles.container}>
         <Stack.Navigator
@@ -251,7 +296,11 @@ export default function AppNavigator({ onOnboardingComplete, showOnboarding = fa
           }}
         >
           <Stack.Screen name="Onboarding" options={{ headerShown: false }}>
-            {(props) => <OnboardingScreen {...props} onComplete={onOnboardingComplete} />}
+            {
+              /* EN: Injects the application-level completion callback into the routed onboarding screen. */
+              /* UK: Передає application-level callback завершення у routed onboarding-екран. */
+              (props) => <OnboardingScreen {...props} onComplete={onOnboardingComplete} />
+            }
           </Stack.Screen>
           {accountSuspension ? (
             <Stack.Screen name="AccountSuspended" component={AccountSuspendedScreen} options={{ headerShown: false }} />
