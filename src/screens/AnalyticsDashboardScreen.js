@@ -163,14 +163,14 @@ export default function AnalyticsDashboardScreen({ navigation }) {
     workouts: number(summary.workouts),
   }[key]);
   /**
-   * EN: Opens the first scheduled assignment through the parent workout navigator while preserving its assignment identity and date.
-   * UK: Відкриває перше заплановане призначення через батьківський навігатор тренувань зі збереженням його ідентифікатора та дати.
+   * EN: Opens today's training plan so every scheduled assignment remains visible and unfinished work stays first.
+   * UK: Відкриває сьогоднішній план тренувань, щоб усі призначення залишалися видимими, а невиконані були першими.
    */
-  const openScheduledProgram = () => {
+  const openTodayPlan = () => {
     if (!firstScheduled) return;
     navigation.getParent()?.navigate('ActiveWorkout', {
-      screen: 'ProgramDetails',
-      params: { assignmentRef: String(firstScheduled.id), date: range.from },
+      screen: 'TrainingHome',
+      params: { date: range.start },
     });
   };
 
@@ -183,7 +183,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
       {error ? <View style={styles.card}><Text style={styles.muted}>{t('analyticsUnavailable')}</Text><Pressable accessibilityRole="button" onPress={/* EN: Retries the failed period load without entering refresh mode. / UK: Повторює невдале завантаження періоду без увімкнення стану оновлення жестом. */ () => load()} style={styles.retry}><Text style={styles.retryText}>{t('retry')}</Text></Pressable></View> : null}
       {today ? <View style={styles.card}>
         <Text style={styles.micro}>{t('analyticsProgram').toUpperCase()}</Text>
-        <Pressable accessibilityRole={firstScheduled ? 'button' : undefined} accessibilityLabel={firstScheduled ? t('analyticsOpenScheduledProgram') : undefined} disabled={!firstScheduled} onPress={openScheduledProgram} style={styles.todayProgramRow}>
+        <Pressable accessibilityRole={firstScheduled ? 'button' : undefined} accessibilityLabel={firstScheduled ? t('analyticsOpenScheduledProgram') : undefined} disabled={!firstScheduled} onPress={openTodayPlan} style={styles.todayProgramRow}>
           <View style={styles.todayProgramCopy}>
             <Text numberOfLines={2} style={firstScheduled ? styles.todayProgramName : styles.muted}>{firstScheduled?.programName || firstScheduled?.name || (scheduleAvailable ? t('analyticsNoPlanToday') : t('analyticsScheduleUnavailable'))}</Text>
             {scheduled.length > 1 ? <Text style={styles.micro}>{t('analyticsMorePrograms', { count: scheduled.length - 1 })}</Text> : null}

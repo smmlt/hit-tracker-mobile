@@ -83,6 +83,9 @@ test('Today overview uses real schedule completion, compact metrics, and interac
   assert.match(screen, /analyticsService\.schedule\(userToken, range\.start\)/);
   assert.match(screen, /item\.scheduledFor === range\.start/);
   assert.match(screen, /getParent\(\)\?\.navigate\('ActiveWorkout'/);
+  assert.match(screen, /screen: 'TrainingHome'/);
+  assert.match(screen, /params: \{ date: range\.start \}/);
+  assert.doesNotMatch(screen, /screen: 'ProgramDetails'/);
   for (const key of ['analyticsActiveTime', 'analyticsWorkingSets', 'analyticsVolume', 'analyticsCompletedWorkouts']) assert.match(screen, new RegExp(key));
   assert.doesNotMatch(screen, /calories/i);
   assert.match(screen, /analyticsScheduleUnavailable/);
