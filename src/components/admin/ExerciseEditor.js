@@ -23,6 +23,11 @@ export function ExerciseEditor({ exercise, onClose }) {
   const [video, setVideo] = useState(exercise?.videoUrl || "");
   const [videoChanged, setVideoChanged] = useState(false);
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
+  const [measurementType, setMeasurementType] = useState(exercise?.measurementType || "reps");
+  const [recommendedDurationSeconds, setRecommendedDurationSeconds] = useState(
+    exercise?.recommendedDurationSeconds ? String(exercise.recommendedDurationSeconds) : "",
+  );
+  const [equipment, setEquipment] = useState((exercise?.equipment || []).join(", "));
   const initialMuscles = splitMusclesByRole(exercise?.muscles);
   const [primaryMuscles, setPrimaryMuscles] = useState(initialMuscles.primary.map((m) => m.id));
   const [secondaryMuscles, setSecondaryMuscles] = useState(initialMuscles.secondary.map((m) => m.id));
@@ -33,6 +38,10 @@ export function ExerciseEditor({ exercise, onClose }) {
   const save = async () => {
     if (!name.trim()) {
       setError(t('exerciseNameRequired'));
+      return;
+    }
+    if (measurementType === "duration" && recommendedDurationSeconds && (!Number.isInteger(Number(recommendedDurationSeconds)) || Number(recommendedDurationSeconds) < 1)) {
+      setError(w.invalidNumbers);
       return;
     }
     setSaving(true);
@@ -49,6 +58,11 @@ export function ExerciseEditor({ exercise, onClose }) {
               description: description.trim(),
               ...(videoChanged || !exercise ? { videoUrl: video.trim() || undefined } : {}),
               difficulty,
+              measurementType,
+              recommendedDurationSeconds: measurementType === "duration" && recommendedDurationSeconds
+                ? Number(recommendedDurationSeconds)
+                : exercise ? null : undefined,
+              equipment: equipment.split(",").map((item) => item.trim()).filter(Boolean),
               primaryMuscleIds: primaryMuscles,
               secondaryMuscleIds: secondaryMuscles,
             }),
@@ -119,6 +133,23 @@ export function ExerciseEditor({ exercise, onClose }) {
         ))}
       </View>
       <DifficultyIndicator difficulty={difficulty} />
+      <Text style={s.heading}>{w.measurementType}</Text>
+      <View style={s.row}>
+        <Button secondary={measurementType !== "reps"} onPress={() => setMeasurementType("reps")}>{w.measurementReps}</Button>
+        <Button secondary={measurementType !== "duration"} onPress={() => setMeasurementType("duration")}>{w.measurementDuration}</Button>
+      </View>
+      {measurementType === "duration" && <Field
+        label={w.seconds}
+        value={recommendedDurationSeconds}
+        onChangeText={(value) => /^\d*$/.test(value) && setRecommendedDurationSeconds(value)}
+        keyboardType="numeric"
+      />}
+      <Field
+        label={w.equipment}
+        value={equipment}
+        onChangeText={setEquipment}
+        maxLength={500}
+      />
       <Feedback error={library.errors.muscles} onRetry={library.refresh} />
       {[
         ['primary', t('primaryMuscles'), primaryMuscles],

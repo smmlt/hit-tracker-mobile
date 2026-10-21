@@ -76,7 +76,9 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
                 style={styles.exercise}
               >
                 ·　{row.exercise.displayName || row.exercise.name}　({row.setsCount} ×{" "}
-                {row.targetReps || "—"})
+                {row.exercise.measurementType === "duration"
+                  ? `${row.targetDurationSeconds || row.exercise.recommendedDurationSeconds || "—"} ${w.seconds.toLowerCase()}`
+                  : row.targetReps || "—"})
               </Text>
             ))}
             {rows.length > 5 && (

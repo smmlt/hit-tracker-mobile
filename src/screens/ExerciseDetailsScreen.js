@@ -2,7 +2,7 @@
  * Displays a catalog exercise and its actions, loading exercise data and routing into sharing, editing, or workout-preparation flows. / Показує вправу каталогу та її дії, завантажує дані вправи й переходить до поширення, редагування або підготовки тренування.
  */
 import React, { useContext, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Linking, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useLibrary } from "../context/LibraryContext";
@@ -50,7 +50,11 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
           name: exercise.name,
           exercise,
           sets: 3,
-          reps: 10,
+          reps: exercise.measurementType === 'duration' ? undefined : 10,
+          durationSeconds: exercise.measurementType === 'duration'
+            ? exercise.recommendedDurationSeconds || 45
+            : undefined,
+          measurementType: exercise.measurementType || 'reps',
           weight: 0,
         },
       ]);
@@ -65,14 +69,17 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       {exercise.videoUrl && !videoFailed ? (
         <ExerciseVideoPlayer
           source={exercise.videoUrl}
-          style={s.media}
+          style={[s.media, styles.videoMedia]}
           onError={() => {
             setVideoFailed(true);
             setError(t('videoLoadFailed'));
           }}
         />
       ) : (
-        <MediaImage accessibilityLabel={w.noMedia} source={null} style={s.media} />
+        <>
+          <MediaImage accessibilityLabel={w.noMedia} source={null} style={s.media} />
+          {videoFailed && !!exercise.videoUrl && <Button secondary onPress={() => Linking.openURL(exercise.videoUrl)}>{w.openVideo}</Button>}
+        </>
       )}
       <View style={styles.summary}>
         <Text style={s.title}>{exercise.displayName || exercise.name}</Text>
@@ -81,6 +88,16 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
             w.noMuscles}
         </Text>
       </View>
+      <Text style={s.heading}>{w.measurementType}</Text>
+      <Text style={s.muted}>
+        {exercise.measurementType === 'duration'
+          ? `${w.measurementDuration}${exercise.recommendedDurationSeconds ? ` · ${exercise.recommendedDurationSeconds} ${w.seconds.toLowerCase()}` : ''}`
+          : w.measurementReps}
+      </Text>
+      {!!exercise.equipment?.length && <>
+        <Text style={s.heading}>{w.equipment}</Text>
+        <Text style={s.muted}>{exercise.equipment.join(' · ')}</Text>
+      </>}
       <Text style={s.heading}>{w.muscles}</Text>
       <View style={styles.musclePanel}>
         <MediaImage

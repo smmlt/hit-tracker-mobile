@@ -43,6 +43,8 @@ export const programExercises = (program) =>
       exercise: row.exercise,
       sets: row.setsCount,
       reps: row.targetReps,
+      durationSeconds: row.targetDurationSeconds,
+      measurementType: row.exercise.measurementType || 'reps',
       weight: row.plannedWeight,
     }));
 

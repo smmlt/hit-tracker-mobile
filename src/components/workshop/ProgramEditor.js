@@ -34,6 +34,8 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                 exerciseId: row.exercise?.id || row.exerciseId,
                 sets: String(row.setsCount ?? row.sets ?? 1),
                 reps: String(row.targetReps ?? row.reps ?? ""),
+                durationSeconds: String(row.targetDurationSeconds ?? row.durationSeconds ?? ""),
+                measurementType: row.exercise?.measurementType || row.measurementType || "reps",
                 // Preserve legacy metadata on edits; it is not a workout date or prescribed load.
                 weight: String(row.plannedWeight ?? row.weight ?? 0),
                 week: String(row.week || 1),
@@ -81,6 +83,13 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                     (Number.isInteger(Number(row.reps)) &&
                         Number(row.reps) >= 1 &&
                         Number(row.reps) <= 1000)) &&
+
+                (!row.durationSeconds ||
+                    (Number.isInteger(Number(row.durationSeconds)) &&
+                        Number(row.durationSeconds) >= 1 &&
+                        Number(row.durationSeconds) <= 86400)) &&
+
+                !(row.reps && row.durationSeconds) &&
 
                 // Weight
                 Number.isFinite(Number(row.weight)) &&
@@ -133,6 +142,7 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                                 ...row,
                                 sets: Number(row.sets),
                                 reps: row.reps ? Number(row.reps) : undefined,
+                                durationSeconds: row.durationSeconds ? Number(row.durationSeconds) : undefined,
                                 weight: Number(row.weight),
                                 week: Number(row.week),
                                 weekDay: Number(row.weekDay),
@@ -251,7 +261,11 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                                         {
                                             exerciseId: exercise.id,
                                             sets: "3",
-                                            reps: "10",
+                                            reps: exercise.measurementType === "duration" ? "" : "10",
+                                            durationSeconds: exercise.measurementType === "duration"
+                                                ? String(exercise.recommendedDurationSeconds || 45)
+                                                : "",
+                                            measurementType: exercise.measurementType || "reps",
                                             weight: "0",
                                             week: "1",
                                             weekDay: "0",
@@ -298,7 +312,7 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                     <View style={s.row}>
                         {[
                             ["sets", w.sets],
-                            ["reps", w.reps],
+                            [row.measurementType === "duration" ? "durationSeconds" : "reps", row.measurementType === "duration" ? w.seconds : w.reps],
                             ["weekDay", w.weekDay],
                         ].map(([key, label]) => {
                             return (

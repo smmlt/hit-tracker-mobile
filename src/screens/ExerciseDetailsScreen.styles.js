@@ -9,6 +9,7 @@ export const createStyles = (theme) => StyleSheet.create({
   contentBlock: { gap: 16 },
   noMedia: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 12 },
   summary: { gap: 4, paddingHorizontal: 10 },
+  videoMedia: { aspectRatio: 16 / 9, maxHeight: 320 },
   musclePanel: {
     alignItems: 'center',
     backgroundColor: theme.cardBackground,
