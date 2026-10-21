@@ -30,6 +30,16 @@ import { programExercises as fromProgram } from '../utils/library';
 import { palette } from '../constants/colors';
 import { createStyles } from './ActiveWorkoutScreen.styles.js';
 import { entityRef, isoDate } from '../utils/navigationPaths';
+import CompletionCheck from '../assets/workout-completion/completion-check.svg';
+import ActiveTimeIcon from '../assets/workout-completion/active-time.svg';
+import TotalTimeIcon from '../assets/workout-completion/total-time.svg';
+import ExercisesIcon from '../assets/workout-completion/exercises.svg';
+import SetsIcon from '../assets/workout-completion/sets.svg';
+import VolumeIcon from '../assets/workout-completion/volume.svg';
+import PlanCompletionIcon from '../assets/workout-completion/plan-completion.svg';
+import LogoLeft from '../assets/workout-completion/logo-left.svg';
+import LogoTop from '../assets/workout-completion/logo-top.svg';
+import LogoMiddle from '../assets/workout-completion/logo-middle.svg';
 
 /** EN: Calculates active workout seconds after subtracting completed and current pauses. UK: Обчислює активні секунди тренування після віднімання завершених і поточної пауз. */
 const activeSeconds = (workout, now) => {
@@ -364,51 +374,37 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     const completion = result.plannedReps
       ? Math.min(100, Math.round(result.actualReps / result.plannedReps * 100))
       : 0;
-    return <SafeAreaView style={styles.safe}>
+    const Metric = ({ icon: Icon, label, value, success = false }) => <View style={styles.resultMetricCard}>
+      <Icon height={24} width={24} />
+      <Text style={styles.resultMetricLabel}>{label}</Text>
+      <Text style={[styles.resultMetricValue, success && styles.resultMetricSuccess]}>{value}</Text>
+    </View>;
+    return <SafeAreaView style={styles.resultSafe}>
       <ScrollView contentContainerStyle={styles.result} showsVerticalScrollIndicator={false}>
         <View style={styles.resultHeader}>
-          <Ionicons color={theme.success} name="checkmark-circle" size={25} />
+          <CompletionCheck height={24} width={24} />
           <Text style={styles.resultHeaderText}>{t('workoutComplete').toUpperCase()}</Text>
         </View>
-        <Text style={styles.resultProgramTitle}>{displayTitle}</Text>
+        <View style={styles.resultLogo} pointerEvents="none"><LogoLeft style={styles.logoLeft} /><LogoTop style={styles.logoTop} /><LogoMiddle style={styles.logoMiddle} /></View>
+        <Text style={styles.resultTitle}>{displayTitle}</Text>
         <View style={styles.resultMetricGrid}>
-          <View style={styles.resultMetricCard}>
-            <Ionicons color={theme.primary} name="time-outline" size={22} />
-            <Text style={styles.resultMetricLabel}>{t('activeTime')}</Text>
-            <Text style={styles.resultMetricValue}>{formatTimer(result.elapsed)}</Text>
-            <Text style={styles.resultMetricCaption}>{t('totalTime')}: {formatTimer(result.totalTime)}</Text>
-          </View>
-          <View style={styles.resultMetricCard}>
-            <Ionicons color={theme.primary} name="barbell-outline" size={22} />
-            <Text style={styles.resultMetricLabel}>{t('exercises')}</Text>
-            <Text style={styles.resultMetricValue}>{result.exercises}</Text>
-          </View>
-          <View style={styles.resultMetricCard}>
-            <Ionicons color={theme.primary} name="layers-outline" size={22} />
-            <Text style={styles.resultMetricLabel}>{t('setsShort')}</Text>
-            <Text style={styles.resultMetricValue}>{result.sets}</Text>
-          </View>
-          <View style={styles.resultMetricCard}>
-            <Ionicons color={theme.primary} name="trending-up-outline" size={22} />
-            <Text style={styles.resultMetricLabel}>{t('planCompletion')}</Text>
-            <Text style={[styles.resultMetricValue, styles.resultMetricSuccess]}>{result.plannedReps ? `${completion}%` : '—'}</Text>
-          </View>
-        </View>
-        <View style={[styles.resultMetricCard, styles.resultWideMetric]}>
-          <Ionicons color={theme.primary} name="bar-chart-outline" size={23} />
-          <View>
-            <Text style={styles.resultMetricLabel}>{t('volume')}</Text>
-            <Text style={styles.resultWideValue}>{Math.round(result.volume)} {t('kilogramsShort')}</Text>
-          </View>
+          <Metric icon={ActiveTimeIcon} label={t('activeTime')} value={formatTimer(result.elapsed)} />
+          <Metric icon={TotalTimeIcon} label={t('totalTime')} value={formatTimer(result.totalTime)} />
+          <Metric icon={ExercisesIcon} label={t('exercises')} value={result.exercises} />
+          <Metric icon={SetsIcon} label={t('setsShort')} value={result.sets} />
+          <Metric icon={VolumeIcon} label={t('volume')} value={`${Math.round(result.volume)} ${t('kilogramsShort')}`} />
+          <Metric icon={PlanCompletionIcon} label={t('planCompletion')} success value={result.plannedReps ? `${completion}%` : '—'} />
         </View>
         <View style={styles.resultMetricGrid}>
-          <View style={styles.resultMetricCard}>
+          <View style={[styles.resultMetricCard, styles.resultShortMetric]}>
             <Text style={styles.resultMetricLabel}>{t('averageRpe')}</Text>
             <Text style={styles.resultMetricValue}>{result.avgRpe ? result.avgRpe.toFixed(1) : '—'}</Text>
           </View>
-          <View style={styles.resultMetricCard}>
+          <View style={[styles.resultMetricCard, styles.resultShortMetric]}>
             <Text style={styles.resultMetricLabel}>{t('failureSets')}</Text>
-            <Text style={styles.resultMetricValue}>{result.failure}</Text>
+            <Text style={styles.resultMetricValue}>
+              {result.failure} <Text style={styles.resultMetricUnit}>{t('setsShort')}</Text>
+            </Text>
           </View>
         </View>
         {!!resultError && <Text style={styles.resultError}>{resultError}</Text>}
