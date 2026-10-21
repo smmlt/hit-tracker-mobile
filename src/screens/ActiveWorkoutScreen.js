@@ -24,7 +24,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { translateCatalogName } from '../localization/catalog';
 import { apiFetch } from '../services/api';
-import { exercisePlanProgress, replaceRecordedSet } from '../utils/activeWorkout';
+import { exercisePlanProgress, replaceRecordedSet, workoutPlanCompletion } from '../utils/activeWorkout';
 import { formatTimer } from '../utils/formatters';
 import { programExercises as fromProgram } from '../utils/library';
 import { palette } from '../constants/colors';
@@ -55,8 +55,15 @@ const activeSeconds = (workout, now) => {
 const planFromSnapshot = (workout) => (workout?.historySnapshot?.plan || []).map(/* EN: Converts one snapshot row to the active-card shape. UK: Перетворює один рядок знімка на форму картки активної вправи. */ (item) => ({
   id: item.exerciseId,
   name: item.name,
-  exercise: { id: item.exerciseId, name: item.name },
+  exercise: {
+    id: item.exerciseId,
+    name: item.name,
+    measurementType: item.measurementType || 'reps',
+    recommendedDurationSeconds: item.targetDurationSeconds,
+  },
   reps: item.reps,
+  durationSeconds: item.targetDurationSeconds,
+  measurementType: item.measurementType || 'reps',
   sets: item.sets,
   weight: item.weight,
 }));
@@ -112,6 +119,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const [resultError, setResultError] = useState('');
   const [savePromptOpen, setSavePromptOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
+  const [durationDraftExerciseIds, setDurationDraftExerciseIds] = useState(() => new Set());
 
   const plan = result ? result.plan || [] : preparedWorkout?.exercises || planFromSnapshot(activeWorkout);
   const title = result
@@ -129,6 +137,14 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     /* EN: Returns recorded sets belonging to one exercise. UK: Повертає записані підходи, що належать одній вправі. */ (exerciseId) => loggedSets.filter(/* EN: Matches a set to the requested exercise identifier. UK: Зіставляє підхід із запитаним ідентифікатором вправи. */ (set) => set.exerciseId === exerciseId),
     [loggedSets],
   );
+  const setDurationDraftState = useCallback((exerciseId, active) => {
+    setDurationDraftExerciseIds((current) => {
+      const next = new Set(current);
+      if (active) next.add(exerciseId);
+      else next.delete(exerciseId);
+      return next;
+    });
+  }, []);
   const plannedSets = useMemo(
     /* EN: Computes the total planned set count for progress display. UK: Обчислює загальну заплановану кількість підходів для показу прогресу. */ () => plan.reduce(/* EN: Adds this exercise's planned sets to the total. UK: Додає заплановані підходи цієї вправи до загальної кількості. */ (total, item) => total + (Number(item.sets) || 0), 0),
     [plan],
@@ -146,6 +162,9 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           : null,
         progress.actualReps < progress.targetReps
           ? t('incompleteReps', { actual: progress.actualReps, planned: progress.targetReps })
+          : null,
+        progress.actualDuration < progress.targetDuration
+          ? t('incompleteDuration', { actual: progress.actualDuration, planned: progress.targetDuration })
           : null,
       ].filter(/* EN: Removes absent set or repetition warnings. UK: Видаляє відсутні попередження про підходи чи повторення. */ Boolean);
       return missing.length
@@ -273,6 +292,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       0,
     );
     const actualReps = loggedSets.reduce(/* EN: Totals repetitions actually recorded across all sets. UK: Підсумовує фактично записані повторення в усіх підходах. */ (total, set) => total + (Number(set.reps) || 0), 0);
+    const completionPercent = workoutPlanCompletion(plan, setsFor);
     const nextResult = {
       actualReps,
       avgRpe: rpeSets.reduce(/* EN: Sums available RPE values for the result average. UK: Підсумовує наявні значення RPE для середнього результату. */ (sum, set) => sum + set.rpe, 0) / (rpeSets.length || 1),
@@ -283,6 +303,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       exercises: plan.length,
       failure: loggedSets.filter(/* EN: Counts sets explicitly marked as muscular failure. UK: Підраховує підходи, явно позначені як виконані до відмови. */ (set) => set.isFailure).length,
       plannedReps,
+      completionPercent,
       sets: loggedSets.length,
       totalTime: completedWorkout.finishedAt
         ? Math.max(0, Math.floor((new Date(completedWorkout.finishedAt).getTime() - new Date(completedWorkout.createdAt).getTime()) / 1000))
@@ -293,6 +314,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
         exercises: plan.map(/* EN: Converts completed-plan exercises into a reusable program draft. UK: Перетворює вправи завершеного плану на чернетку програми для повторного використання. */ (item) => ({
           exerciseId: item.id,
           reps: Number(item.reps) || undefined,
+          durationSeconds: Number(item.durationSeconds) || undefined,
           sets: Math.max(Number(item.sets) || 1, setsFor(item.id).length),
           week: 1,
           weekDay: 0,
@@ -371,9 +393,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   }
 
   if (result) {
-    const completion = result.plannedReps
-      ? Math.min(100, Math.round(result.actualReps / result.plannedReps * 100))
-      : 0;
+    const completion = result.completionPercent;
     const Metric = ({ icon: Icon, label, value, success = false }) => <View style={styles.resultMetricCard}>
       <Icon height={24} width={24} />
       <Text style={styles.resultMetricLabel}>{label}</Text>
@@ -393,7 +413,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           <Metric icon={ExercisesIcon} label={t('exercises')} value={result.exercises} />
           <Metric icon={SetsIcon} label={t('setsShort')} value={result.sets} />
           <Metric icon={VolumeIcon} label={t('volume')} value={`${Math.round(result.volume)} ${t('kilogramsShort')}`} />
-          <Metric icon={PlanCompletionIcon} label={t('planCompletion')} success value={result.plannedReps ? `${completion}%` : '—'} />
+          <Metric icon={PlanCompletionIcon} label={t('planCompletion')} success value={completion == null ? '—' : `${completion}%`} />
         </View>
         <View style={styles.resultMetricGrid}>
           <View style={[styles.resultMetricCard, styles.resultShortMetric]}>
@@ -469,6 +489,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           item={item}
           key={item.id}
           onDetails={setSelectedExercise}
+          onDurationDraftChange={setDurationDraftState}
           onRemove={removeExercise}
           onSave={saveSet}
           onToggle={/* EN: Expands this exercise or collapses it when already open. UK: Розгортає цю вправу або згортає її, якщо вона вже відкрита. */ () => setExpandedExerciseId(/* EN: Toggles the captured exercise identifier against the current expansion. UK: Перемикає ідентифікатор вибраної вправи відносно поточного розгортання. */ (current) => current === item.id ? null : item.id)}
@@ -490,15 +511,15 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
 
       <Pressable
         accessibilityRole="button"
-        disabled={!activeWorkout || pendingSaves > 0}
+        disabled={!activeWorkout || pendingSaves > 0 || durationDraftExerciseIds.size > 0}
         onPress={/* EN: Opens finish confirmation after all set saves settle. UK: Відкриває підтвердження завершення після збереження всіх підходів. */ () => setFinishOpen(true)}
         style={[
           styles.finishButton,
-          activeWorkout && pendingSaves === 0 && styles.finishActive,
-          (!activeWorkout || pendingSaves > 0) && styles.finishDisabled,
+          activeWorkout && pendingSaves === 0 && durationDraftExerciseIds.size === 0 && styles.finishActive,
+          (!activeWorkout || pendingSaves > 0 || durationDraftExerciseIds.size > 0) && styles.finishDisabled,
         ]}
       >
-        <Text style={[styles.finishText, (!activeWorkout || pendingSaves > 0) && styles.finishTextDisabled]}>{t('finish')}</Text>
+        <Text style={[styles.finishText, (!activeWorkout || pendingSaves > 0 || durationDraftExerciseIds.size > 0) && styles.finishTextDisabled]}>{t('finish')}</Text>
       </Pressable>
       <Pressable
         accessibilityRole="button"

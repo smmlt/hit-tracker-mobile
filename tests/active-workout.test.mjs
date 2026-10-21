@@ -5,10 +5,37 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   exercisePlanProgress,
+  isDurationSetDraftValid,
   isSetDraftValid,
   replaceRecordedSet,
   rpeColor,
+  workoutPlanCompletion,
 } from '../src/utils/activeWorkout.js';
+
+test('duration completion uses planned set count and aggregate seconds', () => {
+  const item = { measurementType: 'duration', sets: 3, durationSeconds: 45 };
+  assert.equal(exercisePlanProgress(item, [{ durationSeconds: 40 }, { durationSeconds: 45 }, { durationSeconds: 50 }]).complete, true);
+  assert.equal(exercisePlanProgress(item, [{ durationSeconds: 44 }, { durationSeconds: 45 }, { durationSeconds: 45 }]).complete, false);
+  assert.equal(exercisePlanProgress(item, [{ durationSeconds: 135 }]).complete, false);
+});
+
+test('duration set confirmation requires positive seconds and RPE', () => {
+  assert.equal(isDurationSetDraftValid({ durationSeconds: 45, rpe: 8 }), true);
+  assert.equal(isDurationSetDraftValid({ durationSeconds: 0, rpe: 8 }), false);
+  assert.equal(isDurationSetDraftValid({ durationSeconds: 45, rpe: '' }), false);
+});
+
+test('workout completion combines rep and duration exercises without cross-credit', () => {
+  const plan = [
+    { id: 1, sets: 2, reps: 10 },
+    { id: 2, measurementType: 'duration', sets: 2, durationSeconds: 30 },
+  ];
+  const sets = new Map([
+    [1, [{ reps: 20 }, { reps: 20 }]],
+    [2, [{ durationSeconds: 20 }, { durationSeconds: 20 }]],
+  ]);
+  assert.equal(workoutPlanCompletion(plan, (id) => sets.get(id) || []), 83);
+});
 
 test('exercise plan completion uses total repetitions across all recorded sets', () => {
   const progress = exercisePlanProgress(

@@ -87,6 +87,7 @@ export const useWorkoutStore = create(persist((set, get) => ({
             exerciseId: item.id,
             sets: Number(item.sets) || 0,
             reps: item.reps == null ? undefined : Number(item.reps),
+            durationSeconds: item.durationSeconds == null ? undefined : Number(item.durationSeconds),
             weight: item.weight == null ? undefined : Number(item.weight),
           })) } : {}),
         }),

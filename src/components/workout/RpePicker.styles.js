@@ -15,7 +15,7 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
     flexDirection: 'row',
     height: 44,
     justifyContent: 'center',
-    width: compact ? 50 : 55,
+    width: compact ? 44 : 55,
   },
   fieldText: { fontFamily: 'Inter-SemiBold', fontSize: 13, marginRight: 2 },
   option: {
