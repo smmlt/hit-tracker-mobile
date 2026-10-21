@@ -45,7 +45,7 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   logoTop: { height: 23, left: 18, position: 'absolute', top: 0, width: 110 },
   logoMiddle: { height: 21, left: 49, position: 'absolute', top: 46, width: 48 },
   resultTitle: { color: '#EFEFEF', fontFamily: 'Inter-Bold', fontSize: 16, lineHeight: 22 },
-  resultMetricCard: { alignItems: 'center', backgroundColor: '#292929', borderRadius: 10, flexBasis: '47%', flexGrow: 1, gap: 4, justifyContent: 'center', minHeight: 90, padding: 8 },
+  resultMetricCard: { alignItems: 'center', backgroundColor: '#292929', borderRadius: 10, flexBasis: compact ? '100%' : '47%', flexGrow: 1, gap: 4, justifyContent: 'center', minHeight: 90, padding: 8 },
   resultMetricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   resultMetricLabel: { color: '#838384', fontFamily: 'Inter', fontSize: 13, textAlign: 'center' },
   resultMetricSuccess: { color: '#34C759' },
