@@ -41,9 +41,10 @@ test('exercise video and image media stay in separate visual areas', () => {
   const exerciseDetails = source('src/screens/ExerciseDetailsScreen.js');
   assert.match(exerciseDetails, /const \[videoFailed, setVideoFailed\] = useState\(false\)/);
   assert.match(exerciseDetails, /exercise\.videoUrl && !videoFailed \? \(/);
-  assert.match(exerciseDetails, /<ExerciseVideoPlayer[\s\S]*?style=\{s\.media\}/);
+  assert.match(exerciseDetails, /<ExerciseVideoPlayer[\s\S]*?style=\{\[s\.media, styles\.videoMedia\]\}/);
   assert.match(exerciseDetails, /setVideoFailed\(true\)/);
-  assert.match(exerciseDetails, /\) : \(\s*<MediaImage accessibilityLabel=\{w\.noMedia\} source=\{null\} style=\{s\.media\}/);
+  assert.match(exerciseDetails, /\) : \(\s*<>\s*<MediaImage accessibilityLabel=\{w\.noMedia\} source=\{null\} style=\{s\.media\}/);
+  assert.match(exerciseDetails, /Linking\.openURL\(exercise\.videoUrl\)/);
   assert.match(exerciseDetails, /<MediaImage[\s\S]*?source=\{exercise\.imageUrl\}[\s\S]*?style=\{styles\.muscleImage\}/);
   assert.doesNotMatch(exerciseDetails, /\) : <MediaImage[\s\S]*?source=\{exercise\.imageUrl\}[\s\S]*?style=\{s\.media\}/);
 });
