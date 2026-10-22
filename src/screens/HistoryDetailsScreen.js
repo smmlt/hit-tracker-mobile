@@ -176,7 +176,9 @@ export default function HistoryDetailsScreen({ navigation, route }) {
   const completedAt = new Date(workout.finishedAt);
   const completedDay = dateKey(completedAt);
   const scheduledDiffers = workout.scheduledFor && workout.scheduledFor !== completedDay;
-  const displayTitle = programSource?.name
+  const displayTitle = workout.isFreeWorkout
+    ? t('freeWorkout')
+    : programSource?.name
     ? translateCatalogName(t, 'program', programSource.name)
     : workout.title || t('workout');
 

@@ -24,7 +24,9 @@ export function HistoryCard({ workout, onPress }) {
   const { locale, t } = useContext(LanguageContext);
   const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US';
   const completedAt = new Date(workout.finishedAt || workout.createdAt);
-  const title = workout.programName
+  const title = workout.isFreeWorkout
+    ? t('freeWorkout')
+    : workout.programName
     ? translateCatalogName(t, 'program', workout.programName)
     : workout.title || t('workout');
   const previewNames = (workout.exercisePreview || [])
