@@ -3,5 +3,9 @@
 
 export const DEFAULT_LOCALE = 'en';
 export const SUPPORTED_LOCALES = ['en', 'uk'];
+export const LOCALE_OPTIONS = [
+  { value: 'en', labelKey: 'english', flag: '🇬🇧' },
+  { value: 'uk', labelKey: 'ukrainian', flag: '🇺🇦' },
+];
 
 export const isSupportedLocale = (locale) => SUPPORTED_LOCALES.includes(locale);

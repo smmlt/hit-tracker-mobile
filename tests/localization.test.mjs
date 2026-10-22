@@ -3,7 +3,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_LOCALE, isSupportedLocale } from '../src/localization/locale.js';
+import { DEFAULT_LOCALE, LOCALE_OPTIONS, SUPPORTED_LOCALES, isSupportedLocale } from '../src/localization/locale.js';
 import { translations } from '../src/localization/translations.js';
 import { translateCatalogName } from '../src/localization/catalog.js';
 
@@ -12,6 +12,8 @@ test('LOCALIZATION-001 English is the default locale', () => {
   assert.equal(isSupportedLocale('en'), true);
   assert.equal(isSupportedLocale('uk'), true);
   assert.equal(isSupportedLocale('de'), false);
+  assert.deepEqual(LOCALE_OPTIONS.map(({ value }) => value), SUPPORTED_LOCALES);
+  assert.deepEqual(LOCALE_OPTIONS.map(({ flag }) => flag), ['🇬🇧', '🇺🇦']);
 });
 
 test('LOCALIZATION-002 English and Ukrainian expose the same translation keys', () => {

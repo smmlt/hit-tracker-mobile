@@ -11,6 +11,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { ConfirmDialog } from '../components/feedback';
+import { LanguageDropdown } from '../components/profile/LanguageDropdown';
 import { notificationService, syncPushRegistration } from '../services/notificationService';
 import { authService } from '../services/authService';
 
@@ -358,15 +359,7 @@ export default function SettingsScreen({ navigation }) {
           <Text style={[styles.title, { color: theme.textPrimary }]}>{t('settings')}</Text>
         </View>
         <Text style={[styles.label, { color: theme.textSecondary }]}>{t('language')}</Text>
-        <Pressable
-          accessibilityLabel={t('language')}
-          accessibilityRole="button"
-          onPress={/* EN: Switches between the supported English and Ukrainian locales. UK: Перемикає між підтримуваними англійською та українською мовами. */ () => changeLanguage(locale === 'uk' ? 'en' : 'uk')}
-          style={[styles.languageField, { borderColor: theme.textPrimary }]}
-        >
-          <Text style={[styles.languageText, { color: theme.textPrimary }]}>{locale === 'uk' ? t('ukrainian') : t('english')}</Text>
-          <Ionicons color={theme.textPrimary} name="chevron-down" size={22} />
-        </Pressable>
+        <LanguageDropdown locale={locale} onChange={changeLanguage} t={t} />
         <Text style={[styles.label, { color: theme.textSecondary }]}>{t('theme')}</Text>
         <Choice
           options={[

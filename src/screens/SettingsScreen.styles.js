@@ -46,16 +46,6 @@ export const createStyles = ({ compact, desktop, horizontalPadding }) => StyleSh
     paddingHorizontal: compact ? 8 : 12,
   },
   rowText: { fontFamily: 'Inter', fontSize: 16 },
-  languageField: {
-    alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 44,
-    paddingHorizontal: 12,
-  },
-  languageText: { fontFamily: 'Inter', fontSize: 16 },
   segment: {
     borderRadius: 12,
     borderWidth: 1,
