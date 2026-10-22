@@ -10,6 +10,7 @@ import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "./u
 import { useTheme } from "../../context/ThemeContext";
 import { ImagePickerField } from "../media/ImagePickerField";
 import { contentMediaService } from "../../services/contentMediaService";
+import { ExerciseItem } from "../exercise/ExerciseItem";
 
 import { createStyles } from './ProgramEditor.styles';
 export function ProgramEditor({ initialValues, program, official = false, onClose, onSaved }) {
@@ -252,31 +253,35 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                             item.name.toLowerCase().includes(query.toLowerCase()),
                         )
                         .map((exercise) => (
-                            <Button
-                                secondary
+                            <ExerciseItem
                                 key={exercise.id}
-                                onPress={() => {
-                                    setRows((items) => [
-                                        ...items,
-                                        {
-                                            exerciseId: exercise.id,
-                                            sets: "3",
-                                            reps: exercise.measurementType === "duration" ? "" : "10",
-                                            durationSeconds: exercise.measurementType === "duration"
-                                                ? String(exercise.recommendedDurationSeconds || 45)
-                                                : "",
-                                            measurementType: exercise.measurementType || "reps",
-                                            weight: "0",
-                                            week: "1",
-                                            weekDay: "0",
-                                        },
-                                    ]);
-
-                                    setPicker(false);
-                                }}
+                                exercise={exercise}
                             >
-                                + {exercise.displayName || exercise.name}
-                            </Button>
+                                <Button
+                                    secondary
+                                    onPress={() => {
+                                        setRows((items) => [
+                                            ...items,
+                                            {
+                                                exerciseId: exercise.id,
+                                                sets: "3",
+                                                reps: exercise.measurementType === "duration" ? "" : "10",
+                                                durationSeconds: exercise.measurementType === "duration"
+                                                    ? String(exercise.recommendedDurationSeconds || 45)
+                                                    : "",
+                                                measurementType: exercise.measurementType || "reps",
+                                                weight: "0",
+                                                week: "1",
+                                                weekDay: "0",
+                                            },
+                                        ]);
+
+                                        setPicker(false);
+                                    }}
+                                >
+                                    + {w.addExercise}
+                                </Button>
+                            </ExerciseItem>
                         ))}
                 </View>
             )}
