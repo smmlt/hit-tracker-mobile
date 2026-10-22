@@ -3,6 +3,7 @@
 export const layoutBreakpoints = Object.freeze({
   compact: 480,
   desktop: 900,
+  resultSingleColumn: 370,
 });
 
 export const contentWidths = Object.freeze({
@@ -17,5 +18,6 @@ export const responsiveLayout = (width) => {
     compact: safeWidth <= layoutBreakpoints.compact,
     desktop: safeWidth >= layoutBreakpoints.desktop,
     horizontalPadding: safeWidth <= 360 ? 12 : safeWidth <= layoutBreakpoints.compact ? 16 : 24,
+    resultSingleColumn: safeWidth < layoutBreakpoints.resultSingleColumn,
   };
 };

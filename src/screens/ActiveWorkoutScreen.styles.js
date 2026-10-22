@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { palette } from '../constants/colors';
 
 /** EN: Builds the theme-aware style sheet used by ActiveWorkoutScreen. UK: Створює залежну від теми таблицю стилів для ActiveWorkoutScreen. */
-export const createStyles = (theme, compact = false) => StyleSheet.create({
+export const createStyles = (theme, compact = false, resultSingleColumn = false) => StyleSheet.create({
   cancelButton: { alignItems: 'center', alignSelf: 'center', justifyContent: 'center', minHeight: 44, paddingHorizontal: 16 },
   cancelText: { color: theme.error, fontFamily: 'Inter-SemiBold', fontSize: 13 },
   catalogItem: { borderBottomColor: theme.border, borderBottomWidth: 1, gap: 5, paddingVertical: 14 },
@@ -45,7 +45,7 @@ export const createStyles = (theme, compact = false) => StyleSheet.create({
   logoTop: { height: 23, left: 18, position: 'absolute', top: 0, width: 110 },
   logoMiddle: { height: 21, left: 49, position: 'absolute', top: 46, width: 48 },
   resultTitle: { color: theme.textPrimary, fontFamily: 'Inter-Bold', fontSize: 16, lineHeight: 22 },
-  resultMetricCard: { alignItems: 'center', backgroundColor: theme.cardBackground, borderRadius: 10, flexBasis: compact ? '100%' : '47%', flexGrow: 1, gap: 4, justifyContent: 'center', minHeight: 90, padding: 8 },
+  resultMetricCard: { alignItems: 'center', backgroundColor: theme.cardBackground, borderRadius: 10, flexBasis: resultSingleColumn ? '100%' : '47%', flexGrow: 1, gap: 4, justifyContent: 'center', minHeight: 90, padding: 8 },
   resultMetricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   resultMetricLabel: { color: theme.textSecondary, fontFamily: 'Inter', fontSize: 13, textAlign: 'center' },
   resultMetricSuccess: { color: theme.success },

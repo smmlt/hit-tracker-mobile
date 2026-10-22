@@ -22,9 +22,9 @@ export function ExerciseDetailsModal({ exercise, onClose, visible }) {
     apiFetch(`/exercises/${exercise.id}`, {}, userToken).then((response) => {
       if (!current) return;
       if (response.ok && response.data) setDetails(response.data);
-      else setError(response.error?.message || response.error || w.exerciseDetailsLoadFailed);
+      else if (!exercise) setError(w.exerciseDetailsLoadFailed);
     }).catch((requestError) => {
-      if (current) setError(requestError.message || w.exerciseDetailsLoadFailed);
+      if (current && !exercise) setError(requestError.message || w.exerciseDetailsLoadFailed);
     }).finally(() => {
       if (current) setLoading(false);
     });

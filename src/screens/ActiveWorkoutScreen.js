@@ -72,7 +72,7 @@ const planFromSnapshot = (workout) => (workout?.historySnapshot?.plan || []).map
 /** EN: Coordinates preparation, live set logging, pause/cancel/finish transitions, and completion results. UK: Координує підготовку, запис підходів, переходи паузи/скасування/завершення та підсумки тренування. */
 export default function ActiveWorkoutScreen({ navigation, route }) {
   const { width } = useWindowDimensions();
-  const { compact } = responsiveLayout(width);
+  const { compact, resultSingleColumn } = responsiveLayout(width);
   const { userToken } = useContext(AuthContext);
   const {
     activeWorkout,
@@ -109,7 +109,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   })));
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
-  const styles = createStyles(theme, compact);
+  const styles = createStyles(theme, compact, resultSingleColumn);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState(null);
   const [finishOpen, setFinishOpen] = useState(false);
