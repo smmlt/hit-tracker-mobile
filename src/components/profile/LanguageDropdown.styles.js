@@ -17,7 +17,14 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   value: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: 10, minWidth: 0 },
   valueText: { color: theme.textPrimary, flexShrink: 1, fontFamily: 'Inter', fontSize: 16 },
-  flag: { fontSize: 22, lineHeight: 28 },
+  flagFrame: {
+    alignItems: 'center',
+    borderRadius: 2,
+    height: 16,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    width: 24,
+  },
   modal: { flex: 1 },
   backdrop: { ...StyleSheet.absoluteFillObject },
   menu: {

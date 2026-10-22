@@ -13,7 +13,7 @@ test('LOCALIZATION-001 English is the default locale', () => {
   assert.equal(isSupportedLocale('uk'), true);
   assert.equal(isSupportedLocale('de'), false);
   assert.deepEqual(LOCALE_OPTIONS.map(({ value }) => value), SUPPORTED_LOCALES);
-  assert.deepEqual(LOCALE_OPTIONS.map(({ flag }) => flag), ['🇬🇧', '🇺🇦']);
+  assert.deepEqual(LOCALE_OPTIONS.map(({ flag }) => flag), ['gb', 'ua']);
 });
 
 test('LOCALIZATION-002 English and Ukrainian expose the same translation keys', () => {

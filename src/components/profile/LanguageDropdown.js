@@ -7,10 +7,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { LOCALE_OPTIONS } from '../../localization/locale';
 import { useTheme } from '../../context/ThemeContext';
 import { languageMenuLayout } from '../../utils/languageDropdown';
+import FlagUnitedKingdom from '../../assets/flags/FlagUnitedKingdom.svg';
+import FlagUkraine from '../../assets/flags/FlagUkraine.svg';
 import { createStyles } from './LanguageDropdown.styles.js';
 
 const OPTION_HEIGHT = 48;
 const MENU_VERTICAL_PADDING = 12;
+const FLAG_COMPONENTS = {
+  gb: FlagUnitedKingdom,
+  ua: FlagUkraine,
+};
+
+function LocaleFlag({ code, styles }) {
+  const Flag = FLAG_COMPONENTS[code] || FlagUnitedKingdom;
+  return (
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.flagFrame}>
+      <Flag height={16} width={24} />
+    </View>
+  );
+}
 
 export function LanguageDropdown({ locale, onChange, t }) {
   const { height, width } = useWindowDimensions();
@@ -55,7 +70,7 @@ export function LanguageDropdown({ locale, onChange, t }) {
         style={({ pressed }) => [styles.trigger, pressed && styles.pressed]}
       >
         <View style={styles.value}>
-          <Text accessibilityElementsHidden style={styles.flag}>{selected.flag}</Text>
+          <LocaleFlag code={selected.flag} styles={styles} />
           <Text numberOfLines={1} style={styles.valueText}>{t(selected.labelKey)}</Text>
         </View>
         <Ionicons color={theme.textPrimary} name={open ? 'chevron-up' : 'chevron-down'} size={22} />
@@ -91,7 +106,7 @@ export function LanguageDropdown({ locale, onChange, t }) {
                       pressed && styles.pressed,
                     ]}
                   >
-                    <Text accessibilityElementsHidden style={styles.flag}>{option.flag}</Text>
+                    <LocaleFlag code={option.flag} styles={styles} />
                     <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{t(option.labelKey)}</Text>
                     {isSelected ? <Ionicons color={theme.onPrimary} name="checkmark" size={20} /> : <View style={styles.checkSpacer} />}
                   </Pressable>
