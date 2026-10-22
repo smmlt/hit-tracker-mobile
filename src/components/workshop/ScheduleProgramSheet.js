@@ -1,6 +1,6 @@
 // EN: Collects a date and recurrence choice before assigning a program to the training calendar.
 // UK: Збирає дату й recurrence перед призначенням програми до training calendar.
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { useLibrary } from "../../context/LibraryContext";
@@ -18,6 +18,13 @@ export function ScheduleProgramSheet({ program, onClose, onSaved }) {
   const [weekly, setWeekly] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const selectedDayIndex = useMemo(() => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+    const parsed = new Date(`${date}T12:00:00`);
+    return Number.isFinite(parsed.getTime()) && localDate(parsed) === date
+      ? (parsed.getDay() + 6) % 7
+      : null;
+  }, [date]);
   const save = async () => {
     const parsed = new Date(`${date}T12:00:00`);
     if (
@@ -63,21 +70,26 @@ export function ScheduleProgramSheet({ program, onClose, onSaved }) {
         maxLength={10}
       />
       <View style={s.row}>
-        {w.days.map((day, i) => (
-          <Button
-            key={day}
-            secondary
-            onPress={() => {
-              const next = new Date();
-              next.setDate(
-                next.getDate() + ((i - ((next.getDay() + 6) % 7) + 7) % 7),
-              );
-              setDate(localDate(next));
-            }}
-          >
-            {day}
-          </Button>
-        ))}
+        {w.days.map((day, i) => {
+          const selected = i === selectedDayIndex;
+          return (
+            <Button
+              accessibilityState={{ selected }}
+              key={day}
+              secondary={!selected}
+              onPress={() => {
+                const next = new Date();
+                next.setDate(
+                  next.getDate() +
+                    ((i - ((next.getDay() + 6) % 7) + 7) % 7),
+                );
+                setDate(localDate(next));
+              }}
+            >
+              {day}
+            </Button>
+          );
+        })}
       </View>
       <View style={s.row}>
         <Button secondary={!weekly} onPress={() => setWeekly(true)}>
