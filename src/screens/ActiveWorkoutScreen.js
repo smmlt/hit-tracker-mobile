@@ -117,6 +117,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
   const [now, setNow] = useState(Date.now());
   const [pendingSaves, setPendingSaves] = useState(0);
   const [checkingProgram, setCheckingProgram] = useState(false);
+  const [matchedProgram, setMatchedProgram] = useState(null);
   const [resultError, setResultError] = useState('');
   const [savePromptOpen, setSavePromptOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
@@ -336,6 +337,8 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
 
   /** EN: Clears completion state and returns to the root training plan. UK: Очищає стан завершення та повертає до кореневого плану тренувань. */
   const returnToTrainingPlan = () => {
+    setMatchedProgram(null);
+    setSavePromptOpen(false);
     setResult(null);
     if (navigation.canGoBack()) navigation.popToTop();
     else navigation.navigate('TrainingHome');
@@ -357,9 +360,11 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       }, userToken);
       if (!response.ok || !response.data) throw new Error('match failed');
       if (response.data.programId) {
-        returnToTrainingPlan();
+        setMatchedProgram(response.data);
+        setSavePromptOpen(true);
         return;
       }
+      setMatchedProgram(null);
       setSavePromptOpen(true);
     } catch {
       setResultError(t('saveProgramCheckFailed'));
@@ -380,6 +385,27 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
     tabs.navigate('Home', {
       screen: 'WorkshopHome',
       params: { createProgram: true },
+    });
+  };
+
+  /** EN: Opens the existing matching program in Workshop so its standard details and scheduling actions remain authoritative. UK: Відкриває знайдену програму в Майстерні, щоб використовувати її стандартні деталі та дії планування. */
+  const viewMatchingProgram = () => {
+    if (!matchedProgram?.programId) return;
+    const tabs = navigation.getParent();
+    if (!tabs) {
+      returnToTrainingPlan();
+      return;
+    }
+    const programId = matchedProgram.programId;
+    const programName = matchedProgram.programName || t('workout');
+    setSavePromptOpen(false);
+    setMatchedProgram(null);
+    setResult(null);
+    navigation.popToTop();
+    tabs.navigate('Home', {
+      screen: 'LibraryProgram',
+      params: { programRef: entityRef(programName, programId) },
+      initial: false,
     });
   };
 
@@ -439,9 +465,16 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
             <Pressable accessibilityLabel={t('close')} accessibilityRole="button" onPress={returnToTrainingPlan} style={styles.savePromptClose}>
               <Ionicons color={theme.textPrimary} name="close" size={30} />
             </Pressable>
-            <Text style={styles.savePromptTitle}>{t('saveWorkoutAsProgram')}</Text>
-            <Pressable accessibilityRole="button" onPress={createProgramFromResult} style={styles.savePromptConfirm}>
-              <Text style={styles.savePromptConfirmText}>{t('yes')}</Text>
+            <Text style={styles.savePromptTitle}>
+              {matchedProgram
+                ? t(
+                  matchedProgram.isPersonal ? 'matchingPersonalProgram' : 'matchingPublicProgram',
+                  { name: translateCatalogName(t, 'program', matchedProgram.programName || t('workout')) },
+                )
+                : t('saveWorkoutAsProgram')}
+            </Text>
+            <Pressable accessibilityRole="button" onPress={matchedProgram ? viewMatchingProgram : createProgramFromResult} style={styles.savePromptConfirm}>
+              <Text style={styles.savePromptConfirmText}>{matchedProgram ? t('viewProgram') : t('yes')}</Text>
             </Pressable>
           </View>
         </View>
