@@ -217,26 +217,28 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
         <Text numberOfLines={1} style={styles.durationValue}>{formatTimer(elapsed)}</Text>
         <Text style={styles.durationTarget}>{t('durationTarget', { seconds: item.durationSeconds || item.targetDurationSeconds || '—' })}</Text>
       </View>
-      <View style={styles.durationManualBlock}>
-        <TextInput
-          accessibilityLabel={t('manualDurationSeconds')}
-          editable={!disabled && !running}
-          keyboardType="number-pad"
-          onChangeText={enterSeconds}
-          style={styles.durationInput}
-          value={elapsed ? String(elapsed) : ''}
+      <View style={styles.durationInputControls}>
+        <View style={styles.durationManualBlock}>
+          <TextInput
+            accessibilityLabel={t('manualDurationSeconds')}
+            editable={!disabled && !running}
+            keyboardType="number-pad"
+            onChangeText={enterSeconds}
+            style={styles.durationInput}
+            value={elapsed ? String(elapsed) : ''}
+          />
+          <Text style={styles.durationInputUnit}>{t('secondsShort')}</Text>
+        </View>
+        <RpePicker
+          compact={compact}
+          disabled={disabled}
+          label={`${t('selectRpe')} · ${t('setNumber', { number })}`}
+          onChange={(value) => value === 'open' ? setPickerOpen(true) : setRpe(value)}
+          onClose={() => setPickerOpen(false)}
+          open={pickerOpen}
+          value={rpe}
         />
-        <Text style={styles.durationInputUnit}>{t('secondsShort')}</Text>
       </View>
-      <RpePicker
-        compact={compact}
-        disabled={disabled}
-        label={`${t('selectRpe')} · ${t('setNumber', { number })}`}
-        onChange={(value) => value === 'open' ? setPickerOpen(true) : setRpe(value)}
-        onClose={() => setPickerOpen(false)}
-        open={pickerOpen}
-        value={rpe}
-      />
     </View>
     <View style={styles.durationActions}>
       <Pressable
