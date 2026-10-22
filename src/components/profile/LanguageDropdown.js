@@ -4,25 +4,35 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Line, Path, Rect } from 'react-native-svg';
 import { LOCALE_OPTIONS } from '../../localization/locale';
 import { useTheme } from '../../context/ThemeContext';
 import { languageMenuLayout } from '../../utils/languageDropdown';
-import FlagUnitedKingdom from '../../assets/flags/FlagUnitedKingdom.svg';
-import FlagUkraine from '../../assets/flags/FlagUkraine.svg';
 import { createStyles } from './LanguageDropdown.styles.js';
 
 const OPTION_HEIGHT = 48;
 const MENU_VERTICAL_PADDING = 12;
-const FLAG_COMPONENTS = {
-  gb: FlagUnitedKingdom,
-  ua: FlagUkraine,
-};
-
 function LocaleFlag({ code, styles }) {
-  const Flag = FLAG_COMPONENTS[code] || FlagUnitedKingdom;
   return (
     <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.flagFrame}>
-      <Flag height={16} width={24} />
+      <Svg height={16} viewBox="0 0 24 16" width={24}>
+        {code === 'ua' ? (
+          <>
+            <Rect fill="#0057B7" height="8" width="24" x="0" y="0" />
+            <Rect fill="#FFD700" height="8" width="24" x="0" y="8" />
+          </>
+        ) : (
+          <>
+            <Rect fill="#012169" height="16" width="24" />
+            <Line stroke="#FFFFFF" strokeWidth="4" x1="0" x2="24" y1="0" y2="16" />
+            <Line stroke="#FFFFFF" strokeWidth="4" x1="24" x2="0" y1="0" y2="16" />
+            <Line stroke="#C8102E" strokeWidth="2" x1="0" x2="24" y1="0" y2="16" />
+            <Line stroke="#C8102E" strokeWidth="2" x1="24" x2="0" y1="0" y2="16" />
+            <Path d="M10 0H14V6H24V10H14V16H10V10H0V6H10V0Z" fill="#FFFFFF" />
+            <Path d="M11 0H13V7H24V9H13V16H11V9H0V7H11V0Z" fill="#C8102E" />
+          </>
+        )}
+      </Svg>
     </View>
   );
 }
