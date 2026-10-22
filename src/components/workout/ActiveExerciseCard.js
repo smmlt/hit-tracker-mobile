@@ -9,7 +9,7 @@ import { exercisePlanProgress, isDurationSetDraftValid, isSetDraftValid } from '
 import { formatTimer } from '../../utils/formatters';
 import { RpePicker } from './RpePicker';
 import { createStyles } from './ActiveExerciseCard.styles';
-import PlayIcon from '../../assets/icons/PlayIcon.svg';
+import TimerPlayIcon from '../../assets/icons/TimerPlayIcon.svg';
 import PauseIcon from '../../assets/icons/PauseIcon.svg';
 import StopIcon from '../../assets/icons/StopIcon.svg';
 
@@ -214,7 +214,7 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     <View style={styles.durationSetHeader}>
       <Text style={styles.setNumber}>{number}</Text>
       <View style={styles.durationValueBlock}>
-        <Text style={styles.durationValue}>{formatTimer(elapsed)}</Text>
+        <Text numberOfLines={1} style={styles.durationValue}>{formatTimer(elapsed)}</Text>
         <Text style={styles.durationTarget}>{t('durationTarget', { seconds: item.durationSeconds || item.targetDurationSeconds || '—' })}</Text>
       </View>
       <View style={styles.durationManualBlock}>
@@ -239,13 +239,34 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
       />
     </View>
     <View style={styles.durationActions}>
-      <Pressable disabled={disabled || locked || stopped} onPress={startOrPause} style={[styles.timerControl, (disabled || locked || stopped) && styles.disabled]}>
-        {running ? <PauseIcon color={theme.onPrimary} height={24} width={24} /> : <PlayIcon color={theme.onPrimary} height={24} width={24} />}
+      <Pressable
+        accessibilityLabel={t(running ? 'pause' : 'startTimer')}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || locked || stopped, busy: running }}
+        disabled={disabled || locked || stopped}
+        onPress={startOrPause}
+        style={[styles.timerControl, (disabled || locked || stopped) && styles.disabled]}
+      >
+        {running ? <PauseIcon color={theme.onPrimary} height={24} width={24} /> : <TimerPlayIcon color={theme.onPrimary} height={24} width={24} />}
       </Pressable>
-      <Pressable disabled={disabled || stopped || (!running && elapsed === 0)} onPress={stop} style={[styles.timerStop, (disabled || stopped || (!running && elapsed === 0)) && styles.disabled]}>
+      <Pressable
+        accessibilityLabel={t('stopTimer')}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || stopped || (!running && elapsed === 0) }}
+        disabled={disabled || stopped || (!running && elapsed === 0)}
+        onPress={stop}
+        style={[styles.timerStop, (disabled || stopped || (!running && elapsed === 0)) && styles.disabled]}
+      >
         <StopIcon color={theme.textPrimary} height={24} width={24} />
       </Pressable>
-      {stopped && <Pressable disabled={disabled || saving} onPress={reset} style={styles.timerReset}>
+      {stopped && <Pressable
+        accessibilityLabel={t('resetTimer')}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || saving }}
+        disabled={disabled || saving}
+        onPress={reset}
+        style={styles.timerReset}
+      >
         <Text style={styles.timerResetText}>{t('resetTimer')}</Text>
       </Pressable>}
     </View>
@@ -255,7 +276,14 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
         <View style={[styles.failureCheck, failure && styles.failureChecked]}>{failure && <Ionicons color={palette.whitePure} name="checkmark" size={21} />}</View>
         <Text style={styles.durationFailureLabel}>{t('toFailure')}</Text>
       </Pressable>
-      <Pressable disabled={disabled || saving || !valid || !dirty} onPress={confirm} style={[styles.durationDone, (!valid || disabled) && styles.confirmDisabled]}>
+      <Pressable
+        accessibilityLabel={t('done')}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || saving || !valid || !dirty }}
+        disabled={disabled || saving || !valid || !dirty}
+        onPress={confirm}
+        style={[styles.durationDone, (!valid || disabled) && styles.confirmDisabled]}
+      >
         {saving ? <ActivityIndicator color={palette.whitePure} size="small" /> : <Text style={styles.durationDoneText}>{t('done')}</Text>}
       </Pressable>
     </View>
