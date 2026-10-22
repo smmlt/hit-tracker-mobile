@@ -634,7 +634,7 @@ export const translations = {
     minuteShort: 'm',
     secondShort: 's',
     workout: 'Workout',
-    freeWorkout: 'Free workout',
+    freeWorkout: 'Freestyle workout',
     plan: 'Plan',
     viewExerciseDetails: 'View exercise details',
     addExtraSet: 'Add extra set',
