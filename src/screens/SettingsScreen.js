@@ -2,10 +2,11 @@
  * Manages account preferences such as theme, language, notifications, and logout, using AuthContext and confirmation for destructive account actions. / Керує налаштуваннями облікового запису — темою, мовою, сповіщеннями та виходом — через AuthContext із підтвердженням небезпечних дій.
  */
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from './SettingsScreen.styles.js';
+import { responsiveLayout } from '../constants/layout';
+import { createStyles } from './SettingsScreen.styles.js';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
@@ -14,7 +15,7 @@ import { notificationService, syncPushRegistration } from '../services/notificat
 import { authService } from '../services/authService';
 
 /** EN: Renders one labeled boolean preference switch. UK: Відображає один підписаний перемикач логічного налаштування. */
-const Toggle = ({ label, value, onChange, theme }) => (
+const Toggle = ({ label, value, onChange, theme, styles }) => (
   <View style={styles.row}>
     <Text style={[styles.rowText, { color: theme.textPrimary }]}>{label}</Text>
     <Switch accessibilityLabel={label} onValueChange={onChange} thumbColor={theme.onPrimary} trackColor={{ false: theme.textSecondary, true: theme.primary }} value={value} />
@@ -22,7 +23,7 @@ const Toggle = ({ label, value, onChange, theme }) => (
 );
 
 /** EN: Renders an accessible segmented selector for one value. UK: Відображає доступний сегментований вибір одного значення. */
-const Choice = ({ options, value, onChange, theme }) => (
+const Choice = ({ options, value, onChange, theme, styles }) => (
   <View style={[styles.segment, { borderColor: theme.textPrimary }]}>
     {options.map(/* EN: Renders each option with its selected visual state. UK: Відображає кожен варіант із його візуальним станом вибору. */ (option) => {
       const selected = value === option.value;
@@ -46,7 +47,7 @@ const reminderDays = [1, 2, 3, 4, 5, 6, 0];
 const reminderFrequencies = ['daily', 'every_other_day', 'weekly', 'twice_weekly', 'hourly'];
 
 /** EN: Renders the allowed reminder frequencies as selectable chips. UK: Відображає дозволені частоти нагадувань як вибірні кнопки. */
-const FrequencyPicker = ({ frequencies, value, onChange, theme, t }) => (
+const FrequencyPicker = ({ frequencies, value, onChange, theme, t, styles }) => (
   <View style={styles.frequencyRow}>
     {frequencies.map(/* EN: Renders one localized frequency choice. UK: Відображає один локалізований варіант частоти. */ (frequency) => {
       const selected = value === frequency;
@@ -66,7 +67,7 @@ const FrequencyPicker = ({ frequencies, value, onChange, theme, t }) => (
 );
 
 /** EN: Edits the frequency, time, and optional weekdays for one reminder category. UK: Редагує частоту, час і необов’язкові дні тижня для однієї категорії нагадувань. */
-const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, onTimeBlur, onDayChange, theme, t }) => {
+const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, onTimeBlur, onDayChange, theme, t, styles }) => {
   const frequency = notifications[`${kind}ReminderFrequency`];
   const days = notifications[`${kind}ReminderDays`] || [];
   const showDays = ['weekly', 'twice_weekly'].includes(frequency);
@@ -75,7 +76,7 @@ const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, 
     <View style={[styles.scheduleCard, { borderColor: theme.border }]}>
       <Text style={[styles.scheduleTitle, { color: theme.textPrimary }]}>{t(`${kind}ReminderSchedule`)}</Text>
       {kind === 'workout' && frequency === 'scheduled' ? <Text style={[styles.feedback, { color: theme.textSecondary }]}>{t('scheduledWorkoutReminderHint')}</Text> : null}
-      <FrequencyPicker frequencies={frequencies} value={frequency} onChange={onFrequencyChange} theme={theme} t={t} />
+      <FrequencyPicker frequencies={frequencies} value={frequency} onChange={onFrequencyChange} theme={theme} t={t} styles={styles} />
       <View style={[styles.reminderCard, { borderColor: theme.border }]}>
         <View style={styles.reminderBody}>
           <Text style={[styles.reminderLabel, { color: theme.textSecondary }]}>{t('reminderTime')}</Text>
@@ -120,6 +121,8 @@ const ReminderEditor = ({ kind, notifications, onFrequencyChange, onTimeChange, 
 
 /** EN: Coordinates preferences, notification delivery, MFA controls, and logout actions. UK: Координує налаштування, доставлення сповіщень, керування MFA та дії виходу. */
 export default function SettingsScreen({ navigation }) {
+  const { width } = useWindowDimensions();
+  const styles = createStyles(responsiveLayout(width));
   const { logout, logoutAll, userData, userToken } = useContext(AuthContext);
   const { theme, themeName, toggleTheme } = useTheme();
   const { changeLanguage, locale, t } = useContext(LanguageContext);
@@ -373,6 +376,7 @@ export default function SettingsScreen({ navigation }) {
           value={themeName}
           onChange={toggleTheme}
           theme={theme}
+          styles={styles}
         />
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('notifications')}</Text>
         {!notifications ? (
@@ -393,9 +397,9 @@ export default function SettingsScreen({ navigation }) {
             <Pressable accessibilityRole="button" disabled={notificationBusy} onPress={/* EN: Opens the user's notification inbox. UK: Відкриває скриньку сповіщень користувача. */ () => navigation.navigate('Notifications')} style={[styles.action, { borderColor: theme.border }]}>
               <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('openNotificationInbox')}</Text>
             </Pressable>
-            <Toggle label={t('pushNotifications')} value={notifications.pushEnabled} onChange={togglePush} theme={theme} />
-            <Toggle label={t('generalNotifications')} value={notifications.generalEnabled} onChange={setNotification('generalEnabled')} theme={theme} />
-            <Toggle label={t('workoutReminders')} value={notifications.workoutRemindersEnabled} onChange={setNotification('workoutRemindersEnabled')} theme={theme} />
+            <Toggle label={t('pushNotifications')} value={notifications.pushEnabled} onChange={togglePush} theme={theme} styles={styles} />
+            <Toggle label={t('generalNotifications')} value={notifications.generalEnabled} onChange={setNotification('generalEnabled')} theme={theme} styles={styles} />
+            <Toggle label={t('workoutReminders')} value={notifications.workoutRemindersEnabled} onChange={setNotification('workoutRemindersEnabled')} theme={theme} styles={styles} />
             <ReminderEditor
               kind="workout"
               notifications={notifications}
@@ -405,8 +409,9 @@ export default function SettingsScreen({ navigation }) {
               onDayChange={/* EN: Toggles a weekday for workout reminders. UK: Перемикає день тижня для нагадувань про тренування. */ (day) => toggleReminderDay('workout', day)}
               theme={theme}
               t={t}
+              styles={styles}
             />
-            <Toggle label={t('measurementReminders')} value={notifications.measurementRemindersEnabled} onChange={setNotification('measurementRemindersEnabled')} theme={theme} />
+            <Toggle label={t('measurementReminders')} value={notifications.measurementRemindersEnabled} onChange={setNotification('measurementRemindersEnabled')} theme={theme} styles={styles} />
             <ReminderEditor
               kind="measurement"
               notifications={notifications}
@@ -416,9 +421,10 @@ export default function SettingsScreen({ navigation }) {
               onDayChange={/* EN: Toggles a weekday for measurement reminders. UK: Перемикає день тижня для нагадувань про вимірювання. */ (day) => toggleReminderDay('measurement', day)}
               theme={theme}
               t={t}
+              styles={styles}
             />
-            <Toggle label={t('achievementReminders')} value={notifications.achievementsEnabled} onChange={setNotification('achievementsEnabled')} theme={theme} />
-            <Toggle label={t('programNews')} value={notifications.newsEnabled} onChange={setNotification('newsEnabled')} theme={theme} />
+            <Toggle label={t('achievementReminders')} value={notifications.achievementsEnabled} onChange={setNotification('achievementsEnabled')} theme={theme} styles={styles} />
+            <Toggle label={t('programNews')} value={notifications.newsEnabled} onChange={setNotification('newsEnabled')} theme={theme} styles={styles} />
             {!!notificationError && (
               <Text accessibilityRole="alert" style={[styles.feedback, { color: theme.primary }]}>
                 {notificationError}
@@ -441,6 +447,7 @@ export default function SettingsScreen({ navigation }) {
           value={weightUnit}
           onChange={setWeightUnit}
           theme={theme}
+          styles={styles}
         />
         <Text style={[styles.label, { color: theme.textSecondary }]}>{t('height')}</Text>
         <Choice
@@ -451,6 +458,7 @@ export default function SettingsScreen({ navigation }) {
           value={heightUnit}
           onChange={setHeightUnit}
           theme={theme}
+          styles={styles}
         />
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('accountSecurity')}</Text>
         {mfa ? (

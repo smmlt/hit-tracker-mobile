@@ -28,6 +28,7 @@ import { exercisePlanProgress, replaceRecordedSet, workoutPlanCompletion } from 
 import { formatTimer } from '../utils/formatters';
 import { programExercises as fromProgram } from '../utils/library';
 import { palette } from '../constants/colors';
+import { responsiveLayout } from '../constants/layout';
 import { createStyles } from './ActiveWorkoutScreen.styles.js';
 import { entityRef, isoDate } from '../utils/navigationPaths';
 import CompletionCheck from '../assets/workout-completion/completion-check.svg';
@@ -71,7 +72,7 @@ const planFromSnapshot = (workout) => (workout?.historySnapshot?.plan || []).map
 /** EN: Coordinates preparation, live set logging, pause/cancel/finish transitions, and completion results. UK: Координує підготовку, запис підходів, переходи паузи/скасування/завершення та підсумки тренування. */
 export default function ActiveWorkoutScreen({ navigation, route }) {
   const { width } = useWindowDimensions();
-  const compact = width <= 480;
+  const { compact } = responsiveLayout(width);
   const { userToken } = useContext(AuthContext);
   const {
     activeWorkout,

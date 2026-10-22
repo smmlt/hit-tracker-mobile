@@ -2,8 +2,9 @@
  * Layout styles used by SettingsScreen, defining its themed spacing, typography, controls, and responsive geometry. / Стилі макета для SettingsScreen, що визначають тематичні відступи, типографіку, елементи керування та адаптивну геометрію.
  */
 import { StyleSheet } from 'react-native';
+import { contentWidths } from '../constants/layout';
 
-export const styles = StyleSheet.create({
+export const createStyles = ({ compact, desktop, horizontalPadding }) => StyleSheet.create({
   screen: { flex: 1 },
   header: { alignItems: 'center', flexDirection: 'row', minHeight: 56 },
   back: {
@@ -14,15 +15,15 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: 16,
+    fontSize: desktop ? 18 : 16,
     marginLeft: 8,
     textTransform: 'uppercase',
   },
   content: {
     alignSelf: 'center',
-    maxWidth: 393,
+    maxWidth: contentWidths.form,
     paddingBottom: 40,
-    paddingHorizontal: 20,
+    paddingHorizontal: horizontalPadding,
     width: '100%',
   },
   label: {
@@ -42,7 +43,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     minHeight: 34,
-    paddingHorizontal: 12,
+    paddingHorizontal: compact ? 8 : 12,
   },
   rowText: { fontFamily: 'Inter', fontSize: 16 },
   languageField: {
@@ -80,7 +81,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
-    padding: 12,
+    padding: desktop ? 16 : 12,
   },
   reminderBody: { flex: 1, gap: 4 },
   reminderLabel: {

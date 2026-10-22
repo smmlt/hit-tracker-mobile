@@ -2,16 +2,20 @@
  * Displays the authenticated profile from useProfile and provides navigation into profile editing, username, settings, and account actions. / Показує автентифікований профіль через useProfile і переходить до редагування профілю, імені користувача, налаштувань та дій облікового запису.
  */
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { useProfile } from '../hooks/useProfile';
 import { UsernameActionsMenu } from '../components/profile/UsernameActionsMenu';
-import { styles } from './ProfileScreen.styles';
+import { responsiveLayout } from '../constants/layout';
+import { createStyles } from './ProfileScreen.styles';
 
 export default function ProfileScreen({ navigation }) {
+  const { width } = useWindowDimensions();
+  const layout = responsiveLayout(width);
+  const styles = createStyles(layout);
   const { profile: userData } = useProfile(true);
   const { theme } = useTheme();
   const { t } = useContext(LanguageContext);
