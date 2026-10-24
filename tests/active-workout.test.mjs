@@ -4,13 +4,26 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  durationSetTimerDisplay,
   exercisePlanProgress,
   isDurationSetDraftValid,
   isSetDraftValid,
   replaceRecordedSet,
   rpeColor,
+  shouldSignalDurationTarget,
   workoutPlanCompletion,
 } from '../src/utils/activeWorkout.js';
+
+test('timed set counts down, shows overtime, and signals only at the first crossing', () => {
+  assert.deepEqual(durationSetTimerDisplay(45, 0), { text: '00:45', overtime: false });
+  assert.deepEqual(durationSetTimerDisplay(45, 45), { text: '+00:00', overtime: true });
+  assert.deepEqual(durationSetTimerDisplay(45, 50), { text: '+00:05', overtime: true });
+  assert.deepEqual(durationSetTimerDisplay(0, 5), { text: '00:05', overtime: false });
+  assert.equal(shouldSignalDurationTarget(45, 44, 45), true);
+  assert.equal(shouldSignalDurationTarget(45, 44, 46), true);
+  assert.equal(shouldSignalDurationTarget(45, 45, 46), false);
+  assert.equal(shouldSignalDurationTarget(0, 0, 1), false);
+});
 
 test('duration completion uses planned set count and aggregate seconds', () => {
   const item = { measurementType: 'duration', sets: 3, durationSeconds: 45 };

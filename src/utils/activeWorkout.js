@@ -64,6 +64,20 @@ export function isDurationSetDraftValid({ durationSeconds, rpe }) {
     && parsedRpe <= 10;
 }
 
+/** EN: Shows remaining time, then signed overtime, while keeping elapsed seconds for saving. UK: Показує залишок часу, а потім час понад ціль, зберігаючи минулі секунди для запису. */
+export function durationSetTimerDisplay(target, elapsed) {
+  const seconds = Math.max(0, Number(elapsed) || 0);
+  const goal = Math.max(0, Number(target) || 0);
+  const overtime = goal > 0 && seconds >= goal;
+  const shown = goal > 0 ? Math.abs(goal - seconds) : seconds;
+  return { text: `${overtime ? '+' : ''}${String(Math.floor(shown / 60)).padStart(2, '0')}:${String(shown % 60).padStart(2, '0')}`, overtime };
+}
+
+/** EN: Signals only when a live countdown first reaches its target. UK: Подає сигнал лише тоді, коли активний відлік уперше досягає цілі. */
+export function shouldSignalDurationTarget(target, previous, elapsed) {
+  return Number(target) > 0 && previous < Number(target) && elapsed >= Number(target);
+}
+
 export function workoutPlanCompletion(plan, setsForExercise) {
   const plannedSets = (plan || []).reduce((total, item) => total + Math.max(0, Number(item?.sets) || 0), 0);
   if (!plannedSets) return null;

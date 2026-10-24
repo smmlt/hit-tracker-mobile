@@ -108,11 +108,16 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const overview = data.overview || {};
   const summary = overview.summary || {};
   const plan = overview.plan || {};
-  const activity = overview.activity || [];
+  const activity = (overview.activity || []).map((item) => ({
+    ...item,
+    missed: item.missedWorkouts == null
+      ? Math.max(0, (Number(item.plannedWorkouts) || 0) - (Number(item.completedWorkouts) || 0))
+      : Math.max(0, Number(item.missedWorkouts) || 0),
+  }));
   const muscles = overview.muscleGroups || [];
   const maxActivity = Math.max(1, ...activity.map(
-    /* EN: Finds the largest planned-or-completed daily count used to scale all activity bars consistently. / UK: Знаходить найбільшу заплановану або виконану денну кількість для узгодженого масштабування всіх стовпчиків активності. */
-    (item) => Math.max(Number(item.plannedWorkouts) || 0, Number(item.completedWorkouts) || 0)
+    /* EN: Scales activity bars by the larger of planned workouts and completed plus missed workouts. / UK: Масштабує стовпчики за більшою кількістю з плану або суми виконаних і пропущених тренувань. */
+    (item) => Math.max(Number(item.plannedWorkouts) || 0, (Number(item.completedWorkouts) || 0) + item.missed)
   ));
   const maxMuscle = Math.max(1, ...muscles.map(
     /* EN: Extracts working-set totals to establish the common muscle-bar scale. / UK: Витягує кількість робочих підходів, щоб визначити спільний масштаб смуг м'язів. */
@@ -234,9 +239,9 @@ export default function AnalyticsDashboardScreen({ navigation }) {
               (item) => {
               const planned = Number(item.plannedWorkouts) || 0;
               const completed = Number(item.completedWorkouts) || 0;
-              const total = Math.max(planned, completed);
+              const total = Math.max(planned, completed + item.missed);
               const completedShare = total ? Math.min(100, completed / total * 100) : 0;
-              const missedShare = total ? Math.max(0, planned - completed) / total * 100 : 0;
+              const missedShare = total ? item.missed / total * 100 : 0;
               return <View key={item.date} style={styles.activityColumn}>
                 <View style={[styles.activityBar, { height: Math.max(total ? 10 : 2, total / maxActivity * 52) }]}><View style={[styles.activityMissed, { height: `${missedShare}%` }]} /><View style={[styles.activityDone, { height: `${completedShare}%` }]} /></View>
                 <Text style={styles.chartLabel}>{item.date.slice(8)}</Text>
