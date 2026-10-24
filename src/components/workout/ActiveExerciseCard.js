@@ -1,11 +1,11 @@
 // EN: Coordinates one active exercise, its planned targets, editable set rows, RPE input, and completion progress.
 // UK: Координує одну активну вправу, планові цілі, редаговані set rows, RPE та прогрес виконання.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { palette } from '../../constants/colors';
 import { translateCatalogName } from '../../localization/catalog';
-import { durationSetTimerDisplay, exercisePlanProgress, isDurationSetDraftValid, isSetDraftValid, shouldSignalDurationTarget } from '../../utils/activeWorkout';
+import { durationSetTimerDisplay, exercisePlanProgress, isDurationSetDraftValid, isSetDraftValid, parseDurationInput, shouldSignalDurationTarget } from '../../utils/activeWorkout';
 import { cancelTimerSignal, prepareTimerSignal, scheduleTimerSignal, signalTimerNow } from '../../utils/timerSignal';
 import { RpePicker } from './RpePicker';
 import { createStyles } from './ActiveExerciseCard.styles';
@@ -19,6 +19,8 @@ const draftFromSet = (set) => ({
   rpe: set?.rpe ? String(set.rpe) : '',
   weight: set ? String(set.weight) : '',
 });
+
+const formatDuration = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 
 function SetEditorRow({ compact, disabled, existingSet, item, number, onSave, theme, t }) {
   const styles = createStyles(theme, compact);
@@ -125,12 +127,12 @@ function SetEditorRow({ compact, disabled, existingSet, item, number, onSave, th
   </View>;
 }
 
-function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, number, onSave, onTimerState, theme, t }) {
+function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, locked, number, onExpand, onSave, onTimerState, theme, t, timerState }) {
   const styles = createStyles(theme, compact);
   const [elapsed, setElapsed] = useState(Number(existingSet?.durationSeconds) || 0);
   const [failure, setFailure] = useState(!!existingSet?.isFailure);
   const [rpe, setRpe] = useState(existingSet?.rpe ? String(existingSet.rpe) : '');
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [manualInput, setManualInput] = useState(null);
   const [running, setRunning] = useState(false);
   const [stopped, setStopped] = useState(!!existingSet);
   const [saving, setSaving] = useState(false);
@@ -141,6 +143,7 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
   const signaled = useRef(false);
   const target = Number(item.durationSeconds ?? item.targetDurationSeconds) || 0;
   const display = durationSetTimerDisplay(target, elapsed);
+  const manualValid = manualInput === null || parseDurationInput(manualInput) !== null;
   const timerDoneTitle = t('timerDone');
 
   useEffect(() => {
@@ -181,6 +184,7 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     setFailure(!!existingSet.isFailure);
     setRpe(existingSet.rpe ? String(existingSet.rpe) : '');
     setStopped(true);
+    setManualInput(null);
   }, [existingSet?.durationSeconds, existingSet?.id, existingSet?.isFailure, existingSet?.rpe, running]);
 
   const startOrPause = () => {
@@ -192,6 +196,7 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
       return;
     }
     startedAt.current = Date.now();
+    setManualInput(null);
     baseSeconds.current = elapsed;
     lastTick.current = elapsed;
     prepareTimerSignal();
@@ -214,11 +219,13 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     lastTick.current = 0;
     signaled.current = false;
     setSaveFailed(false);
+    setManualInput(null);
     onTimerState(number, 'idle');
   };
   const enterSeconds = (value) => {
-    if (!/^\d*$/.test(value)) return;
-    const seconds = value ? Number(value) : 0;
+    setManualInput(value);
+    const seconds = parseDurationInput(value);
+    if (seconds === null) return;
     setElapsed(seconds);
     baseSeconds.current = seconds;
     lastTick.current = seconds;
@@ -228,7 +235,7 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     onTimerState(number, seconds > 0 ? 'pending' : 'idle');
   };
   const dirty = !existingSet || Number(existingSet.durationSeconds) !== elapsed || !!existingSet.isFailure !== failure || String(existingSet.rpe || '') !== rpe;
-  const valid = stopped && isDurationSetDraftValid({ durationSeconds: elapsed, rpe });
+  const valid = stopped && manualValid && isDurationSetDraftValid({ durationSeconds: elapsed, rpe });
   const confirm = async () => {
     if (!valid || disabled || saving || !dirty) return;
     setSaving(true);
@@ -243,86 +250,88 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     if (saved) onTimerState(number, 'saved');
   };
 
-  return <View style={[styles.durationSetCard, existingSet && styles.durationSetSaved]}>
+  if (!expanded) return <Pressable
+    accessibilityLabel={`${t('setNumber', { number })}, ${formatDuration(elapsed)}`}
+    accessibilityRole="button"
+    accessibilityState={{ disabled: locked }}
+    disabled={locked}
+    onPress={onExpand}
+    style={[styles.durationSetCard, existingSet && styles.durationSetSaved, locked && styles.disabled]}
+  >
+    <Text style={styles.durationSetNumber}>{t('setNumber', { number })}</Text>
+    <Text style={styles.durationCompactTime}>{formatDuration(elapsed)}</Text>
+  </Pressable>;
+
+  return <View style={styles.durationSetCard}>
     <View style={styles.durationSetHeader}>
       <Text style={styles.durationSetNumber}>{t('setNumber', { number })}</Text>
-      <View style={styles.durationValueBlock}>
-        <Text numberOfLines={1} style={[styles.durationValue, display.overtime && styles.durationOvertime]}>{display.text}</Text>
-        {running && <Text style={styles.durationInProgress}>{t('setInProgress')}</Text>}
-        <Text style={styles.durationTarget}>{t('durationTarget', { seconds: item.durationSeconds || item.targetDurationSeconds || '—' })}</Text>
-      </View>
-      <View style={styles.durationInputControls}>
-        <View style={styles.durationManualBlock}>
-          <TextInput
-            accessibilityLabel={t('manualDurationSeconds')}
-            editable={!disabled && !running}
-            keyboardType="number-pad"
-            onChangeText={enterSeconds}
-            style={styles.durationInput}
-            value={elapsed ? String(elapsed) : ''}
-          />
-          <Text style={styles.durationInputUnit}>{t('secondsShort')}</Text>
-        </View>
-        <RpePicker
-          compact={compact}
-          disabled={disabled}
-          label={`${t('selectRpe')} · ${t('setNumber', { number })}`}
-          onChange={(value) => value === 'open' ? setPickerOpen(true) : setRpe(value)}
-          onClose={() => setPickerOpen(false)}
-          open={pickerOpen}
-          value={rpe}
-        />
-      </View>
+      {(running || timerState === 'paused') && <Text style={styles.durationInProgress}>{t('setInProgress')}</Text>}
+    </View>
+    <View style={styles.durationValueBlock}>
+      <Text style={[styles.durationValue, display.overtime && styles.durationOvertime]}>{display.text}</Text>
+      <Text style={styles.durationTarget}>{t('durationTarget', { seconds: item.durationSeconds || item.targetDurationSeconds || '—' })}</Text>
     </View>
     <View style={styles.durationActions}>
-      <Pressable
-        accessibilityLabel={t(running ? 'pause' : 'startTimer')}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: disabled || locked || stopped, busy: running }}
-        disabled={disabled || locked || stopped}
-        onPress={startOrPause}
-        style={[styles.timerControl, (disabled || locked || stopped) && styles.disabled]}
-      >
-        {running ? <PauseIcon color={theme.onPrimary} height={24} width={24} /> : <TimerPlayIcon color={theme.onPrimary} height={24} width={24} />}
+      <Pressable accessibilityRole="button" accessibilityLabel={t(running ? 'pause' : 'startTimer')}
+        accessibilityState={{ disabled: disabled || locked || stopped }} disabled={disabled || locked || stopped}
+        onPress={startOrPause} style={[styles.timerControl, (disabled || locked || stopped) && styles.disabled]}>
+        {running ? <PauseIcon color={theme.onPrimary} height={22} width={22} /> : <TimerPlayIcon color={theme.onPrimary} height={22} width={22} />}
+        <Text style={styles.timerControlText}>{t(running ? 'pause' : 'startTimer')}</Text>
       </Pressable>
-      <Pressable
-        accessibilityLabel={t('stopTimer')}
-        accessibilityRole="button"
+      <Pressable accessibilityRole="button" accessibilityLabel={t('stopTimer')}
         accessibilityState={{ disabled: disabled || stopped || (!running && elapsed === 0) }}
-        disabled={disabled || stopped || (!running && elapsed === 0)}
-        onPress={stop}
-        style={[styles.timerStop, (disabled || stopped || (!running && elapsed === 0)) && styles.disabled]}
-      >
-        <StopIcon color={theme.textPrimary} height={24} width={24} />
+        disabled={disabled || stopped || (!running && elapsed === 0)} onPress={stop}
+        style={[styles.timerStop, (disabled || stopped || (!running && elapsed === 0)) && styles.disabled]}>
+        <StopIcon color={theme.textPrimary} height={22} width={22} />
+        <Text style={styles.timerOutlineText}>{t('stopTimer')}</Text>
       </Pressable>
-      {stopped && <Pressable
-        accessibilityLabel={t('resetTimer')}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: disabled || saving }}
-        disabled={disabled || saving}
-        onPress={reset}
-        style={styles.timerReset}
-      >
-        <Text style={styles.timerResetText}>{t('resetTimer')}</Text>
-      </Pressable>}
+      <Pressable accessibilityRole="button" accessibilityLabel={t('resetTimer')}
+        accessibilityState={{ disabled: disabled || saving || (!running && elapsed === 0) }}
+        disabled={disabled || saving || (!running && elapsed === 0)} onPress={reset}
+        style={[styles.timerStop, (disabled || saving || (!running && elapsed === 0)) && styles.disabled]}>
+        <Ionicons color={theme.textPrimary} name="refresh" size={22} />
+        <Text style={styles.timerOutlineText}>{t('resetTimer')}</Text>
+      </Pressable>
+    </View>
+    <View style={styles.durationInputControls}>
+      <View style={styles.durationManualColumn}>
+        <Text style={styles.durationFieldLabel}>{t('manualDurationTime')}</Text>
+        <TextInput accessibilityLabel={t('manualDurationTime')} editable={!disabled && !running}
+          keyboardType="numbers-and-punctuation" onBlur={() => { if (manualValid) setManualInput(null); }} onChangeText={enterSeconds}
+          style={styles.durationInput} value={manualInput ?? formatDuration(elapsed)} />
+      </View>
+      <View style={styles.durationRpeColumn}>
+        <Text style={styles.durationFieldLabel}>{t('rpeColumn')}</Text>
+        <View style={styles.durationRpeStepper}>
+          <Text style={styles.durationRpeValue}>{rpe || '—'}</Text>
+          <View>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('increaseRpe')}
+              accessibilityState={{ disabled: disabled || Number(rpe) >= 10 }} disabled={disabled || Number(rpe) >= 10}
+              onPress={() => setRpe(String(rpe ? Math.min(10, Number(rpe) + 1) : 5))} style={styles.durationRpeArrow}>
+              <Ionicons color={theme.textPrimary} name="chevron-up" size={16} />
+            </Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('decreaseRpe')}
+              accessibilityState={{ disabled: disabled || Number(rpe) <= 1 && !!rpe }} disabled={disabled || Number(rpe) <= 1 && !!rpe}
+              onPress={() => setRpe(String(rpe ? Math.max(1, Number(rpe) - 1) : 5))} style={styles.durationRpeArrow}>
+              <Ionicons color={theme.textPrimary} name="chevron-down" size={16} />
+            </Pressable>
+          </View>
+        </View>
+      </View>
     </View>
     {locked && <Text style={styles.durationLockedHint}>{t('savePreviousTimedSet')}</Text>}
-    <View style={styles.durationFooter}>
-      <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: failure }} disabled={disabled} onPress={() => setFailure((value) => !value)} style={styles.failureTouch}>
-        <View style={[styles.failureCheck, failure && styles.failureChecked]}>{failure && <Ionicons color={palette.whitePure} name="checkmark" size={21} />}</View>
-        <Text style={styles.durationFailureLabel}>{t('toFailure')}</Text>
-      </Pressable>
-      <Pressable
-        accessibilityLabel={t('done')}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: disabled || saving || !valid || !dirty }}
-        disabled={disabled || saving || !valid || !dirty}
-        onPress={confirm}
-        style={[styles.durationDone, (!valid || disabled) && styles.confirmDisabled]}
-      >
-        {saving ? <ActivityIndicator color={palette.whitePure} size="small" /> : <Text style={styles.durationDoneText}>{t('done')}</Text>}
-      </Pressable>
+    <View style={styles.durationFailureRow}>
+      <Text style={styles.durationFailureLabel}>{t('toFailure')}</Text>
+      <Switch accessibilityLabel={t('toFailure')} accessibilityRole="switch" disabled={disabled}
+        onValueChange={setFailure} value={failure} trackColor={{ false: theme.border, true: theme.primary }}
+        thumbColor={palette.whitePure} />
     </View>
+    <Pressable accessibilityLabel={t('done')} accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || saving || !valid || !dirty }}
+      disabled={disabled || saving || !valid || !dirty} onPress={confirm}
+      style={[styles.durationDone, (disabled || saving || !valid || !dirty) && styles.confirmDisabled]}>
+      {saving ? <ActivityIndicator color={palette.whitePure} size="small" /> : <Text style={styles.durationDoneText}>{t('done')}</Text>}
+    </Pressable>
     {saveFailed && <Text style={styles.rowError}>{t('setSaveFailed')}</Text>}
   </View>;
 }
@@ -345,10 +354,12 @@ export function ActiveExerciseCard({
   const styles = createStyles(theme, compact);
   const [extraSets, setExtraSets] = useState(0);
   const [durationTimer, setDurationTimer] = useState(null);
+  const [selectedDurationRow, setSelectedDurationRow] = useState(null);
   const progress = useMemo(() => exercisePlanProgress(item, sets), [item, sets]);
   const rowCount = Math.max(progress.plannedSets + extraSets, sets.length);
   const completedColor = progress.complete ? palette.greenBright : theme.border;
   const durationExercise = item.measurementType === 'duration';
+  const expandedDurationRow = durationTimer?.row ?? selectedDurationRow ?? Math.min(sets.length + 1, rowCount);
 
   useEffect(() => {
     onDurationDraftChange?.(item.id, !!durationTimer);
@@ -356,7 +367,10 @@ export function ActiveExerciseCard({
   }, [durationTimer, item.id, onDurationDraftChange]);
 
   const handleTimerState = (row, state) => {
-    if (state === 'idle' || state === 'saved') setDurationTimer(null);
+    if (state === 'idle' || state === 'saved') {
+      setDurationTimer(null);
+      if (state === 'saved') setSelectedDurationRow(null);
+    }
     else setDurationTimer({ row, state });
   };
 
@@ -382,13 +396,16 @@ export function ActiveExerciseCard({
         {Array.from({ length: rowCount }).map((_, rowIndex) => <DurationSetEditorRow
           compact={compact}
           disabled={recordingDisabled}
+          expanded={expandedDurationRow === rowIndex + 1}
           existingSet={sets[rowIndex]}
           item={item}
           key={sets[rowIndex]?.id || `duration-draft-${rowIndex}`}
           locked={!!durationTimer && durationTimer.row !== rowIndex + 1}
           number={rowIndex + 1}
+          onExpand={() => setSelectedDurationRow(rowIndex + 1)}
           onSave={onSave}
           onTimerState={handleTimerState}
+          timerState={durationTimer?.row === rowIndex + 1 ? durationTimer.state : null}
           theme={theme}
           t={t}
         />)}
@@ -417,17 +434,17 @@ export function ActiveExerciseCard({
           ))}
         </View>
       </ScrollView>}
-      <Pressable
-        accessibilityRole="button"
-        disabled={recordingDisabled}
-        onPress={() => setExtraSets((value) => value + 1)}
-        style={[styles.addSet, recordingDisabled && styles.disabled]}
-      >
-        <Text style={styles.addSetText}>+ {t('addExtraSet')}</Text>
-      </Pressable>
-      <Pressable accessibilityRole="button" onPress={() => onRemove(item.id)} style={styles.removeButton}>
-        <Text style={styles.removeText}>{t('removeExercise')}</Text>
-      </Pressable>
+      <View style={durationExercise ? styles.durationBottomActions : styles.exerciseActions}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('addExtraSet')}
+          disabled={recordingDisabled} onPress={() => setExtraSets((value) => value + 1)}
+          style={[styles.addSet, durationExercise && styles.durationBottomButton, recordingDisabled && styles.disabled]}>
+          <Text style={styles.addSetText}>+ {t('addExtraSet')}</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('removeExercise')}
+          onPress={() => onRemove(item.id)} style={[styles.removeButton, durationExercise && styles.durationBottomButton]}>
+          <Text style={styles.removeText}>{t('removeExercise')}</Text>
+        </Pressable>
+      </View>
     </View>
   </View>;
 }
