@@ -256,7 +256,7 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
     accessibilityState={{ disabled: locked }}
     disabled={locked}
     onPress={onExpand}
-    style={[styles.durationSetCard, existingSet && styles.durationSetSaved, locked && styles.disabled]}
+    style={[styles.durationSetCard, existingSet && styles.durationSetSaved]}
   >
     <Text style={styles.durationSetNumber}>{t('setNumber', { number })}</Text>
     <Text style={styles.durationCompactTime}>{formatDuration(elapsed)}</Text>
