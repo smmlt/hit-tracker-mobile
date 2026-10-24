@@ -64,6 +64,15 @@ export function isDurationSetDraftValid({ durationSeconds, rpe }) {
     && parsedRpe <= 10;
 }
 
+/** EN: Parses manually entered whole seconds or MM:SS without accepting partial or overflowing times. UK: Розбирає введені вручну секунди або MM:SS без неповних значень чи переповнення. */
+export function parseDurationInput(value) {
+  const text = String(value).trim();
+  if (!/^\d+(?::[0-5]\d)?$/.test(text)) return null;
+  const parts = text.split(':').map(Number);
+  const seconds = parts.length === 2 ? parts[0] * 60 + parts[1] : parts[0];
+  return Number.isSafeInteger(seconds) ? seconds : null;
+}
+
 /** EN: Shows remaining time, then signed overtime, while keeping elapsed seconds for saving. UK: Показує залишок часу, а потім час понад ціль, зберігаючи минулі секунди для запису. */
 export function durationSetTimerDisplay(target, elapsed) {
   const seconds = Math.max(0, Number(elapsed) || 0);

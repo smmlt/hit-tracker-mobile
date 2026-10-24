@@ -8,11 +8,21 @@ import {
   exercisePlanProgress,
   isDurationSetDraftValid,
   isSetDraftValid,
+  parseDurationInput,
   replaceRecordedSet,
   rpeColor,
   shouldSignalDurationTarget,
   workoutPlanCompletion,
 } from '../src/utils/activeWorkout.js';
+
+test('manual timed-set input accepts seconds and MM:SS only', () => {
+  assert.equal(parseDurationInput('1:05'), 65);
+  assert.equal(parseDurationInput('45'), 45);
+  assert.equal(parseDurationInput('00:38'), 38);
+  for (const value of ['', '1:5', '1:60', '-1', '1:05:00', 'abc', '99999999999999999999']) {
+    assert.equal(parseDurationInput(value), null);
+  }
+});
 
 test('timed set counts down, shows overtime, and signals only at the first crossing', () => {
   assert.deepEqual(durationSetTimerDisplay(45, 0), { text: '00:45', overtime: false });
