@@ -5,8 +5,8 @@ import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 
 import { Ionicons } from '@expo/vector-icons';
 import { palette } from '../../constants/colors';
 import { translateCatalogName } from '../../localization/catalog';
-import { exercisePlanProgress, isDurationSetDraftValid, isSetDraftValid } from '../../utils/activeWorkout';
-import { formatTimer } from '../../utils/formatters';
+import { durationSetTimerDisplay, exercisePlanProgress, isDurationSetDraftValid, isSetDraftValid, shouldSignalDurationTarget } from '../../utils/activeWorkout';
+import { cancelTimerSignal, prepareTimerSignal, scheduleTimerSignal, signalTimerNow } from '../../utils/timerSignal';
 import { RpePicker } from './RpePicker';
 import { createStyles } from './ActiveExerciseCard.styles';
 import TimerPlayIcon from '../../assets/icons/TimerPlayIcon.svg';
@@ -137,14 +137,41 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
   const [saveFailed, setSaveFailed] = useState(false);
   const startedAt = useRef(null);
   const baseSeconds = useRef(elapsed);
+  const lastTick = useRef(elapsed);
+  const signaled = useRef(false);
+  const target = Number(item.durationSeconds ?? item.targetDurationSeconds) || 0;
+  const display = durationSetTimerDisplay(target, elapsed);
+  const timerDoneTitle = t('timerDone');
 
   useEffect(() => {
     if (!running) return undefined;
-    const tick = () => setElapsed(baseSeconds.current + Math.floor((Date.now() - startedAt.current) / 1000));
+    const tick = () => {
+      const seconds = baseSeconds.current + Math.floor((Date.now() - startedAt.current) / 1000);
+      if (!signaled.current && shouldSignalDurationTarget(target, lastTick.current, seconds)) {
+        signaled.current = true;
+        signalTimerNow();
+      }
+      lastTick.current = seconds;
+      setElapsed(seconds);
+    };
     tick();
     const timer = setInterval(tick, 250);
     return () => clearInterval(timer);
-  }, [running]);
+  }, [running, target]);
+
+  useEffect(() => {
+    if (!running || target <= baseSeconds.current || signaled.current) return undefined;
+    let cancelled = false;
+    let identifier = null;
+    void scheduleTimerSignal(startedAt.current + (target - baseSeconds.current) * 1000, timerDoneTitle).then((id) => {
+      identifier = id;
+      if (cancelled) void cancelTimerSignal(id);
+    }).catch(() => {});
+    return () => {
+      cancelled = true;
+      void cancelTimerSignal(identifier);
+    };
+  }, [running, target, timerDoneTitle]);
 
   useEffect(() => {
     if (!existingSet || running) return;
@@ -166,6 +193,8 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     }
     startedAt.current = Date.now();
     baseSeconds.current = elapsed;
+    lastTick.current = elapsed;
+    prepareTimerSignal();
     setRunning(true);
     onTimerState(number, 'running');
   };
@@ -182,6 +211,8 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     setStopped(false);
     setElapsed(0);
     baseSeconds.current = 0;
+    lastTick.current = 0;
+    signaled.current = false;
     setSaveFailed(false);
     onTimerState(number, 'idle');
   };
@@ -190,6 +221,8 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     const seconds = value ? Number(value) : 0;
     setElapsed(seconds);
     baseSeconds.current = seconds;
+    lastTick.current = seconds;
+    signaled.current = seconds >= target;
     setStopped(seconds > 0);
     setSaveFailed(false);
     onTimerState(number, seconds > 0 ? 'pending' : 'idle');
@@ -210,11 +243,12 @@ function DurationSetEditorRow({ compact, disabled, existingSet, item, locked, nu
     if (saved) onTimerState(number, 'saved');
   };
 
-  return <View style={styles.durationSetCard}>
+  return <View style={[styles.durationSetCard, existingSet && styles.durationSetSaved]}>
     <View style={styles.durationSetHeader}>
-      <Text style={styles.setNumber}>{number}</Text>
+      <Text style={styles.durationSetNumber}>{t('setNumber', { number })}</Text>
       <View style={styles.durationValueBlock}>
-        <Text numberOfLines={1} style={styles.durationValue}>{formatTimer(elapsed)}</Text>
+        <Text numberOfLines={1} style={[styles.durationValue, display.overtime && styles.durationOvertime]}>{display.text}</Text>
+        {running && <Text style={styles.durationInProgress}>{t('setInProgress')}</Text>}
         <Text style={styles.durationTarget}>{t('durationTarget', { seconds: item.durationSeconds || item.targetDurationSeconds || '—' })}</Text>
       </View>
       <View style={styles.durationInputControls}>
