@@ -40,13 +40,24 @@ test('media images cover fixed containers and fall back after load errors', () =
 test('exercise video and image media stay in separate visual areas', () => {
   const exerciseDetails = source('src/screens/ExerciseDetailsScreen.js');
   assert.match(exerciseDetails, /const \[videoFailed, setVideoFailed\] = useState\(false\)/);
-  assert.match(exerciseDetails, /\(exercise\.displayVideoUrl \|\| exercise\.videoUrl\) && !videoFailed \? \(/);
+  assert.match(exerciseDetails, /const videoSource = exercise\.displayVideoUrl \|\| exercise\.videoUrl/);
+  assert.match(exerciseDetails, /useEffect\(\(\) => setVideoFailed\(false\), \[videoSource\]\)/);
+  assert.match(exerciseDetails, /\{videoSource && !videoFailed \? \(/);
   assert.match(exerciseDetails, /<ExerciseVideoPlayer[\s\S]*?style=\{\[s\.media, styles\.videoMedia\]\}/);
   assert.match(exerciseDetails, /setVideoFailed\(true\)/);
   assert.match(exerciseDetails, /\) : \(\s*<>\s*<MediaImage accessibilityLabel=\{w\.noMedia\} source=\{null\} style=\{s\.media\}/);
-  assert.match(exerciseDetails, /Linking\.openURL\(exercise\.displayVideoUrl \|\| exercise\.videoUrl\)/);
+  assert.match(exerciseDetails, /Linking\.openURL\(videoSource\)/);
   assert.match(exerciseDetails, /<MediaImage[\s\S]*?source=\{exercise\.demonstrationImageUrl \|\| exercise\.imageUrl\}[\s\S]*?style=\{styles\.muscleImage\}/);
   assert.doesNotMatch(exerciseDetails, /\) : <MediaImage[\s\S]*?source=\{exercise\.imageUrl\}[\s\S]*?style=\{s\.media\}/);
+});
+
+test('active workout details refresh and localize the current catalog record', () => {
+  const modal = source('src/components/exercise/ExerciseDetailsModal.js');
+  const activeWorkout = source('src/screens/ActiveWorkoutScreen.js');
+  assert.match(modal, /apiFetch\(`\/exercises\/\$\{exercise\.id\}`/);
+  assert.match(modal, /localizeCatalogEntity\(details \|\| exercise, locale, t, 'exercise'\)/);
+  assert.match(modal, /<ExerciseDetailsContent allowAdd=\{false\} exercise=\{localizedDetails\}/);
+  assert.match(activeWorkout, /<ExerciseDetailsModal exercise=\{selectedExercise\}/);
 });
 
 test('timed and repetition sets share the same accessible RPE picker', () => {

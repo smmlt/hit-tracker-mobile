@@ -1,7 +1,7 @@
 /**
  * Displays a catalog exercise and its actions, loading exercise data and routing into sharing, editing, or workout-preparation flows. / Показує вправу каталогу та її дії, завантажує дані вправи й переходить до поширення, редагування або підготовки тренування.
  */
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Linking, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -36,6 +36,8 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   const [error, setError] = useState("");
   const [videoFailed, setVideoFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const videoSource = exercise.displayVideoUrl || exercise.videoUrl;
+  useEffect(() => setVideoFailed(false), [videoSource]);
   const muscleGroups = splitMusclesByRole(exercise.muscles);
   const added = preparedWorkout?.exercises?.some(
     (item) => item.id === exercise.id,
@@ -66,9 +68,9 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   };
   return (
     <View style={styles.contentBlock}>
-      {(exercise.displayVideoUrl || exercise.videoUrl) && !videoFailed ? (
+      {videoSource && !videoFailed ? (
         <ExerciseVideoPlayer
-          source={exercise.displayVideoUrl || exercise.videoUrl}
+          source={videoSource}
           style={[s.media, styles.videoMedia]}
           onError={() => {
             setVideoFailed(true);
@@ -78,7 +80,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       ) : (
         <>
           <MediaImage accessibilityLabel={w.noMedia} source={null} style={s.media} />
-          {videoFailed && !!(exercise.displayVideoUrl || exercise.videoUrl) && <Button secondary onPress={() => Linking.openURL(exercise.displayVideoUrl || exercise.videoUrl)}>{w.openVideo}</Button>}
+          {videoFailed && !!videoSource && <Button secondary onPress={() => Linking.openURL(videoSource)}>{w.openVideo}</Button>}
         </>
       )}
       <View style={styles.summary}>
