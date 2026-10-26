@@ -2,7 +2,7 @@
  * Composes the authenticated home dashboard from profile, workout, and recommendation state, with shortcuts into training and library flows. / Складає головну панель автентифікованого користувача зі станів профілю, тренування та рекомендацій, надаючи переходи до тренувань і бібліотеки.
  */
 import React, { useContext, useState } from "react";
-import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { createStyles } from './HomeScreen.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
@@ -31,7 +31,7 @@ import { useWorkout } from '../context/WorkoutContext';
 export default function HomeScreen({ navigation, route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { userData } = useContext(AuthContext);
-  const library = useLibrary(['exercises', 'programs', 'muscles', 'errors', 'loading', 'refresh', 'search', 'searchCatalog']);
+  const library = useLibrary(['exercises', 'programs', 'muscles', 'errors', 'loading', 'refresh', 'search', 'searchCatalog', 'loadMoreCatalog']);
   const w = useWords();
   const { t, locale } = useContext(LanguageContext);
   const { theme } = useTheme();
@@ -245,7 +245,16 @@ export default function HomeScreen({ navigation, route }) {
       <ExerciseFilterBar
         musclesList={library.muscles}
         selectedMuscleFilter={muscle}
-        onSelectMuscleFilter={setMuscle}
+        onSelectMuscleFilter={(value) => {
+          setMuscle(value);
+          if (section === 'exercises') setScope('all');
+        }}
+        savedSelected={section === 'exercises' && scope === 'saved'}
+        savedLabel={w.favorites}
+        onSelectSaved={section === 'exercises' ? () => {
+          setMuscle(null);
+          setScope(scope === 'saved' ? 'all' : 'saved');
+        } : undefined}
       />
       {section === "programs" && (
         <Pressable
@@ -296,6 +305,13 @@ export default function HomeScreen({ navigation, route }) {
             <Text style={styles.muted}>{library.loading || (library.search?.section === section && library.search?.loading) ? w.loading : (query.trim() ? w.searchEmpty : w.empty)}</Text>
           </View>
         }
+        ListFooterComponent={library.search?.section === section && library.search?.loadingMore ? (
+          <ActivityIndicator color={theme.primary} />
+        ) : library.search?.section === section && library.search?.nextCursor ? (
+          <Button secondary onPress={library.loadMoreCatalog}>{t('showMore')}</Button>
+        ) : null}
+        onEndReached={library.loadMoreCatalog}
+        onEndReachedThreshold={0.35}
         renderItem={
           /* EN: Selects the exercise or program card and wires each card to its nested detail flow. */
           /* UK: Обирає card вправи або програми й підключає її до відповідного nested detail flow. */

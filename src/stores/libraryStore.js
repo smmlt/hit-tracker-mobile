@@ -7,11 +7,13 @@ let generation = 0;
 let searchGeneration = 0;
 let searchController = null;
 const pending = new Set();
-const empty = { exercises: [], programs: [], muscles: [], errors: {}, loading: false, userId: null, userToken: null, search: { items: null, section: null, loading: false, fallback: false, error: null } };
+const emptySearch = { items: null, section: null, loading: false, loadingMore: false, fallback: false, error: null, nextCursor: null, options: null };
+const empty = { exercises: [], programs: [], muscles: [], errors: {}, loading: false, userId: null, userToken: null, search: emptySearch };
 
-export const buildCatalogSearchPath = ({ q = '', section, scope = 'all', muscle, sort = 'popular', locale = 'en' }) => {
+export const buildCatalogSearchPath = ({ q = '', section, scope = 'all', muscle, sort = 'popular', locale = 'en', cursor }) => {
   const params = new URLSearchParams({ q, section, scope, sort, locale, limit: '25' });
   if (muscle) params.set('muscle', String(muscle));
+  if (cursor) params.set('cursor', cursor);
   return `/catalog/search?${params.toString()}`;
 };
 
@@ -78,17 +80,39 @@ export const useLibraryStore = create((set, get) => ({
     searchController?.abort();
     const controller = new AbortController();
     searchController = controller;
-    set({ search: { items: null, section: options.section, loading: true, fallback: false, error: null } });
+    set({ search: { ...emptySearch, section: options.section, loading: true, options } });
     try {
-      const data = await apiRequest(buildCatalogSearchPath(options), { signal: controller.signal }, userToken);
-      if (current === searchGeneration) set({ search: { items: data?.items || [], section: options.section, loading: false, fallback: false, error: null } });
+      const data = await apiRequest(buildCatalogSearchPath(options), { cache: 'no-store', signal: controller.signal }, userToken);
+      if (current === searchGeneration) set({ search: { ...emptySearch, items: data?.items || [], section: options.section, nextCursor: data?.nextCursor || null, options } });
       return data?.items || [];
     } catch (error) {
       if (current !== searchGeneration || error.name === 'AbortError') return [];
       const unavailable = error.status === 503 && error.details?.code === 'SEARCH_UNAVAILABLE';
       const items = filterCatalogLocally(get(), options);
-      set({ search: { items: null, section: options.section, loading: false, fallback: unavailable, error: unavailable ? null : error.message } });
+      set({ search: { ...emptySearch, section: options.section, fallback: unavailable, error: unavailable ? null : error.message, options } });
       return items;
+    }
+  },
+  loadMoreCatalog: async () => {
+    const { search, userToken } = get();
+    if (!search.nextCursor || search.loading || search.loadingMore || !search.options) return [];
+    const current = searchGeneration;
+    const cursor = search.nextCursor;
+    set({ search: { ...search, loadingMore: true, error: null } });
+    try {
+      const data = await apiRequest(buildCatalogSearchPath({ ...search.options, cursor }), { cache: 'no-store' }, userToken);
+      if (current !== searchGeneration || get().search.nextCursor !== cursor) return [];
+      const received = data?.items || [];
+      set((state) => ({ search: {
+        ...state.search,
+        items: [...(state.search.items || []), ...received.filter((item) => !state.search.items?.some((existing) => existing.id === item.id))],
+        loadingMore: false,
+        nextCursor: data?.nextCursor || null,
+      } }));
+      return received;
+    } catch (error) {
+      if (current === searchGeneration) set((state) => ({ search: { ...state.search, loadingMore: false, error: error.message } }));
+      return [];
     }
   },
   react: async (kind, id, reaction = 'like') => {
