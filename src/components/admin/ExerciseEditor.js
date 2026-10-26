@@ -34,7 +34,14 @@ export function ExerciseEditor({ exercise, onClose }) {
   );
   const [recommendedSets, setRecommendedSets] = useState(exercise?.recommendedSets ? String(exercise.recommendedSets) : "");
   const [recommendedReps, setRecommendedReps] = useState(exercise?.recommendedReps ? String(exercise.recommendedReps) : "");
-  const [equipment, setEquipment] = useState((exercise?.equipment || []).join(", "));
+  const [requiredEquipment, setRequiredEquipment] = useState(
+    (exercise?.equipmentStructured?.required || exercise?.equipment || []).join(", "),
+  );
+  const [alternativeEquipment, setAlternativeEquipment] = useState(
+    (exercise?.equipmentStructured?.alternatives || [])
+      .map((group) => group.join(" / "))
+      .join("\n"),
+  );
   const initialMuscles = splitMusclesByRole(exercise?.muscles);
   const [primaryMuscles, setPrimaryMuscles] = useState(initialMuscles.primary.map((m) => m.id));
   const [secondaryMuscles, setSecondaryMuscles] = useState(initialMuscles.secondary.map((m) => m.id));
@@ -58,6 +65,11 @@ export function ExerciseEditor({ exercise, onClose }) {
     setSaving(true);
     setError("");
     try {
+      const required = requiredEquipment.split(",").map((item) => item.trim()).filter(Boolean);
+      const alternatives = alternativeEquipment
+        .split("\n")
+        .map((line) => line.split(/[|/]/).map((item) => item.trim()).filter(Boolean))
+        .filter((group) => group.length);
       let targetId = savedId;
       if (!targetId) {
         const result = await apiRequest(
@@ -80,7 +92,8 @@ export function ExerciseEditor({ exercise, onClose }) {
               recommendedDurationSeconds: measurementType === "duration" && recommendedDurationSeconds
                 ? Number(recommendedDurationSeconds)
                 : exercise ? null : undefined,
-              equipment: equipment.split(",").map((item) => item.trim()).filter(Boolean),
+              equipment: [...new Set([...required, ...alternatives.flat()])],
+              equipmentStructured: { required, alternatives },
               demonstrationImageSourceUrl: imageSourceUrl.trim() || (exercise ? "" : undefined),
               demonstrationImageAuthor: imageAuthor.trim() || (exercise ? "" : undefined),
               demonstrationImageLicense: imageLicense.trim() || (exercise ? "" : undefined),
@@ -177,11 +190,19 @@ export function ExerciseEditor({ exercise, onClose }) {
         keyboardType="numeric"
       />}
       <Field
-        label={w.equipment}
-        value={equipment}
-        onChangeText={setEquipment}
+        label={t('requiredEquipment')}
+        value={requiredEquipment}
+        onChangeText={setRequiredEquipment}
         maxLength={500}
       />
+      <Field
+        label={t('alternativeEquipment')}
+        value={alternativeEquipment}
+        onChangeText={setAlternativeEquipment}
+        multiline
+        maxLength={1000}
+      />
+      <Text style={s.muted}>{t('alternativeEquipmentHint')}</Text>
       <Feedback error={library.errors.muscles} onRetry={library.refresh} />
       {[
         ['primary', t('primaryMuscles'), primaryMuscles],
