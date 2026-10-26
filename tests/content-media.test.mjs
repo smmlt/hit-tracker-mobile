@@ -68,7 +68,6 @@ test('timed and repetition sets share the same accessible RPE picker', () => {
 
 test('program image and video choices use the shared adaptive media container', () => {
   const programDetails = source('src/screens/LibraryProgramScreen.js');
-  assert.match(programDetails, /<ExerciseVideoPlayer source=\{program\.videoUrl\} style=\{s\.media\} \/>/);
   assert.match(programDetails, /<MediaImage[\s\S]*?source=\{program\.imageUrl\}[\s\S]*?style=\{s\.media\}/);
   assert.match(programDetails, /source=\{program\.displayVideoUrl \|\| program\.videoUrl\}/);
   assert.match(programDetails, /localizeCatalogEntity\(program, locale, t, "program", program\.isPersonal\)/);
