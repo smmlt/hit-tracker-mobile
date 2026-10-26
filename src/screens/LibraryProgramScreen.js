@@ -19,7 +19,7 @@ import { ScheduleProgramSheet } from "../components/workshop/ScheduleProgramShee
 import { ShareButton } from "../components/workshop/ShareButton";
 import { useTheme } from "../context/ThemeContext";
 import { LanguageContext } from "../localization/LanguageContext";
-import { translateCatalogName } from "../localization/catalog";
+import { localizeCatalogEntity } from "../localization/catalog";
 import { programShareUrl } from "../utils/shareLinks";
 import { entityId, entityRef } from '../utils/navigationPaths';
 import { createStyles } from './LibraryProgramScreen.styles';
@@ -48,8 +48,8 @@ export function ProgramDetailsContent({ program, onExercise, onEdit, showProgram
   const difficulty = showProgramDifficulty ? programDifficulty(schedule) : null;
   return (
     <View style={styles.contentBlock}>
-      {program.videoUrl ? (
-        <ExerciseVideoPlayer source={program.videoUrl} style={s.media} />
+      {program.displayVideoUrl || program.videoUrl ? (
+        <ExerciseVideoPlayer source={program.displayVideoUrl || program.videoUrl} style={s.media} />
       ) : (
         <MediaImage accessibilityLabel={w.noMedia} source={program.imageUrl} style={s.media} />
       )}
@@ -105,7 +105,7 @@ export default function LibraryProgramScreen({ navigation, route }) {
   const { addWorkoutExercises, activeWorkout } = useWorkout(useShallow((state) => ({ addWorkoutExercises: state.addWorkoutExercises, activeWorkout: state.activeWorkout })));
   const library = useLibrary(['exercises', 'errors']);
   const w = useWords();
-  const { t } = useContext(LanguageContext);
+  const { locale, t } = useContext(LanguageContext);
   const id = entityId(route.params?.programRef) || Number(route.params?.programId);
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -133,21 +133,15 @@ export default function LibraryProgramScreen({ navigation, route }) {
   const localizedProgram = useMemo(() => {
     if (!program) return null;
     return {
-      ...program,
-      displayName: program.isPersonal
-        ? program.name
-        : translateCatalogName(t, "program", program.name),
+      ...localizeCatalogEntity(program, locale, t, "program", program.isPersonal),
       schedule: (program.schedule || []).map((row) => ({
         ...row,
         exercise: row.exercise
-          ? {
-              ...row.exercise,
-              displayName: translateCatalogName(t, "exercise", row.exercise.name),
-            }
+          ? localizeCatalogEntity(row.exercise, locale, t, "exercise")
           : row.exercise,
       })),
     };
-  }, [program, t]);
+  }, [locale, program, t]);
   const canCustomize =
     program && (!program.isPersonal || program.createdById === userData?.id);
   const add = async () => {
