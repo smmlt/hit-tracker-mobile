@@ -503,6 +503,10 @@ export default function SettingsScreen({ navigation }) {
             <Text style={[styles.adminText, { color: theme.textPrimary }]}>{t('openAdminPanel')}</Text>
           </Pressable>
         ) : null}
+        <Pressable accessibilityRole="button" onPress={() => navigation.navigate('MediaSources')} style={[styles.action, { borderColor: theme.border, flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }]}>
+          <Text style={[styles.actionText, { color: theme.textPrimary }]}>{t('mediaSources')}</Text>
+          <Ionicons color={theme.textSecondary} name="chevron-forward" size={20} />
+        </Pressable>
         <Pressable accessibilityRole="button" onPress={/* EN: Opens confirmation for ending the current session. UK: Відкриває підтвердження завершення поточного сеансу. */ () => setLogoutConfirmation('current')} style={styles.logout}>
           <Text style={[styles.logoutText, { color: theme.primary }]}>{t('logout')}</Text>
         </Pressable>

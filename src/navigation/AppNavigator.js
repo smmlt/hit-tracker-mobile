@@ -29,6 +29,7 @@ import ExerciseDetailsScreen from '../screens/ExerciseDetailsScreen';
 import LibraryProgramScreen from '../screens/LibraryProgramScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import MediaSourcesScreen from '../screens/MediaSourcesScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import UsernameSettingsScreen from '../screens/UsernameSettingsScreen';
 import AdminScreen from '../screens/AdminScreen';
@@ -182,6 +183,7 @@ function ProfileStack() {
     >
       <ProfileStackNavigator.Screen name="ProfileMain" component={ProfileScreen} />
       <ProfileStackNavigator.Screen name="Settings" component={SettingsScreen} />
+      <ProfileStackNavigator.Screen name="MediaSources" component={MediaSourcesScreen} />
       <ProfileStackNavigator.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNavigator.Screen name="UsernameSettings" component={UsernameSettingsScreen} />
     </ProfileStackNavigator.Navigator>

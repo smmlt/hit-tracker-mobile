@@ -122,6 +122,9 @@ export const linkingConfig = {
               path: 'settings',
               alias: [legacy('MainApp/Profile/Settings')],
             },
+            MediaSources: {
+              path: 'settings/media-sources',
+            },
             EditProfile: {
               path: 'edit',
               alias: [legacy('MainApp/Profile/EditProfile')],
