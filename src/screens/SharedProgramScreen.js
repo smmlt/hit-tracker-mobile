@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { useLibrary } from '../context/LibraryContext';
 import { LanguageContext } from '../localization/LanguageContext';
-import { translateCatalogName } from '../localization/catalog';
+import { localizeCatalogEntity } from '../localization/catalog';
 import { apiRequest } from '../services/api';
 import { findMatchingPersonalProgram } from '../utils/sharedLibrary';
 import { Button, DetailHeader, Feedback, useWorkshopStyles } from '../components/workshop/ui';
@@ -17,7 +17,7 @@ import { entityRef } from '../utils/navigationPaths';
 
 export default function SharedProgramScreen({ navigation, route }) {
   const { userToken, userData } = useContext(AuthContext);
-  const { t } = useContext(LanguageContext);
+  const { t, locale } = useContext(LanguageContext);
   const library = useLibrary(['programs', 'refresh']);
   const workshopStyles = useWorkshopStyles();
   const token = route.params?.token;
@@ -44,16 +44,14 @@ export default function SharedProgramScreen({ navigation, route }) {
 
   useEffect(() => load(), [load]);
   const localizedProgram = useMemo(() => program ? {
-    ...program,
-    displayName: program.isPersonal ? program.name : translateCatalogName(t, 'program', program.name),
+    ...localizeCatalogEntity(program, locale, t, 'program', program.isPersonal),
     schedule: (program.schedule || []).map((row) => ({
       ...row,
       exercise: row.exercise ? {
-        ...row.exercise,
-        displayName: translateCatalogName(t, 'exercise', row.exercise.name),
+        ...localizeCatalogEntity(row.exercise, locale, t, 'exercise'),
       } : row.exercise,
     })),
-  } : null, [program, t]);
+  } : null, [program, locale, t]);
   const openProgram = (programId, name = program?.name) => navigation.replace('MainApp', {
     screen: 'Home',
     params: { screen: 'LibraryProgram', params: { programRef: entityRef(name, programId) }, initial: false },

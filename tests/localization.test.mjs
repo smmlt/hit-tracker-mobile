@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_LOCALE, LOCALE_OPTIONS, SUPPORTED_LOCALES, isSupportedLocale } from '../src/localization/locale.js';
 import { translations } from '../src/localization/translations.js';
-import { translateCatalogName } from '../src/localization/catalog.js';
+import { localizeCatalogEntity, translateCatalogName } from '../src/localization/catalog.js';
 
 test('LOCALIZATION-001 English is the default locale', () => {
   assert.equal(DEFAULT_LOCALE, 'en');
@@ -14,6 +14,23 @@ test('LOCALIZATION-001 English is the default locale', () => {
   assert.equal(isSupportedLocale('de'), false);
   assert.deepEqual(LOCALE_OPTIONS.map(({ value }) => value), SUPPORTED_LOCALES);
   assert.deepEqual(LOCALE_OPTIONS.map(({ flag }) => flag), ['gb', 'ua']);
+});
+
+test('LOCALIZATION-004 selects saved text and video with English fallback', () => {
+  const entity = {
+    name: 'Plank',
+    description: 'English legacy',
+    videoUrl: 'https://youtube.com/en-legacy',
+    translations: [
+      { locale: 'en', name: 'Plank', description: 'English text', videoUrl: 'https://youtube.com/en' },
+      { locale: 'uk', name: 'Планка', description: 'Український текст', videoUrl: 'https://youtube.com/uk' },
+    ],
+  };
+  const t = (key) => key;
+  assert.equal(localizeCatalogEntity(entity, 'uk', t, 'exercise').displayName, 'Планка');
+  assert.equal(localizeCatalogEntity(entity, 'uk', t, 'exercise').displayVideoUrl, 'https://youtube.com/uk');
+  assert.equal(localizeCatalogEntity(entity, 'de', t, 'exercise').displayDescription, 'English text');
+  assert.equal(localizeCatalogEntity({ ...entity, isPersonal: true }, 'uk', t, 'program', true).name, 'Plank');
 });
 
 test('LOCALIZATION-002 English and Ukrainian expose the same translation keys', () => {

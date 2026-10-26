@@ -10,5 +10,6 @@ const upload = async (path, asset, token) => apiRequest(path, {
 
 export const contentMediaService = {
   uploadExerciseImage: (id, asset, token) => upload(`/exercises/${id}/image`, asset, token),
+  uploadExerciseDemonstrationImage: (id, asset, token) => upload(`/exercises/${id}/demonstration-image`, asset, token),
   uploadProgramImage: (id, asset, token) => upload(`/workout-programs/${id}/image`, asset, token),
 };

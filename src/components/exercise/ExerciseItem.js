@@ -42,8 +42,8 @@ export function ExerciseItem({
         style={({ pressed }) => [styles.body, pressed && { opacity: 0.7 }]}
       >
         <MediaImage
-          accessibilityLabel={current.imageUrl ? current.displayName || current.name : w.noMedia}
-          source={current.imageUrl}
+          accessibilityLabel={current.demonstrationImageUrl || current.imageUrl ? current.displayName || current.name : w.noMedia}
+          source={current.demonstrationImageUrl || current.imageUrl}
           style={styles.image}
         />
         <View style={styles.info}>

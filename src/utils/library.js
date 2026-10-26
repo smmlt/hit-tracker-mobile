@@ -18,7 +18,7 @@ export function programDifficulty(schedule) {
 
   for (const row of rows) {
     const difficulty = Number(row.exercise.difficulty);
-    const sets = Number(row.setsCount);
+    const sets = row.setsCount == null ? 1 : Number(row.setsCount);
     if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 5 || !Number.isFinite(sets) || sets < 1) {
       return null;
     }

@@ -3,7 +3,7 @@
 import { useContext, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { LanguageContext } from '../localization/LanguageContext';
-import { translateCatalogName } from '../localization/catalog';
+import { localizeCatalogEntity, translateCatalogName } from '../localization/catalog';
 import { useLibraryStore } from '../stores/libraryStore';
 
 export function useLibrary(keys = ['exercises', 'programs', 'muscles', 'errors', 'loading', 'refresh', 'react']) {
@@ -14,34 +14,36 @@ export function useLibrary(keys = ['exercises', 'programs', 'muscles', 'errors',
     ...muscle,
     displayName: translateCatalogName(t, 'muscle', muscle.commonName),
   })), [muscles, locale]);
-  const localizedExercises = useMemo(() => exercises?.map((exercise) => ({
+  const localizedExercises = useMemo(() => exercises?.map((source) => {
+    const exercise = localizeCatalogEntity(source, locale, t, 'exercise');
+    return ({
     ...exercise,
-    displayName: translateCatalogName(t, 'exercise', exercise.name),
     muscles: (exercise.muscles || []).map((muscle) => ({
       ...muscle,
       displayName: translateCatalogName(t, 'muscle', muscle.commonName || muscle.name),
     })),
-  })), [exercises, locale]);
-  const localizedPrograms = useMemo(() => programs?.map((program) => ({
+  });
+  }), [exercises, locale]);
+  const localizedPrograms = useMemo(() => programs?.map((source) => {
+    const program = localizeCatalogEntity(source, locale, t, 'program', source.isPersonal);
+    return ({
     ...program,
-    displayName: program.isPersonal ? program.name : translateCatalogName(t, 'program', program.name),
     schedule: (program.schedule || []).map((row) => ({
       ...row,
-      exercise: row.exercise ? { ...row.exercise, displayName: translateCatalogName(t, 'exercise', row.exercise.name) } : row.exercise,
+      exercise: row.exercise ? localizeCatalogEntity(row.exercise, locale, t, 'exercise') : row.exercise,
     })),
-  })), [programs, locale]);
+  });
+  }), [programs, locale]);
   const localizedSearch = useMemo(() => selected.search?.items?.map((item) => ({
     ...item,
-    displayName: selected.search.section === 'programs'
-      ? (item.isPersonal ? item.name : translateCatalogName(t, 'program', item.name))
-      : translateCatalogName(t, 'exercise', item.name),
+    ...localizeCatalogEntity(item, locale, t, selected.search.section === 'programs' ? 'program' : 'exercise', item.isPersonal),
     ...(selected.search.section === 'exercises' ? { muscles: (item.muscles || []).map((muscle) => ({
       ...muscle,
       displayName: translateCatalogName(t, 'muscle', muscle.commonName || muscle.name),
     })) } : {}),
     ...(selected.search.section === 'programs' ? { schedule: (item.schedule || []).map((row) => ({
       ...row,
-      exercise: row.exercise ? { ...row.exercise, displayName: translateCatalogName(t, 'exercise', row.exercise.name) } : row.exercise,
+      exercise: row.exercise ? localizeCatalogEntity(row.exercise, locale, t, 'exercise') : row.exercise,
     })) } : {}),
   })) ?? null, [selected.search, locale]);
   return {

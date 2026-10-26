@@ -18,15 +18,22 @@ export function ExerciseEditor({ exercise, onClose }) {
   const library = useLibrary(['muscles', 'errors', 'refresh']);
   const { t } = useContext(LanguageContext);
   const w = useWords();
-  const [name, setName] = useState(exercise?.name || "");
-  const [description, setDescription] = useState(exercise?.description || "");
-  const [video, setVideo] = useState(exercise?.videoUrl || "");
+  const translation = (locale) => exercise?.translations?.find((item) => item.locale === locale);
+  const [catalogKey, setCatalogKey] = useState(exercise?.catalogKey || "");
+  const [name, setName] = useState(translation('en')?.name || exercise?.name || "");
+  const [ukName, setUkName] = useState(translation('uk')?.name || "");
+  const [description, setDescription] = useState(translation('en')?.description || exercise?.description || "");
+  const [ukDescription, setUkDescription] = useState(translation('uk')?.description || "");
+  const [video, setVideo] = useState(translation('en')?.videoUrl || exercise?.videoUrl || "");
+  const [ukVideo, setUkVideo] = useState(translation('uk')?.videoUrl || "");
   const [videoChanged, setVideoChanged] = useState(false);
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
   const [measurementType, setMeasurementType] = useState(exercise?.measurementType || "reps");
   const [recommendedDurationSeconds, setRecommendedDurationSeconds] = useState(
     exercise?.recommendedDurationSeconds ? String(exercise.recommendedDurationSeconds) : "",
   );
+  const [recommendedSets, setRecommendedSets] = useState(exercise?.recommendedSets ? String(exercise.recommendedSets) : "");
+  const [recommendedReps, setRecommendedReps] = useState(exercise?.recommendedReps ? String(exercise.recommendedReps) : "");
   const [equipment, setEquipment] = useState((exercise?.equipment || []).join(", "));
   const initialMuscles = splitMusclesByRole(exercise?.muscles);
   const [primaryMuscles, setPrimaryMuscles] = useState(initialMuscles.primary.map((m) => m.id));
@@ -36,7 +43,7 @@ export function ExerciseEditor({ exercise, onClose }) {
   const [image, setImage] = useState(null);
   const [savedId, setSavedId] = useState(null);
   const save = async () => {
-    if (!name.trim()) {
+    if (!name.trim() || !ukName.trim()) {
       setError(t('exerciseNameRequired'));
       return;
     }
@@ -56,9 +63,16 @@ export function ExerciseEditor({ exercise, onClose }) {
             body: JSON.stringify({
               name: name.trim(),
               description: description.trim(),
+              ...(!exercise ? { catalogKey: catalogKey.trim() || undefined } : {}),
               ...(videoChanged || !exercise ? { videoUrl: video.trim() || undefined } : {}),
+              translations: [
+                { locale: 'en', name: name.trim(), description: description.trim() || undefined, videoUrl: video.trim() || undefined },
+                { locale: 'uk', name: ukName.trim(), description: ukDescription.trim() || undefined, videoUrl: ukVideo.trim() || undefined },
+              ],
               difficulty,
               measurementType,
+              recommendedSets: recommendedSets ? Number(recommendedSets) : exercise ? null : undefined,
+              recommendedReps: measurementType === 'reps' && recommendedReps ? Number(recommendedReps) : exercise ? null : undefined,
               recommendedDurationSeconds: measurementType === "duration" && recommendedDurationSeconds
                 ? Number(recommendedDurationSeconds)
                 : exercise ? null : undefined,
@@ -72,7 +86,7 @@ export function ExerciseEditor({ exercise, onClose }) {
         targetId = result.id;
         setSavedId(targetId);
       }
-      if (image) await contentMediaService.uploadExerciseImage(targetId, image, userToken);
+      if (image) await contentMediaService.uploadExerciseDemonstrationImage(targetId, image, userToken);
       await library.refresh();
       onClose();
     } catch (e) {
@@ -87,29 +101,32 @@ export function ExerciseEditor({ exercise, onClose }) {
       onClose={() => !saving && onClose()}
     >
       <Field
-        label={w.name}
+        label={`${w.name} (${t('english')})`}
         value={name}
         onChangeText={setName}
         maxLength={100}
       />
+      {!exercise && <Field label="catalogKey" value={catalogKey} onChangeText={setCatalogKey} autoCapitalize="none" maxLength={100} />}
+      <Field label={`${w.name} (${t('ukrainian')})`} value={ukName} onChangeText={setUkName} maxLength={100} />
       <ImagePickerField
         aspect={[1, 1]}
         disabled={saving}
-        imageUri={image?.uri || exercise?.imageUrl}
+        imageUri={image?.uri || exercise?.demonstrationImageUrl || exercise?.imageUrl}
         label={w.chooseImage}
         onChange={setImage}
         onError={(pickerError) => setError(pickerError.message || w.imagePickerError)}
         previewStyle={{ width: 160, height: 160, borderRadius: 8, alignSelf: "center" }}
       />
       <Field
-        label={w.description}
+        label={`${w.description} (${t('english')})`}
         value={description}
         onChangeText={setDescription}
         multiline
         maxLength={2000}
       />
+      <Field label={`${w.description} (${t('ukrainian')})`} value={ukDescription} onChangeText={setUkDescription} multiline maxLength={2000} />
       <Field
-        label={w.video}
+        label={`${w.video} (${t('english')})`}
         value={video}
         onChangeText={(value) => {
           setVideoChanged(true);
@@ -118,6 +135,7 @@ export function ExerciseEditor({ exercise, onClose }) {
         autoCapitalize="none"
         maxLength={2048}
       />
+      <Field label={`${w.video} (${t('ukrainian')})`} value={ukVideo} onChangeText={setUkVideo} autoCapitalize="none" maxLength={2048} />
       <Text style={s.heading}>{w.difficulty}</Text>
       <View style={s.row}>
         {[1, 2, 3, 4, 5].map((level) => (
@@ -132,6 +150,8 @@ export function ExerciseEditor({ exercise, onClose }) {
           </Button>
         ))}
       </View>
+      <Field label={w.sets} value={recommendedSets} onChangeText={(value) => /^\d*$/.test(value) && setRecommendedSets(value)} keyboardType="numeric" />
+      {measurementType === 'reps' && <Field label={w.reps} value={recommendedReps} onChangeText={(value) => /^\d*$/.test(value) && setRecommendedReps(value)} keyboardType="numeric" />}
       <DifficultyIndicator difficulty={difficulty} />
       <Text style={s.heading}>{w.measurementType}</Text>
       <View style={s.row}>

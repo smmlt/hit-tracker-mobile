@@ -70,8 +70,8 @@ export function ProgramDetailsContent({ program, onExercise, onEdit, showProgram
             <DifficultyIndicator difficulty={difficulty.level} />
           </View>
         )}
-        {!!program.description && (
-          <Text style={s.muted}>{program.description}</Text>
+        {!!(program.displayDescription || program.description) && (
+          <Text style={s.muted}>{program.displayDescription || program.description}</Text>
         )}
       </View>
       <View style={s.header}>
@@ -87,7 +87,7 @@ export function ProgramDetailsContent({ program, onExercise, onEdit, showProgram
               key={`${row.exercise.id}-${index}`}
               exercise={row.exercise}
               onPress={onExercise}
-              footer={`${row.setsCount} ${w.sets.toLowerCase()} × ${row.exercise.measurementType === "duration" ? `${row.targetDurationSeconds || row.exercise.recommendedDurationSeconds || "—"} ${w.seconds.toLowerCase()}` : `${row.targetReps || "—"} ${w.reps.toLowerCase()}`}`}
+              footer={row.setsCount ? `${row.setsCount} ${w.sets.toLowerCase()} × ${row.exercise.measurementType === "duration" ? `${row.targetDurationSeconds || row.exercise.recommendedDurationSeconds || "—"} ${w.seconds.toLowerCase()}` : `${row.targetReps || "—"} ${w.reps.toLowerCase()}`}` : "—"}
             />
           ),
       )}

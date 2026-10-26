@@ -132,6 +132,7 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
   const [elapsed, setElapsed] = useState(Number(existingSet?.durationSeconds) || 0);
   const [failure, setFailure] = useState(!!existingSet?.isFailure);
   const [rpe, setRpe] = useState(existingSet?.rpe ? String(existingSet.rpe) : '');
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [manualInput, setManualInput] = useState(null);
   const [running, setRunning] = useState(false);
   const [stopped, setStopped] = useState(!!existingSet);
@@ -161,6 +162,13 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
     const timer = setInterval(tick, 250);
     return () => clearInterval(timer);
   }, [running, target]);
+
+  useEffect(() => {
+    if (!disabled || !running) return;
+    baseSeconds.current = elapsed;
+    setRunning(false);
+    onTimerState(number, 'paused');
+  }, [disabled, elapsed, number, onTimerState, running]);
 
   useEffect(() => {
     if (!running || target <= baseSeconds.current || signaled.current) return undefined;
@@ -302,21 +310,15 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
       </View>
       <View style={styles.durationRpeColumn}>
         <Text style={styles.durationFieldLabel}>{t('rpeColumn')}</Text>
-        <View style={styles.durationRpeStepper}>
-          <Text style={styles.durationRpeValue}>{rpe || '—'}</Text>
-          <View>
-            <Pressable accessibilityRole="button" accessibilityLabel={t('increaseRpe')}
-              accessibilityState={{ disabled: disabled || Number(rpe) >= 10 }} disabled={disabled || Number(rpe) >= 10}
-              onPress={() => setRpe(String(rpe ? Math.min(10, Number(rpe) + 1) : 5))} style={styles.durationRpeArrow}>
-              <Ionicons color={theme.textPrimary} name="chevron-up" size={16} />
-            </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel={t('decreaseRpe')}
-              accessibilityState={{ disabled: disabled || Number(rpe) <= 1 && !!rpe }} disabled={disabled || Number(rpe) <= 1 && !!rpe}
-              onPress={() => setRpe(String(rpe ? Math.max(1, Number(rpe) - 1) : 5))} style={styles.durationRpeArrow}>
-              <Ionicons color={theme.textPrimary} name="chevron-down" size={16} />
-            </Pressable>
-          </View>
-        </View>
+        <RpePicker
+          compact={compact}
+          disabled={disabled || running}
+          label={`${t('selectRpe')} · ${t('setNumber', { number })}`}
+          onChange={(value) => value === 'open' ? setPickerOpen(true) : setRpe(value)}
+          onClose={() => setPickerOpen(false)}
+          open={pickerOpen}
+          value={rpe}
+        />
       </View>
     </View>
     {locked && <Text style={styles.durationLockedHint}>{t('savePreviousTimedSet')}</Text>}

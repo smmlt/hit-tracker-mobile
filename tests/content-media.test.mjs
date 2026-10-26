@@ -40,13 +40,19 @@ test('media images cover fixed containers and fall back after load errors', () =
 test('exercise video and image media stay in separate visual areas', () => {
   const exerciseDetails = source('src/screens/ExerciseDetailsScreen.js');
   assert.match(exerciseDetails, /const \[videoFailed, setVideoFailed\] = useState\(false\)/);
-  assert.match(exerciseDetails, /exercise\.videoUrl && !videoFailed \? \(/);
+  assert.match(exerciseDetails, /\(exercise\.displayVideoUrl \|\| exercise\.videoUrl\) && !videoFailed \? \(/);
   assert.match(exerciseDetails, /<ExerciseVideoPlayer[\s\S]*?style=\{\[s\.media, styles\.videoMedia\]\}/);
   assert.match(exerciseDetails, /setVideoFailed\(true\)/);
   assert.match(exerciseDetails, /\) : \(\s*<>\s*<MediaImage accessibilityLabel=\{w\.noMedia\} source=\{null\} style=\{s\.media\}/);
-  assert.match(exerciseDetails, /Linking\.openURL\(exercise\.videoUrl\)/);
-  assert.match(exerciseDetails, /<MediaImage[\s\S]*?source=\{exercise\.imageUrl\}[\s\S]*?style=\{styles\.muscleImage\}/);
+  assert.match(exerciseDetails, /Linking\.openURL\(exercise\.displayVideoUrl \|\| exercise\.videoUrl\)/);
+  assert.match(exerciseDetails, /<MediaImage[\s\S]*?source=\{exercise\.demonstrationImageUrl \|\| exercise\.imageUrl\}[\s\S]*?style=\{styles\.muscleImage\}/);
   assert.doesNotMatch(exerciseDetails, /\) : <MediaImage[\s\S]*?source=\{exercise\.imageUrl\}[\s\S]*?style=\{s\.media\}/);
+});
+
+test('timed and repetition sets share the same accessible RPE picker', () => {
+  const card = source('src/components/workout/ActiveExerciseCard.js');
+  assert.equal((card.match(/<RpePicker/g) || []).length, 2);
+  assert.doesNotMatch(card, /styles\.durationRpeStepper/);
 });
 
 test('program image and video choices use the shared adaptive media container', () => {
@@ -71,6 +77,6 @@ test('exercise image saves preserve an existing video unless the video field is 
   const editor = source('src/components/admin/ExerciseEditor.js');
   assert.match(editor, /const \[videoChanged, setVideoChanged\] = useState\(false\)/);
   assert.match(editor, /\.\.\.\(videoChanged \|\| !exercise \? \{ videoUrl: video\.trim\(\) \|\| undefined \} : \{\}\)/);
-  assert.match(editor, /if \(image\) await contentMediaService\.uploadExerciseImage\(targetId, image, userToken\)/);
+  assert.match(editor, /if \(image\) await contentMediaService\.uploadExerciseDemonstrationImage\(targetId, image, userToken\)/);
   assert.match(editor, /setVideoChanged\(true\)/);
 });

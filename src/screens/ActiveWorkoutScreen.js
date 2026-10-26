@@ -527,7 +527,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           onRemove={removeExercise}
           onSave={saveSet}
           onToggle={/* EN: Expands this exercise or collapses it when already open. UK: Розгортає цю вправу або згортає її, якщо вона вже відкрита. */ () => setExpandedExerciseId(/* EN: Toggles the captured exercise identifier against the current expansion. UK: Перемикає ідентифікатор вибраної вправи відносно поточного розгортання. */ (current) => current === item.id ? null : item.id)}
-          recordingDisabled={!activeWorkout}
+          recordingDisabled={!activeWorkout || paused}
           sets={setsFor(item.id)}
           t={t}
           theme={theme}

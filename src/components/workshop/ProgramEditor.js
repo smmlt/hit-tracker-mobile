@@ -11,6 +11,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { ImagePickerField } from "../media/ImagePickerField";
 import { contentMediaService } from "../../services/contentMediaService";
 import { ExerciseItem } from "../exercise/ExerciseItem";
+import { LanguageContext } from "../../localization/LanguageContext";
 
 import { createStyles } from './ProgramEditor.styles';
 export function ProgramEditor({ initialValues, program, official = false, onClose, onSaved }) {
@@ -20,11 +21,17 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
     const { userToken, userData } = useContext(AuthContext);
     const library = useLibrary(['exercises', 'errors', 'refresh']);
     const w = useWords();
+    const { t } = useContext(LanguageContext);
+    const translation = (locale) => program?.translations?.find((item) => item.locale === locale);
 
-    const [name, setName] = useState(program?.name || initialValues?.name || "");
-    const [description, setDescription] = useState(program?.description || initialValues?.description || "");
+    const [catalogKey, setCatalogKey] = useState(program?.catalogKey || "");
+    const [name, setName] = useState(translation('en')?.name || program?.name || initialValues?.name || "");
+    const [ukName, setUkName] = useState(translation('uk')?.name || "");
+    const [description, setDescription] = useState(translation('en')?.description || program?.description || initialValues?.description || "");
+    const [ukDescription, setUkDescription] = useState(translation('uk')?.description || "");
     const [mediaType, setMediaType] = useState(program?.videoUrl ? "video" : "image");
-    const [videoUrl, setVideoUrl] = useState(program?.videoUrl || "");
+    const [videoUrl, setVideoUrl] = useState(translation('en')?.videoUrl || program?.videoUrl || "");
+    const [ukVideoUrl, setUkVideoUrl] = useState(translation('uk')?.videoUrl || "");
     const [image, setImage] = useState(null);
     const [savedProgram, setSavedProgram] = useState(null);
 
@@ -59,7 +66,7 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
         );
 
     const save = async () => {
-        if (!name.trim() || !rows.length) {
+        if (!name.trim() || (official && !ukName.trim()) || !rows.length) {
             setError(w.required);
             return;
         }
@@ -75,9 +82,9 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
         const valid = rows.every(
             (row) =>
                 // Sets
-                Number.isInteger(Number(row.sets)) &&
+                (!row.sets || (Number.isInteger(Number(row.sets)) &&
                 Number(row.sets) >= 1 &&
-                Number(row.sets) <= 50 &&
+                Number(row.sets) <= 50)) &&
 
                 // Reps
                 (!row.reps ||
@@ -93,9 +100,9 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                 !(row.reps && row.durationSeconds) &&
 
                 // Weight
-                Number.isFinite(Number(row.weight)) &&
+                (!row.weight || (Number.isFinite(Number(row.weight)) &&
                 Number(row.weight) >= 0 &&
-                Number(row.weight) <= 1000 &&
+                Number(row.weight) <= 1000)) &&
 
                 // Week
                 Number.isInteger(Number(row.week)) &&
@@ -138,13 +145,19 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                         body: JSON.stringify({
                             name: name.trim(),
                             description: description.trim(),
+                            ...(official && !program ? { catalogKey: catalogKey.trim() || undefined } : {}),
+                            ...(official ? { translations: [
+                                { locale: 'en', name: name.trim(), description: description.trim() || undefined, videoUrl: videoUrl.trim() || undefined },
+                                { locale: 'uk', name: ukName.trim(), description: ukDescription.trim() || undefined, videoUrl: ukVideoUrl.trim() || undefined },
+                            ] } : {}),
                             ...(videoValue !== undefined ? { videoUrl: videoValue } : {}),
-                            exercises: rows.map((row) => ({
+                            exercises: rows.map((row, index) => ({
                                 ...row,
-                                sets: Number(row.sets),
+                                position: index + 1,
+                                sets: row.sets ? Number(row.sets) : undefined,
                                 reps: row.reps ? Number(row.reps) : undefined,
                                 durationSeconds: row.durationSeconds ? Number(row.durationSeconds) : undefined,
-                                weight: Number(row.weight),
+                                weight: row.weight ? Number(row.weight) : undefined,
                                 week: Number(row.week),
                                 weekDay: Number(row.weekDay),
                             })),
@@ -180,19 +193,22 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
             )}
 
             <Field
-                label={w.name}
+                label={official ? `${w.name} (${t('english')})` : w.name}
                 value={name}
                 onChangeText={setName}
                 maxLength={100}
             />
+            {official && !program && <Field label="catalogKey" value={catalogKey} onChangeText={setCatalogKey} autoCapitalize="none" maxLength={100} />}
+            {official && <Field label={`${w.name} (${t('ukrainian')})`} value={ukName} onChangeText={setUkName} maxLength={100} />}
 
             <Field
-                label={w.description}
+                label={official ? `${w.description} (${t('english')})` : w.description}
                 value={description}
                 onChangeText={setDescription}
                 multiline
                 maxLength={2000}
             />
+            {official && <Field label={`${w.description} (${t('ukrainian')})`} value={ukDescription} onChangeText={setUkDescription} multiline maxLength={2000} />}
 
             {official && (
                 <View style={{ gap: 10 }}>
@@ -212,13 +228,16 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                             previewStyle={styles.mediaPreview}
                         />
                     ) : (
+                        <>
                         <Field
-                            label={w.youtubeUrl}
+                            label={`${w.youtubeUrl} (${t('english')})`}
                             value={videoUrl}
                             onChangeText={setVideoUrl}
                             autoCapitalize="none"
                             maxLength={2048}
                         />
+                        <Field label={`${w.youtubeUrl} (${t('ukrainian')})`} value={ukVideoUrl} onChangeText={setUkVideoUrl} autoCapitalize="none" maxLength={2048} />
+                        </>
                     )}
                 </View>
             )}
@@ -264,13 +283,13 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                                             ...items,
                                             {
                                                 exerciseId: exercise.id,
-                                                sets: "3",
-                                                reps: exercise.measurementType === "duration" ? "" : "10",
+                                                sets: "",
+                                                reps: "",
                                                 durationSeconds: exercise.measurementType === "duration"
-                                                    ? String(exercise.recommendedDurationSeconds || 45)
+                                                    ? String(exercise.recommendedDurationSeconds || "")
                                                     : "",
                                                 measurementType: exercise.measurementType || "reps",
-                                                weight: "0",
+                                                weight: "",
                                                 week: "1",
                                                 weekDay: "0",
                                             },

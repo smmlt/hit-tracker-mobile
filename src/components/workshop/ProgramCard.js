@@ -64,8 +64,8 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
         <ProgramBadges program={program} />
         <View style={styles.preview}>
           <MediaImage
-            accessibilityLabel={program.imageUrl || program.videoUrl ? program.displayName || program.name : w.noMedia}
-            source={program.imageUrl || getYouTubeThumbnailUrl(program.videoUrl)}
+            accessibilityLabel={program.imageUrl || program.displayVideoUrl || program.videoUrl ? program.displayName || program.name : w.noMedia}
+            source={program.imageUrl || getYouTubeThumbnailUrl(program.displayVideoUrl || program.videoUrl)}
             style={styles.image}
           />
           <View style={styles.info}>
@@ -75,7 +75,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
                 numberOfLines={1}
                 style={styles.exercise}
               >
-                ·　{row.exercise.displayName || row.exercise.name}　({row.setsCount} ×{" "}
+                ·　{row.exercise.displayName || row.exercise.name}{row.setsCount ? `　(${row.setsCount} × ` : "　("}
                 {row.exercise.measurementType === "duration"
                   ? `${row.targetDurationSeconds || row.exercise.recommendedDurationSeconds || "—"} ${w.seconds.toLowerCase()}`
                   : row.targetReps || "—"})
@@ -87,7 +87,7 @@ export function ProgramCard({ program, onPress, onAdd, showOwner, children }) {
               </Text>
             )}
             {!rows.length && (
-              <Text style={styles.muted}>{program.description || w.empty}</Text>
+              <Text style={styles.muted}>{program.displayDescription || program.description || w.empty}</Text>
             )}
           </View>
           {onAdd && (

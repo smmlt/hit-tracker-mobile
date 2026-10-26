@@ -49,10 +49,10 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
           id: exercise.id,
           name: exercise.name,
           exercise,
-          sets: 3,
-          reps: exercise.measurementType === 'duration' ? undefined : 10,
+          sets: exercise.recommendedSets ?? undefined,
+          reps: exercise.measurementType === 'duration' ? undefined : exercise.recommendedReps ?? undefined,
           durationSeconds: exercise.measurementType === 'duration'
-            ? exercise.recommendedDurationSeconds || 45
+            ? exercise.recommendedDurationSeconds ?? undefined
             : undefined,
           measurementType: exercise.measurementType || 'reps',
           weight: 0,
@@ -66,9 +66,9 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   };
   return (
     <View style={styles.contentBlock}>
-      {exercise.videoUrl && !videoFailed ? (
+      {(exercise.displayVideoUrl || exercise.videoUrl) && !videoFailed ? (
         <ExerciseVideoPlayer
-          source={exercise.videoUrl}
+          source={exercise.displayVideoUrl || exercise.videoUrl}
           style={[s.media, styles.videoMedia]}
           onError={() => {
             setVideoFailed(true);
@@ -78,7 +78,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       ) : (
         <>
           <MediaImage accessibilityLabel={w.noMedia} source={null} style={s.media} />
-          {videoFailed && !!exercise.videoUrl && <Button secondary onPress={() => Linking.openURL(exercise.videoUrl)}>{w.openVideo}</Button>}
+          {videoFailed && !!(exercise.displayVideoUrl || exercise.videoUrl) && <Button secondary onPress={() => Linking.openURL(exercise.displayVideoUrl || exercise.videoUrl)}>{w.openVideo}</Button>}
         </>
       )}
       <View style={styles.summary}>
@@ -101,8 +101,8 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       <Text style={s.heading}>{w.muscles}</Text>
       <View style={styles.musclePanel}>
         <MediaImage
-          accessibilityLabel={exercise.imageUrl ? exercise.displayName || exercise.name : w.noMedia}
-          source={exercise.imageUrl}
+          accessibilityLabel={exercise.demonstrationImageUrl || exercise.imageUrl ? exercise.displayName || exercise.name : w.noMedia}
+          source={exercise.demonstrationImageUrl || exercise.imageUrl}
           style={styles.muscleImage}
         />
         <View style={styles.muscleList}>
@@ -122,10 +122,10 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
           )) : <Text style={s.muted}>{w.noMuscles}</Text>}
         </View>
       </View>
-      {!!exercise.description && (
+      {!!(exercise.displayDescription || exercise.description) && (
         <>
           <Text style={s.heading}>{w.description}</Text>
-          <Text style={s.muted}>{exercise.description}</Text>
+          <Text style={s.muted}>{exercise.displayDescription || exercise.description}</Text>
         </>
       )}
       <Text style={s.heading}>{w.safety}</Text>
@@ -168,7 +168,7 @@ export default function ExerciseDetailsScreen({ navigation, route }) {
         {exercise && (
           <ShareButton
             title={exercise.displayName || exercise.name}
-            description={exercise.description}
+            description={exercise.displayDescription || exercise.description}
             url={exerciseShareUrl(exercise.id, exercise.name)}
           />
         )}

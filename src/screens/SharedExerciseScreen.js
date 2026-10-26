@@ -6,7 +6,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../localization/LanguageContext';
-import { translateCatalogName } from '../localization/catalog';
+import { localizeCatalogEntity, translateCatalogName } from '../localization/catalog';
 import { apiRequest } from '../services/api';
 import { Button, DetailHeader, Feedback, useWorkshopStyles } from '../components/workshop/ui';
 import { ExerciseDetailsContent } from './ExerciseDetailsScreen';
@@ -15,7 +15,7 @@ import { entityId, entityRef } from '../utils/navigationPaths';
 
 export default function SharedExerciseScreen({ navigation, route }) {
   const { userToken } = useContext(AuthContext);
-  const { t } = useContext(LanguageContext);
+  const { t, locale } = useContext(LanguageContext);
   const workshopStyles = useWorkshopStyles();
   const exerciseId = entityId(route.params?.exerciseRef) || Number(route.params?.exerciseId);
   const [exercise, setExercise] = useState(null);
@@ -40,13 +40,12 @@ export default function SharedExerciseScreen({ navigation, route }) {
 
   useEffect(() => load(), [load]);
   const localizedExercise = useMemo(() => exercise ? {
-    ...exercise,
-    displayName: translateCatalogName(t, 'exercise', exercise.name),
+    ...localizeCatalogEntity(exercise, locale, t, 'exercise'),
     muscles: (exercise.muscles || []).map((muscle) => ({
       ...muscle,
       displayName: translateCatalogName(t, 'muscle', muscle.commonName || muscle.name),
     })),
-  } : null, [exercise, t]);
+  } : null, [exercise, locale, t]);
   const goBack = () => navigation.canGoBack()
     ? navigation.goBack()
     : navigation.navigate(userToken ? 'MainApp' : 'Login');
