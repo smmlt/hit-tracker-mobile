@@ -353,6 +353,7 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
 
 export function ActiveExerciseCard({
   compact,
+  durationLocked,
   expanded,
   index,
   item,
@@ -415,7 +416,7 @@ export function ActiveExerciseCard({
           existingSet={sets[rowIndex]}
           item={item}
           key={sets[rowIndex]?.id || `duration-draft-${rowIndex}`}
-          locked={!!durationTimer && durationTimer.row !== rowIndex + 1}
+          locked={durationLocked || (!!durationTimer && durationTimer.row !== rowIndex + 1)}
           number={rowIndex + 1}
           onExpand={() => setSelectedDurationRow(rowIndex + 1)}
           onSave={onSave}

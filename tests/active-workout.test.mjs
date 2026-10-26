@@ -12,6 +12,7 @@ import {
   replaceRecordedSet,
   rpeColor,
   shouldSignalDurationTarget,
+  trainingVolume,
   workoutPlanCompletion,
 } from '../src/utils/activeWorkout.js';
 
@@ -60,6 +61,13 @@ test('workout completion combines rep and duration exercises without cross-credi
     [2, [{ durationSeconds: 20 }, { durationSeconds: 20 }]],
   ]);
   assert.equal(workoutPlanCompletion(plan, (id) => sets.get(id) || []), 83);
+});
+
+test('duration seconds never contribute to training volume', () => {
+  assert.equal(trainingVolume([
+    { weight: 50, reps: 10 },
+    { weight: 20, durationSeconds: 45 },
+  ]), 500);
 });
 
 test('exercise plan completion uses total repetitions across all recorded sets', () => {

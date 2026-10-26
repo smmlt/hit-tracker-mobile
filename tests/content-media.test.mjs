@@ -66,6 +66,13 @@ test('timed and repetition sets share the same accessible RPE picker', () => {
   assert.doesNotMatch(card, /styles\.durationRpeStepper/);
 });
 
+test('only one exercise can own an unfinished duration timer', () => {
+  const screen = source('src/screens/ActiveWorkoutScreen.js');
+  const card = source('src/components/workout/ActiveExerciseCard.js');
+  assert.match(screen, /durationLocked=\{durationDraftExerciseIds\.size > 0 && !durationDraftExerciseIds\.has\(item\.id\)\}/);
+  assert.match(card, /locked=\{durationLocked \|\| \(!!durationTimer/);
+});
+
 test('program image and video choices use the shared adaptive media container', () => {
   const programDetails = source('src/screens/LibraryProgramScreen.js');
   assert.match(programDetails, /<MediaImage[\s\S]*?source=\{program\.imageUrl\}[\s\S]*?style=\{s\.media\}/);

@@ -24,7 +24,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LanguageContext } from '../localization/LanguageContext';
 import { translateCatalogName } from '../localization/catalog';
 import { apiFetch } from '../services/api';
-import { exercisePlanProgress, replaceRecordedSet, workoutPlanCompletion } from '../utils/activeWorkout';
+import { exercisePlanProgress, replaceRecordedSet, trainingVolume, workoutPlanCompletion } from '../utils/activeWorkout';
 import { formatTimer } from '../utils/formatters';
 import { programExercises as fromProgram } from '../utils/library';
 import { palette } from '../constants/colors';
@@ -310,7 +310,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
       totalTime: completedWorkout.finishedAt
         ? Math.max(0, Math.floor((new Date(completedWorkout.finishedAt).getTime() - new Date(completedWorkout.createdAt).getTime()) / 1000))
         : totalTime,
-      volume: loggedSets.reduce(/* EN: Totals training volume as weight multiplied by repetitions. UK: Підсумовує обсяг тренування як вагу, помножену на повторення. */ (sum, set) => sum + set.weight * set.reps, 0),
+      volume: trainingVolume(loggedSets),
       programDraft: {
         description: '',
         exercises: plan.map(/* EN: Converts completed-plan exercises into a reusable program draft. UK: Перетворює вправи завершеного плану на чернетку програми для повторного використання. */ (item) => ({
@@ -524,6 +524,7 @@ export default function ActiveWorkoutScreen({ navigation, route }) {
           key={item.id}
           onDetails={setSelectedExercise}
           onDurationDraftChange={setDurationDraftState}
+          durationLocked={durationDraftExerciseIds.size > 0 && !durationDraftExerciseIds.has(item.id)}
           onRemove={removeExercise}
           onSave={saveSet}
           onToggle={/* EN: Expands this exercise or collapses it when already open. UK: Розгортає цю вправу або згортає її, якщо вона вже відкрита. */ () => setExpandedExerciseId(/* EN: Toggles the captured exercise identifier against the current expansion. UK: Перемикає ідентифікатор вибраної вправи відносно поточного розгортання. */ (current) => current === item.id ? null : item.id)}

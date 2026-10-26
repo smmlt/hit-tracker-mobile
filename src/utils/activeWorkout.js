@@ -104,6 +104,13 @@ export function workoutPlanCompletion(plan, setsForExercise) {
   return Math.round((completedUnits / plannedSets) * 100);
 }
 
+export const trainingVolume = (recordedSets) =>
+  (recordedSets || []).reduce(
+    (total, set) =>
+      total + (Number(set.weight) || 0) * (Number(set.reps) || 0),
+    0,
+  );
+
 export const rpeColor = (value) => rpeColors[Math.max(1, Math.min(10, Number(value) || 1)) - 1];
 
 export function replaceRecordedSet(sets, nextSet) {
