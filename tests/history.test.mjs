@@ -54,6 +54,7 @@ test('history always uses cursor pagination, including a single selected day', (
 
 test('history has a visible and scroll-based path to the next cursor page', () => {
   const screen = readFileSync(new URL('../src/screens/HistoryScreen.js', import.meta.url), 'utf8');
+  const service = readFileSync(new URL('../src/services/workoutsService.js', import.meta.url), 'utf8');
   assert.match(screen, /onEndReached={loadMore}/);
   assert.match(screen, /onScroll={loadMoreOnScroll}/);
   assert.match(screen, /loadMoreRunRef\.current/);
@@ -62,4 +63,5 @@ test('history has a visible and scroll-based path to the next cursor page', () =
   assert.match(screen, /t\('showMore'\)/);
   assert.match(screen, /initialNumToRender=\{15\}/);
   assert.match(screen, /maxToRenderPerBatch=\{15\}/);
+  assert.match(service, /cache: 'no-store'/);
 });

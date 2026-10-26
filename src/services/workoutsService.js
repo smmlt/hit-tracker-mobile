@@ -8,7 +8,7 @@ export const workoutsService = {
       .filter(([, value]) => value !== undefined && value !== null && value !== '')
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       .join('&');
-    return apiRequest(`/workouts/history${query ? `?${query}` : ''}`, {}, token, 'Failed to load history');
+    return apiRequest(`/workouts/history${query ? `?${query}` : ''}`, { cache: 'no-store' }, token, 'Failed to load history');
   },
 
   async getHistoryDates(token, from, to) {
