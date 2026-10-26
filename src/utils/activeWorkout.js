@@ -54,14 +54,18 @@ export function isSetDraftValid({ reps, rpe, weight }) {
     && parsedRpe <= 10;
 }
 
-export function isDurationSetDraftValid({ durationSeconds, rpe }) {
+export function isDurationSetDraftValid({ durationSeconds, rpe, weight = 0 }) {
   const parsedDuration = Number(durationSeconds);
   const parsedRpe = Number(rpe);
+  const parsedWeight = Number(weight);
   return Number.isInteger(parsedDuration)
     && parsedDuration > 0
     && Number.isInteger(parsedRpe)
     && parsedRpe >= 1
-    && parsedRpe <= 10;
+    && parsedRpe <= 10
+    && String(weight).trim() !== ''
+    && Number.isFinite(parsedWeight)
+    && parsedWeight >= 0;
 }
 
 /** EN: Parses manually entered whole seconds or MM:SS without accepting partial or overflowing times. UK: Розбирає введені вручну секунди або MM:SS без неповних значень чи переповнення. */

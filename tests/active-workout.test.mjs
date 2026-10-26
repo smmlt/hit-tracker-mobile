@@ -44,6 +44,8 @@ test('duration completion uses planned set count and aggregate seconds', () => {
 
 test('duration set confirmation requires positive seconds and RPE', () => {
   assert.equal(isDurationSetDraftValid({ durationSeconds: 45, rpe: 8 }), true);
+  assert.equal(isDurationSetDraftValid({ durationSeconds: 45, rpe: 8, weight: 12.5 }), true);
+  assert.equal(isDurationSetDraftValid({ durationSeconds: 45, rpe: 8, weight: -1 }), false);
   assert.equal(isDurationSetDraftValid({ durationSeconds: 0, rpe: 8 }), false);
   assert.equal(isDurationSetDraftValid({ durationSeconds: 45, rpe: '' }), false);
 });

@@ -132,6 +132,7 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
   const [elapsed, setElapsed] = useState(Number(existingSet?.durationSeconds) || 0);
   const [failure, setFailure] = useState(!!existingSet?.isFailure);
   const [rpe, setRpe] = useState(existingSet?.rpe ? String(existingSet.rpe) : '');
+  const [weight, setWeight] = useState(String(existingSet?.weight ?? item.weight ?? 0));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [manualInput, setManualInput] = useState(null);
   const [running, setRunning] = useState(false);
@@ -191,6 +192,7 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
     baseSeconds.current = seconds;
     setFailure(!!existingSet.isFailure);
     setRpe(existingSet.rpe ? String(existingSet.rpe) : '');
+    setWeight(String(existingSet.weight ?? item.weight ?? 0));
     setStopped(true);
     setManualInput(null);
   }, [existingSet?.durationSeconds, existingSet?.id, existingSet?.isFailure, existingSet?.rpe, running]);
@@ -242,8 +244,8 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
     setSaveFailed(false);
     onTimerState(number, seconds > 0 ? 'pending' : 'idle');
   };
-  const dirty = !existingSet || Number(existingSet.durationSeconds) !== elapsed || !!existingSet.isFailure !== failure || String(existingSet.rpe || '') !== rpe;
-  const valid = stopped && manualValid && isDurationSetDraftValid({ durationSeconds: elapsed, rpe });
+  const dirty = !existingSet || Number(existingSet.durationSeconds) !== elapsed || Number(existingSet.weight) !== Number(weight) || !!existingSet.isFailure !== failure || String(existingSet.rpe || '') !== rpe;
+  const valid = stopped && manualValid && isDurationSetDraftValid({ durationSeconds: elapsed, rpe, weight });
   const confirm = async () => {
     if (!valid || disabled || saving || !dirty) return;
     setSaving(true);
@@ -251,7 +253,7 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
       durationSeconds: elapsed,
       isFailure: failure,
       rpe: Number(rpe),
-      weight: 0,
+      weight: Number(weight),
     }, existingSet);
     setSaving(false);
     setSaveFailed(!saved);
@@ -318,6 +320,17 @@ function DurationSetEditorRow({ compact, disabled, expanded, existingSet, item, 
           onClose={() => setPickerOpen(false)}
           open={pickerOpen}
           value={rpe}
+        />
+      </View>
+      <View style={styles.durationManualColumn}>
+        <Text style={styles.durationFieldLabel}>{t('weightColumn')}</Text>
+        <TextInput
+          accessibilityLabel={t('weightColumn')}
+          editable={!disabled && !running}
+          keyboardType="decimal-pad"
+          onChangeText={(value) => /^\d*(?:[.,]\d*)?$/.test(value) && setWeight(value.replace(',', '.'))}
+          style={styles.durationInput}
+          value={weight}
         />
       </View>
     </View>
