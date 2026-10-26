@@ -41,6 +41,10 @@ export function ExerciseEditor({ exercise, onClose }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [image, setImage] = useState(null);
+  const [imageSourceUrl, setImageSourceUrl] = useState(exercise?.demonstrationImageSourceUrl || "");
+  const [imageAuthor, setImageAuthor] = useState(exercise?.demonstrationImageAuthor || "");
+  const [imageLicense, setImageLicense] = useState(exercise?.demonstrationImageLicense || "");
+  const [imageLicenseUrl, setImageLicenseUrl] = useState(exercise?.demonstrationImageLicenseUrl || "");
   const [savedId, setSavedId] = useState(null);
   const save = async () => {
     if (!name.trim() || !ukName.trim()) {
@@ -77,6 +81,10 @@ export function ExerciseEditor({ exercise, onClose }) {
                 ? Number(recommendedDurationSeconds)
                 : exercise ? null : undefined,
               equipment: equipment.split(",").map((item) => item.trim()).filter(Boolean),
+              demonstrationImageSourceUrl: imageSourceUrl.trim() || (exercise ? "" : undefined),
+              demonstrationImageAuthor: imageAuthor.trim() || (exercise ? "" : undefined),
+              demonstrationImageLicense: imageLicense.trim() || (exercise ? "" : undefined),
+              demonstrationImageLicenseUrl: imageLicenseUrl.trim() || (exercise ? "" : undefined),
               primaryMuscleIds: primaryMuscles,
               secondaryMuscleIds: secondaryMuscles,
             }),
@@ -117,6 +125,10 @@ export function ExerciseEditor({ exercise, onClose }) {
         onError={(pickerError) => setError(pickerError.message || w.imagePickerError)}
         previewStyle={{ width: 160, height: 160, borderRadius: 8, alignSelf: "center" }}
       />
+      <Field label={t('mediaSourceUrl')} value={imageSourceUrl} onChangeText={setImageSourceUrl} autoCapitalize="none" maxLength={2048} />
+      <Field label={t('mediaAuthor')} value={imageAuthor} onChangeText={setImageAuthor} maxLength={200} />
+      <Field label={t('mediaLicense')} value={imageLicense} onChangeText={setImageLicense} maxLength={100} />
+      <Field label={t('mediaLicenseUrl')} value={imageLicenseUrl} onChangeText={setImageLicenseUrl} autoCapitalize="none" maxLength={2048} />
       <Field
         label={`${w.description} (${t('english')})`}
         value={description}
