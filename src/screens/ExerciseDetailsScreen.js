@@ -23,6 +23,7 @@ import { ShareButton } from "../components/workshop/ShareButton";
 import { exerciseShareUrl } from "../utils/shareLinks";
 import { entityId } from '../utils/navigationPaths';
 import { splitMusclesByRole } from '../utils/muscleRoles';
+import { exerciseEquipment, localizeEquipment } from '../utils/equipmentLocalization';
 
 import { createStyles } from './ExerciseDetailsScreen.styles';
 export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
@@ -30,7 +31,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   const styles = createStyles(theme);
   const s = useWorkshopStyles();
   const w = useWords();
-  const { t } = useContext(LanguageContext);
+  const { locale, t } = useContext(LanguageContext);
   const { addWorkoutExercises, preparedWorkout, activeWorkout } =
     useWorkout(useShallow((state) => ({ addWorkoutExercises: state.addWorkoutExercises, preparedWorkout: state.preparedWorkout, activeWorkout: state.activeWorkout })));
   const [error, setError] = useState("");
@@ -39,6 +40,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   const videoSource = exercise.displayVideoUrl || exercise.videoUrl;
   useEffect(() => setVideoFailed(false), [videoSource]);
   const muscleGroups = splitMusclesByRole(exercise.muscles);
+  const equipment = exerciseEquipment(exercise);
   const added = preparedWorkout?.exercises?.some(
     (item) => item.id === exercise.id,
   );
@@ -96,10 +98,16 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
           ? `${w.measurementDuration}${exercise.recommendedDurationSeconds ? ` · ${exercise.recommendedDurationSeconds} ${w.seconds.toLowerCase()}` : ''}`
           : w.measurementReps}
       </Text>
-      {!!exercise.equipment?.length && <>
+      <>
         <Text style={s.heading}>{w.equipment}</Text>
-        <Text style={s.muted}>{exercise.equipment.join(' · ')}</Text>
-      </>}
+        {equipment.required.length ? (
+          <Text style={s.muted}>{t('requiredEquipmentLabel')}: {equipment.required.map((item) => localizeEquipment(item, locale)).join(' · ')}</Text>
+        ) : null}
+        {equipment.alternatives.length ? (
+          <Text style={s.muted}>{t('alternativeEquipmentLabel')}: {equipment.alternatives.map((group) => group.map((item) => localizeEquipment(item, locale)).join(' / ')).join('; ')}</Text>
+        ) : null}
+        {!equipment.required.length && !equipment.alternatives.length ? <Text style={s.muted}>{t('noEquipment')}</Text> : null}
+      </>
       <Text style={s.heading}>{w.muscles}</Text>
       <View style={styles.musclePanel}>
         <MediaImage
