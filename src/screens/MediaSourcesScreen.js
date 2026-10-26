@@ -47,7 +47,7 @@ export default function MediaSourcesScreen({ navigation }) {
             <View style={styles.details}>
               <Text style={[styles.name, { color: theme.textPrimary }]}>{item.name}</Text>
               <Text style={[styles.meta, { color: theme.textSecondary }]}>{t('mediaAuthor')}: {item.author || t('mediaAuthorUnknown')}</Text>
-              <Text style={[styles.meta, { color: theme.textSecondary }]}>{t('mediaLicense')}: {item.license}</Text>
+              <Text style={[styles.meta, { color: theme.textSecondary }]}>{t('mediaLicense')}: {item.license || t('mediaLicenseUnknown')}</Text>
               {isHttpsUrl(item.sourceUrl) ? (
                 <Pressable accessibilityRole="link" onPress={() => Linking.openURL(item.sourceUrl)}>
                   <Text style={[styles.link, { color: theme.primary }]}>{t('openMediaSource')}</Text>
