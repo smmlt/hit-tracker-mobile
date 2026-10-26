@@ -33,6 +33,9 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
     const [videoUrl, setVideoUrl] = useState(translation('en')?.videoUrl || program?.videoUrl || "");
     const [ukVideoUrl, setUkVideoUrl] = useState(translation('uk')?.videoUrl || "");
     const [image, setImage] = useState(null);
+    const [displayedLikesCount, setDisplayedLikesCount] = useState(
+        program ? String(program.likesCount ?? 0) : "",
+    );
     const [savedProgram, setSavedProgram] = useState(null);
 
     const [rows, setRows] = useState(
@@ -76,6 +79,10 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
         }
         if (official && mediaType === "image" && program?.videoUrl && !image) {
             setError(w.imageRequired);
+            return;
+        }
+        if (official && displayedLikesCount && (!Number.isInteger(Number(displayedLikesCount)) || Number(displayedLikesCount) < 0)) {
+            setError(w.invalidNumbers);
             return;
         }
 
@@ -146,6 +153,7 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                             name: name.trim(),
                             description: description.trim(),
                             ...(official && !program ? { catalogKey: catalogKey.trim() || undefined } : {}),
+                            ...(official ? { displayedLikesCount: displayedLikesCount === "" ? undefined : Number(displayedLikesCount) } : {}),
                             ...(official ? { translations: [
                                 { locale: 'en', name: name.trim(), description: description.trim() || undefined, videoUrl: videoUrl.trim() || undefined },
                                 { locale: 'uk', name: ukName.trim(), description: ukDescription.trim() || undefined, videoUrl: ukVideoUrl.trim() || undefined },
@@ -200,6 +208,14 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
             />
             {official && !program && <Field label="catalogKey" value={catalogKey} onChangeText={setCatalogKey} autoCapitalize="none" maxLength={100} />}
             {official && <Field label={`${w.name} (${t('ukrainian')})`} value={ukName} onChangeText={setUkName} maxLength={100} />}
+            {official && (
+                <Field
+                    label={w.displayedLikes}
+                    value={displayedLikesCount}
+                    onChangeText={(value) => /^\d*$/.test(value) && setDisplayedLikesCount(value)}
+                    keyboardType="numeric"
+                />
+            )}
 
             <Field
                 label={official ? `${w.description} (${t('english')})` : w.description}

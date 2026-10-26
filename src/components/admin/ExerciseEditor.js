@@ -28,6 +28,9 @@ export function ExerciseEditor({ exercise, onClose }) {
   const [ukVideo, setUkVideo] = useState(translation('uk')?.videoUrl || "");
   const [videoChanged, setVideoChanged] = useState(false);
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
+  const [displayedLikesCount, setDisplayedLikesCount] = useState(
+    exercise ? String(exercise.likesCount ?? 0) : "",
+  );
   const [measurementType, setMeasurementType] = useState(exercise?.measurementType || "reps");
   const [recommendedDurationSeconds, setRecommendedDurationSeconds] = useState(
     exercise?.recommendedDurationSeconds ? String(exercise.recommendedDurationSeconds) : "",
@@ -62,6 +65,10 @@ export function ExerciseEditor({ exercise, onClose }) {
       setError(w.invalidNumbers);
       return;
     }
+    if (displayedLikesCount && (!Number.isInteger(Number(displayedLikesCount)) || Number(displayedLikesCount) < 0)) {
+      setError(w.invalidNumbers);
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -86,6 +93,7 @@ export function ExerciseEditor({ exercise, onClose }) {
                 { locale: 'uk', name: ukName.trim(), description: ukDescription.trim() || undefined, videoUrl: ukVideo.trim() || undefined },
               ],
               difficulty,
+              displayedLikesCount: displayedLikesCount === "" ? undefined : Number(displayedLikesCount),
               measurementType,
               recommendedSets: recommendedSets ? Number(recommendedSets) : exercise ? null : undefined,
               recommendedReps: measurementType === 'reps' && recommendedReps ? Number(recommendedReps) : exercise ? null : undefined,
@@ -129,6 +137,12 @@ export function ExerciseEditor({ exercise, onClose }) {
       />
       {!exercise && <Field label="catalogKey" value={catalogKey} onChangeText={setCatalogKey} autoCapitalize="none" maxLength={100} />}
       <Field label={`${w.name} (${t('ukrainian')})`} value={ukName} onChangeText={setUkName} maxLength={100} />
+      <Field
+        label={w.displayedLikes}
+        value={displayedLikesCount}
+        onChangeText={(value) => /^\d*$/.test(value) && setDisplayedLikesCount(value)}
+        keyboardType="numeric"
+      />
       <ImagePickerField
         aspect={[1, 1]}
         disabled={saving}
