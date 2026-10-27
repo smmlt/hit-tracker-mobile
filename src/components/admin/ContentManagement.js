@@ -11,6 +11,7 @@ import { ExerciseDetailsContent } from "../../screens/ExerciseDetailsScreen";
 import { Button, Feedback, Field, Sheet, useWorkshopStyles, useWords } from "../workshop/ui";
 import { ExerciseEditor } from "./ExerciseEditor";
 import { styles } from './ContentManagement.styles';
+import { matchesCatalogQuery } from '../../utils/catalogSearch';
 
 export function ContentManagement({ section }) {
   const s = useWorkshopStyles();
@@ -23,7 +24,7 @@ export function ContentManagement({ section }) {
   const [exerciseDetails, setExerciseDetails] = useState(null);
   const items = library[section].filter(
     (item) =>
-      item.name.toLowerCase().includes(query.trim().toLowerCase()) &&
+      matchesCatalogQuery(item, query) &&
       (section !== "programs" ||
         filter === "all" ||
         (filter === "personal") === item.isPersonal),

@@ -7,12 +7,13 @@ import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { transformSync } from '@babel/core';
+import { matchesCatalogQuery } from '../src/utils/catalogSearch.js';
 
 const require = createRequire(import.meta.url);
 
 function load(api) {
   const source = readFileSync(new URL('../src/stores/libraryStore.js', import.meta.url), 'utf8');
-  const code = transformSync(source, { babelrc: false, configFile: false, plugins: ['@babel/plugin-transform-modules-commonjs'] }).code;
+  const code = transformSync(source, { babelrc: false, configFile: false, plugins: [require.resolve('@babel/plugin-transform-modules-commonjs')] }).code;
   const module = { exports: {} };
   runInNewContext(code, { module, exports: module.exports, console, URLSearchParams, AbortController,
     require: (name) => name === '../services/api' ? api : require(name),
@@ -89,4 +90,20 @@ test('HomeScreen guards section results, keeps 275ms debounce, and accepts route
   assert.match(source, /setTimeout\(\(\) => library\.searchCatalog[\s\S]*?, 275\)/);
   assert.match(source, /library\.search\?\.section === section && library\.search\?\.items/);
   assert.match(source, /onEndReached={library\.loadMoreCatalog}/);
+});
+
+const exercise = {
+  name: 'Barbell Bench Press',
+  displayName: 'Жим штанги лежачи',
+  translations: [
+    { locale: 'en', name: 'Barbell Bench Press', aliases: ['Bench Press'] },
+    { locale: 'uk', name: 'Жим штанги лежачи', aliases: ['Жим лежачи'] },
+  ],
+};
+
+test('admin catalog search matches both saved locales and aliases', () => {
+  assert.equal(matchesCatalogQuery(exercise, 'bench'), true);
+  assert.equal(matchesCatalogQuery(exercise, 'штанги'), true);
+  assert.equal(matchesCatalogQuery(exercise, 'жим лежачи'), true);
+  assert.equal(matchesCatalogQuery(exercise, 'присідання'), false);
 });

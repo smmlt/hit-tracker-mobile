@@ -14,6 +14,7 @@ import { ExerciseFilterBar, ExerciseFormModal, ExerciseItem } from '../component
 import { palette } from '../constants/colors';
 import { useTheme } from '../context/ThemeContext';
 import { toggleMuscleRole } from '../utils/muscleRoles';
+import { matchesCatalogQuery } from '../utils/catalogSearch';
 export default function ExercisesScreen() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -124,7 +125,7 @@ export default function ExercisesScreen() {
   };
 
   const filteredExercises = exercises.filter((ex) => {
-    const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = matchesCatalogQuery(ex, searchQuery);
     const matchesMuscle = selectedMuscleFilter
       ? ex.muscles && ex.muscles.some((m) => m.id === selectedMuscleFilter)
       : true;

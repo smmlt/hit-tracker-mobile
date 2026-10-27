@@ -12,6 +12,7 @@ import { ImagePickerField } from "../media/ImagePickerField";
 import { contentMediaService } from "../../services/contentMediaService";
 import { ExerciseItem } from "../exercise/ExerciseItem";
 import { LanguageContext } from "../../localization/LanguageContext";
+import { matchesCatalogQuery } from "../../utils/catalogSearch";
 
 import { createStyles } from './ProgramEditor.styles';
 export function ProgramEditor({ initialValues, program, official = false, onClose, onSaved }) {
@@ -204,15 +205,6 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
             />
             {official && !program && <Field label="catalogKey" value={catalogKey} onChangeText={setCatalogKey} autoCapitalize="none" maxLength={100} />}
             {official && <Field label={`${w.name} (${t('ukrainian')})`} value={ukName} onChangeText={setUkName} maxLength={100} />}
-            {official && (
-                <Field
-                    label={w.displayedLikes}
-                    value={displayedLikesCount}
-                    onChangeText={(value) => /^\d*$/.test(value) && setDisplayedLikesCount(value)}
-                    keyboardType="numeric"
-                />
-            )}
-
             <Field
                 label={official ? `${w.description} (${t('english')})` : w.description}
                 value={description}
@@ -253,6 +245,14 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                     )}
                 </View>
             )}
+            {official && (
+                <Field
+                    label={w.displayedLikes}
+                    value={displayedLikesCount}
+                    onChangeText={(value) => /^\d*$/.test(value) && setDisplayedLikesCount(value)}
+                    keyboardType="numeric"
+                />
+            )}
 
             <View style={s.header}>
                 <Text style={s.heading}>
@@ -280,9 +280,7 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                     />
 
                     {library.exercises
-                        .filter((item) =>
-                            item.name.toLowerCase().includes(query.toLowerCase()),
-                        )
+                        .filter((item) => matchesCatalogQuery(item, query))
                         .map((exercise) => (
                             <ExerciseItem
                                 key={exercise.id}

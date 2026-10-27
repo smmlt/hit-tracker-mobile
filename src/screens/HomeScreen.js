@@ -26,6 +26,7 @@ import { LanguageContext } from '../localization/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { entityRef } from '../utils/navigationPaths';
 import { useWorkout } from '../context/WorkoutContext';
+import { matchesCatalogQuery } from '../utils/catalogSearch';
 // EN: Renders the Workshop catalog, synchronizes search filters with navigation, and opens program creation, scheduling, and detail flows.
 // UK: Показує каталог Workshop, синхронізує search-фільтри з navigation і відкриває створення, планування та деталі програм.
 export default function HomeScreen({ navigation, route }) {
@@ -113,13 +114,7 @@ export default function HomeScreen({ navigation, route }) {
       /* EN: Applies the same text, scope, bookmark, and muscle rules to cached data used by the controlled search fallback. */
       /* UK: Застосовує ті самі правила text, scope, bookmark і muscle до cached-даних контрольованого search fallback. */
       (item) => {
-      if (![item.name, item.displayName].some(
-        /* EN: Matches either canonical or localized display names against the normalized query. */
-        /* UK: Порівнює нормалізований query із канонічною або локалізованою назвою. */
-        (name) =>
-        name?.toLowerCase().includes(query.trim().toLowerCase()),
-      ))
-        return false;
+      if (!matchesCatalogQuery(item, query)) return false;
       if (section === "programs") {
         if (
           scope === "personal" &&
