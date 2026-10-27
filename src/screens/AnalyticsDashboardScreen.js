@@ -17,6 +17,7 @@ import { analyticsService } from '../services/analyticsService';
 import { bodyMetricsService } from '../services/bodyMetricsService';
 import { formatMetric, formatMetricDelta, periodToDateRange } from '../utils/bodyMetrics';
 import { translateCatalogName } from '../localization/catalog';
+import { planActivityBuckets } from '../utils/analyticsActivity';
 import { createStyles } from './AnalyticsDashboardScreen.styles';
 
 const BODY_METRICS = [
@@ -108,16 +109,11 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const overview = data.overview || {};
   const summary = overview.summary || {};
   const plan = overview.plan || {};
-  const activity = (overview.activity || []).map((item) => ({
-    ...item,
-    missed: item.missedWorkouts == null
-      ? Math.max(0, (Number(item.plannedWorkouts) || 0) - (Number(item.completedWorkouts) || 0))
-      : Math.max(0, Number(item.missedWorkouts) || 0),
-  }));
+  const activity = planActivityBuckets(overview.activity, period);
   const muscles = overview.muscleGroups || [];
   const maxActivity = Math.max(1, ...activity.map(
     /* EN: Scales activity bars by the larger of planned workouts and completed plus missed workouts. / UK: Масштабує стовпчики за більшою кількістю з плану або суми виконаних і пропущених тренувань. */
-    (item) => Math.max(Number(item.plannedWorkouts) || 0, (Number(item.completedWorkouts) || 0) + item.missed)
+    (item) => Math.max(item.planned, item.completed + item.missed)
   ));
   const maxMuscle = Math.max(1, ...muscles.map(
     /* EN: Extracts working-set totals to establish the common muscle-bar scale. / UK: Витягує кількість робочих підходів, щоб визначити спільний масштаб смуг м'язів. */
@@ -234,12 +230,11 @@ export default function AnalyticsDashboardScreen({ navigation }) {
           <Text style={styles.cardTitle}>{t('analyticsActivity')}</Text>
           <View style={styles.activityLegend}><View style={[styles.legendDot, styles.legendDone]} /><Text style={styles.micro}>{t('scheduleStatus_completed')}</Text><View style={[styles.legendDot, styles.legendMissed]} /><Text style={styles.micro}>{t('scheduleStatus_missed')}</Text></View>
           <View accessibilityLabel={t('analyticsComplianceChart')} style={styles.activityChart}>
-            {activity.slice(-7).map(
+            {activity.map(
               /* EN: Converts each recent day into stacked completed and missed shares on the common activity scale. / UK: Перетворює кожен останній день на складені частки виконаних і пропущених тренувань у спільному масштабі активності. */
               (item) => {
-              const planned = Number(item.plannedWorkouts) || 0;
-              const completed = Number(item.completedWorkouts) || 0;
-              const total = Math.max(planned, completed + item.missed);
+              const total = Math.max(item.planned, item.completed + item.missed);
+              const completed = item.completed;
               const completedShare = total ? Math.min(100, completed / total * 100) : 0;
               const missedShare = total ? item.missed / total * 100 : 0;
               return <View key={item.date} style={styles.activityColumn}>
