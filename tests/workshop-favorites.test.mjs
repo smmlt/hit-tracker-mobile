@@ -11,6 +11,9 @@ test('Workshop exposes a localized Favorites chip before muscle filters', () => 
   assert.match(screen, /savedLabel=\{w\.favorites\}/);
   assert.match(screen, /setScope\(scope === 'saved' \? 'all' : 'saved'\)/);
   assert.match(filter, /renderChip\('saved'[\s\S]*renderChip\(\s*null/);
+  assert.equal((filter.match(/selectedMuscleFilter === null && !savedSelected/g) || []).length, 2);
   assert.match(words, /favorites: "Favorites"/);
   assert.match(words, /favorites: "Обрані"/);
+  assert.match(words, /relevance: "Relevance"/);
+  assert.match(words, /relevance: "За відповідністю"/);
 });

@@ -59,7 +59,7 @@ export function ExerciseFilterBar({
           {renderChip(
             null, 
             t('allMuscles'),
-            selectedMuscleFilter === null
+            selectedMuscleFilter === null && !savedSelected
           )}
 
           {musclesList.map((m) =>
@@ -92,7 +92,7 @@ export function ExerciseFilterBar({
             <Text style={styles.modalTitle}>{t('selectMuscle')}</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.gridWrapper}>
-                {renderChip(null, t('allMuscles'), selectedMuscleFilter === null, true)}
+                {renderChip(null, t('allMuscles'), selectedMuscleFilter === null && !savedSelected, true)}
                 {musclesList.map((m) => renderChip(m.id, getMuscleDisplayName(m), selectedMuscleFilter === m.id, true))}
               </View>
             </ScrollView>
