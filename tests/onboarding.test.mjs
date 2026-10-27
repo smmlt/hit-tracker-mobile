@@ -31,6 +31,9 @@ test('onboarding contract is persisted, localized, adaptive, and wired', () => {
   assert.match(app, /if \(!userToken \|\| onboardingComplete !== false\) return/);
   assert.match(app, /onOnboardingComplete/);
   assert.match(navigator, /name="Onboarding"/);
+  assert.match(navigator, /showOnboarding \? <Stack\.Screen name="Onboarding"/);
+  assert.match(navigator, /key=\{rootState\}/);
+  assert.match(navigator, /pendingMfa \? 'mfa' : 'public'/);
   assert.match(styles, /useWindowDimensions|width/);
   assert.doesNotMatch(styles, /393|854|height:\s*\d{3}/);
 });

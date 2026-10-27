@@ -264,6 +264,13 @@ export default function AppNavigator({ onOnboardingComplete, showOnboarding = fa
     /* UK: Один раз фіксує початковий web URL, щоб пряме відкриття /admin обрало admin-root без реакції на подальші зміни path. */
     () => Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/admin')
   );
+  const rootState = showOnboarding
+    ? 'onboarding'
+    : accountSuspension
+      ? 'suspended'
+      : userToken === null
+        ? pendingMfa ? 'mfa' : 'public'
+        : isAdminRoute && canOpenAdmin ? 'admin' : 'authenticated';
 
   if (isInitializing) {
     return (
@@ -290,6 +297,7 @@ export default function AppNavigator({ onOnboardingComplete, showOnboarding = fa
     >
       <View style={styles.container}>
         <Stack.Navigator
+          key={rootState}
           initialRouteName={showOnboarding ? 'Onboarding' : accountSuspension ? 'AccountSuspended' : userToken === null ? (pendingMfa ? 'Mfa' : 'Login') : isAdminRoute && canOpenAdmin ? 'Admin' : 'MainApp'}
           screenOptions={{
             headerStyle: { backgroundColor: theme.background },
@@ -297,13 +305,13 @@ export default function AppNavigator({ onOnboardingComplete, showOnboarding = fa
             headerTitleStyle: { fontWeight: 'bold' },
           }}
         >
-          <Stack.Screen name="Onboarding" options={{ headerShown: false }}>
+          {showOnboarding ? <Stack.Screen name="Onboarding" options={{ headerShown: false }}>
             {
               /* EN: Injects the application-level completion callback into the routed onboarding screen. */
               /* UK: Передає application-level callback завершення у routed onboarding-екран. */
               (props) => <OnboardingScreen {...props} onComplete={onOnboardingComplete} />
             }
-          </Stack.Screen>
+          </Stack.Screen> : null}
           {accountSuspension ? (
             <Stack.Screen name="AccountSuspended" component={AccountSuspendedScreen} options={{ headerShown: false }} />
           ) : userToken === null ? (
