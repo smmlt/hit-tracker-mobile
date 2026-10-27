@@ -41,17 +41,20 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
     const [rows, setRows] = useState(
         (program?.schedule || initialValues?.exercises || [])
             .filter((row) => row.exercise?.id || row.exerciseId)
-            .map((row) => ({
-                exerciseId: row.exercise?.id || row.exerciseId,
-                sets: String(row.setsCount ?? row.sets ?? 1),
-                reps: String(row.targetReps ?? row.reps ?? ""),
-                durationSeconds: String(row.targetDurationSeconds ?? row.durationSeconds ?? ""),
-                measurementType: row.exercise?.measurementType || row.measurementType || "reps",
-                // Preserve legacy metadata on edits; it is not a workout date or prescribed load.
-                weight: String(row.plannedWeight ?? row.weight ?? 0),
-                week: String(row.week || 1),
-                weekDay: String(row.weekDay ?? 0),
-            })),
+            .map((row) => {
+                const measurementType = row.exercise?.measurementType || row.measurementType || "reps";
+                return {
+                    exerciseId: row.exercise?.id || row.exerciseId,
+                    sets: String(row.setsCount ?? row.sets ?? row.exercise?.recommendedSets ?? 1),
+                    reps: String(measurementType === "reps" ? row.targetReps ?? row.reps ?? row.exercise?.recommendedReps ?? "" : ""),
+                    durationSeconds: String(measurementType === "duration" ? row.targetDurationSeconds ?? row.durationSeconds ?? row.exercise?.recommendedDurationSeconds ?? "" : ""),
+                    measurementType,
+                    // Preserve legacy metadata on edits; it is not a workout date or prescribed load.
+                    weight: String(row.plannedWeight ?? row.weight ?? 0),
+                    week: String(row.week || 1),
+                    weekDay: 0,
+                };
+            }),
     );
 
     const [query, setQuery] = useState("");
@@ -93,18 +96,16 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                 Number(row.sets) >= 1 &&
                 Number(row.sets) <= 50)) &&
 
-                // Reps
-                (!row.reps ||
+                // Only the compatible target may be present.
+                (row.measurementType === "reps" && (!row.reps ||
                     (Number.isInteger(Number(row.reps)) &&
                         Number(row.reps) >= 1 &&
-                        Number(row.reps) <= 1000)) &&
+                        Number(row.reps) <= 1000))) &&
 
-                (!row.durationSeconds ||
+                (row.measurementType === "duration" && (!row.durationSeconds ||
                     (Number.isInteger(Number(row.durationSeconds)) &&
                         Number(row.durationSeconds) >= 1 &&
-                        Number(row.durationSeconds) <= 86400)) &&
-
-                !(row.reps && row.durationSeconds) &&
+                        Number(row.durationSeconds) <= 86400))) &&
 
                 // Weight
                 (!row.weight || (Number.isFinite(Number(row.weight)) &&
@@ -113,12 +114,7 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
 
                 // Week
                 Number.isInteger(Number(row.week)) &&
-                Number(row.week) >= 1 &&
-
-                // Week day: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-                Number.isInteger(Number(row.weekDay)) &&
-                Number(row.weekDay) >= 0 &&
-                Number(row.weekDay) <= 6,
+                Number(row.week) >= 1,
         );
 
         if (!valid) {
@@ -160,14 +156,14 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                             ] } : {}),
                             ...(videoValue !== undefined ? { videoUrl: videoValue } : {}),
                             exercises: rows.map((row, index) => ({
-                                ...row,
+                                exerciseId: row.exerciseId,
                                 position: index + 1,
                                 sets: row.sets ? Number(row.sets) : undefined,
-                                reps: row.reps ? Number(row.reps) : undefined,
-                                durationSeconds: row.durationSeconds ? Number(row.durationSeconds) : undefined,
+                                ...(row.measurementType === "reps" && row.reps ? { reps: Number(row.reps) } : {}),
+                                ...(row.measurementType === "duration" && row.durationSeconds ? { durationSeconds: Number(row.durationSeconds) } : {}),
                                 weight: row.weight ? Number(row.weight) : undefined,
                                 week: Number(row.week),
-                                weekDay: Number(row.weekDay),
+                                weekDay: 0,
                             })),
                         }),
                     },
@@ -299,8 +295,8 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                                             ...items,
                                             {
                                                 exerciseId: exercise.id,
-                                                sets: "",
-                                                reps: "",
+                                                sets: String(exercise.recommendedSets || ""),
+                                                reps: exercise.measurementType === "duration" ? "" : String(exercise.recommendedReps || ""),
                                                 durationSeconds: exercise.measurementType === "duration"
                                                     ? String(exercise.recommendedDurationSeconds || "")
                                                     : "",
@@ -353,7 +349,6 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                         {[
                             ["sets", w.sets],
                             [row.measurementType === "duration" ? "durationSeconds" : "reps", row.measurementType === "duration" ? w.seconds : w.reps],
-                            ["weekDay", w.weekDay],
                         ].map(([key, label]) => {
                             return (
                                 <Field

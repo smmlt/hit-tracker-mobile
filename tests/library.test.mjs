@@ -72,3 +72,16 @@ test('a program starts as one full session and keeps planned weight for history'
     assert.equal(JSON.stringify(program), original);
   }
 });
+
+test('program targets fall back to compatible exercise recommendations', () => {
+  const plan = programExercises({ schedule: [
+    { exercise: { id: 1, measurementType: 'reps', recommendedSets: 4, recommendedReps: 12, recommendedDurationSeconds: 99 } },
+    { exercise: { id: 2, measurementType: 'duration', recommendedSets: 3, recommendedReps: 20, recommendedDurationSeconds: 45 } },
+    { exercise: { id: 3, measurementType: 'reps', recommendedSets: 2, recommendedReps: 8 }, setsCount: 5, targetDurationSeconds: 30 },
+  ] });
+  assert.deepEqual(plan.map(({ sets, reps, durationSeconds }) => ({ sets, reps, durationSeconds })), [
+    { sets: 4, reps: 12, durationSeconds: undefined },
+    { sets: 3, reps: undefined, durationSeconds: 45 },
+    { sets: 5, reps: 8, durationSeconds: undefined },
+  ]);
+});

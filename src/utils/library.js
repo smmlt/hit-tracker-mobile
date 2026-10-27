@@ -41,9 +41,13 @@ export const programExercises = (program) =>
       id: row.exercise.id,
       name: row.exercise.name,
       exercise: row.exercise,
-      sets: row.setsCount,
-      reps: row.targetReps,
-      durationSeconds: row.targetDurationSeconds,
+      sets: row.setsCount ?? row.exercise.recommendedSets,
+      reps: (row.exercise.measurementType || 'reps') === 'reps'
+        ? row.targetReps ?? row.exercise.recommendedReps
+        : undefined,
+      durationSeconds: (row.exercise.measurementType || 'reps') === 'duration'
+        ? row.targetDurationSeconds ?? row.exercise.recommendedDurationSeconds
+        : undefined,
       measurementType: row.exercise.measurementType || 'reps',
       weight: row.plannedWeight,
     }));
