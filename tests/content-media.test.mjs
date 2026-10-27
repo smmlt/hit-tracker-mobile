@@ -25,6 +25,10 @@ test('YouTube media accepts common URLs and derives a card thumbnail', () => {
   assert.equal(getYouTubeThumbnailUrl('https://example.com/video'), null);
 });
 
+test('production CSP allows the hosted YouTube iframe bridge', () => {
+  assert.match(source('nginx.conf'), /frame-src[^;]*https:\/\/lonelycpp\.github\.io/);
+});
+
 test('media images cover fixed containers and fall back after load errors', () => {
   const mediaImage = source('src/components/media/MediaImage.js');
   assert.match(mediaImage, /resizeMode="cover"/);
