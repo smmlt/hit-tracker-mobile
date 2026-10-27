@@ -47,3 +47,16 @@ test('LOCALIZATION-003 translates official catalog names and preserves custom co
   assert.equal(translateCatalogName(uk, 'exercise', 'Dumbbell Bicep Curl'), 'Згинання рук із гантелями на біцепс');
   assert.equal(translateCatalogName(uk, 'program', 'Bohdan custom plan'), 'Bohdan custom plan');
 });
+
+test('LOCALIZATION-005 translates every muscle used by the normalized catalog', () => {
+  const uk = (key) => translations.uk[key] ?? key;
+  const muscles = [
+    'Chest', 'Triceps', 'Shoulders', 'Core', 'Back', 'Serratus Anterior',
+    'Biceps', 'Forearms', 'Trapezius', 'Spinal Erectors', 'Glutes',
+    'Hamstrings', 'Brachialis', 'Wrist Flexors', 'Wrist Extensors',
+    'Hip Flexors', 'Quadriceps', 'Calves', 'Soleus',
+  ];
+  for (const muscle of muscles) {
+    assert.notEqual(translateCatalogName(uk, 'muscle', muscle), muscle, muscle);
+  }
+});
