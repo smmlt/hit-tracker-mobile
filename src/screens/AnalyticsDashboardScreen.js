@@ -17,7 +17,7 @@ import { analyticsService } from '../services/analyticsService';
 import { bodyMetricsService } from '../services/bodyMetricsService';
 import { formatMetric, formatMetricDelta, periodToDateRange } from '../utils/bodyMetrics';
 import { translateCatalogName } from '../localization/catalog';
-import { planActivityBuckets } from '../utils/analyticsActivity';
+import { planActivityBuckets, planActivityPages } from '../utils/analyticsActivity';
 import { createStyles } from './AnalyticsDashboardScreen.styles';
 
 const BODY_METRICS = [
@@ -46,6 +46,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const { period } = useAnalyticsPeriod();
   const { width } = useWindowDimensions();
   const requestId = useRef(0);
+  const activityScroll = useRef(null);
   const range = useMemo(
     /* EN: Converts the shared period selection into the stable date boundaries required by every request. / UK: Перетворює спільно вибраний період на сталі межі дат, потрібні для кожного запиту. */
     () => periodToDateRange(period),
@@ -53,6 +54,7 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   );
   const [data, setData] = useState({ overview: null, intensity: null, strength: [], body: null, schedule: null });
   const [intensityBoxWidth, setIntensityBoxWidth] = useState(0);
+  const [activityChartWidth, setActivityChartWidth] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
@@ -109,7 +111,8 @@ export default function AnalyticsDashboardScreen({ navigation }) {
   const overview = data.overview || {};
   const summary = overview.summary || {};
   const plan = overview.plan || {};
-  const activity = planActivityBuckets(overview.activity, period);
+  const activity = planActivityBuckets(overview.activity);
+  const activityPages = planActivityPages(activity);
   const muscles = overview.muscleGroups || [];
   const maxActivity = Math.max(1, ...activity.map(
     /* EN: Scales activity bars by the larger of planned workouts and completed plus missed workouts. / UK: Масштабує стовпчики за більшою кількістю з плану або суми виконаних і пропущених тренувань. */
@@ -229,20 +232,33 @@ export default function AnalyticsDashboardScreen({ navigation }) {
         <View style={[styles.card, styles.activityCard]}>
           <Text style={styles.cardTitle}>{t('analyticsActivity')}</Text>
           <View style={styles.activityLegend}><View style={[styles.legendDot, styles.legendDone]} /><Text style={styles.micro}>{t('scheduleStatus_completed')}</Text><View style={[styles.legendDot, styles.legendMissed]} /><Text style={styles.micro}>{t('scheduleStatus_missed')}</Text></View>
-          <View accessibilityLabel={t('analyticsComplianceChart')} style={styles.activityChart}>
-            {activity.map(
-              /* EN: Converts each recent day into stacked completed and missed shares on the common activity scale. / UK: Перетворює кожен останній день на складені частки виконаних і пропущених тренувань у спільному масштабі активності. */
-              (item) => {
-              const total = Math.max(item.planned, item.completed + item.missed);
-              const completed = item.completed;
-              const completedShare = total ? Math.min(100, completed / total * 100) : 0;
-              const missedShare = total ? item.missed / total * 100 : 0;
-              return <View key={item.date} style={styles.activityColumn}>
-                <View style={[styles.activityBar, { height: Math.max(total ? 10 : 2, total / maxActivity * 52) }]}><View style={[styles.activityMissed, { height: `${missedShare}%` }]} /><View style={[styles.activityDone, { height: `${completedShare}%` }]} /></View>
-                <Text style={styles.chartLabel}>{item.date.slice(8)}</Text>
-              </View>;
-              }
-            )}
+          <View onLayout={(event) => setActivityChartWidth(event.nativeEvent.layout.width)} style={styles.activityViewport}>
+            <ScrollView
+              accessibilityLabel={t('analyticsComplianceChart')}
+              contentContainerStyle={styles.activityChart}
+              decelerationRate="fast"
+              horizontal
+              onContentSizeChange={() => activityScroll.current?.scrollToEnd({ animated: false })}
+              pagingEnabled
+              ref={activityScroll}
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={activityChartWidth || undefined}
+            >
+              {activityPages.map((page) => <View key={page[0].date} style={[styles.activityPage, activityChartWidth ? { width: activityChartWidth } : null]}>
+                {page.map(
+                  /* EN: Renders one real scheduled date with equal-width completed and missed segments. / UK: Відображає одну реальну заплановану дату з однаковою шириною виконаної та пропущеної частин. */
+                  (item) => {
+                  const total = Math.max(item.planned, item.completed + item.missed);
+                  const completedShare = total ? Math.min(100, item.completed / total * 100) : 0;
+                  const missedShare = total ? Math.min(100 - completedShare, item.missed / total * 100) : 0;
+                  return <View key={item.date} style={styles.activityColumn}>
+                    <View style={[styles.activityBar, { height: Math.max(10, total / maxActivity * 52) }]}><View style={[styles.activityMissed, { height: `${missedShare}%` }]} /><View style={[styles.activityDone, { height: `${completedShare}%` }]} /></View>
+                    <Text style={styles.chartLabel}>{item.date.slice(8)}</Text>
+                  </View>;
+                  }
+                )}
+              </View>)}
+            </ScrollView>
           </View>
         </View>
       </View> : null}
