@@ -61,7 +61,11 @@ export function ExerciseEditor({ exercise, onClose }) {
       setError(t('exerciseNameRequired'));
       return;
     }
-    if (measurementType === "duration" && recommendedDurationSeconds && (!Number.isInteger(Number(recommendedDurationSeconds)) || Number(recommendedDurationSeconds) < 1)) {
+    const validRecommendedSets = Number.isInteger(Number(recommendedSets)) && Number(recommendedSets) >= 1 && Number(recommendedSets) <= 100;
+    const recommendedTarget = measurementType === "duration" ? recommendedDurationSeconds : recommendedReps;
+    const targetMaximum = measurementType === "duration" ? 86400 : 1000;
+    const validRecommendedTarget = Number.isInteger(Number(recommendedTarget)) && Number(recommendedTarget) >= 1 && Number(recommendedTarget) <= targetMaximum;
+    if (!validRecommendedSets || !validRecommendedTarget) {
       setError(w.invalidNumbers);
       return;
     }
@@ -138,25 +142,6 @@ export function ExerciseEditor({ exercise, onClose }) {
       {!exercise && <Field label="catalogKey" value={catalogKey} onChangeText={setCatalogKey} autoCapitalize="none" maxLength={100} />}
       <Field label={`${w.name} (${t('ukrainian')})`} value={ukName} onChangeText={setUkName} maxLength={100} />
       <Field
-        label={w.displayedLikes}
-        value={displayedLikesCount}
-        onChangeText={(value) => /^\d*$/.test(value) && setDisplayedLikesCount(value)}
-        keyboardType="numeric"
-      />
-      <ImagePickerField
-        aspect={[1, 1]}
-        disabled={saving}
-        imageUri={image?.uri || exercise?.demonstrationImageUrl || exercise?.imageUrl}
-        label={w.chooseImage}
-        onChange={setImage}
-        onError={(pickerError) => setError(pickerError.message || w.imagePickerError)}
-        previewStyle={{ width: 160, height: 160, borderRadius: 8, alignSelf: "center" }}
-      />
-      <Field label={t('mediaSourceUrl')} value={imageSourceUrl} onChangeText={setImageSourceUrl} autoCapitalize="none" maxLength={2048} />
-      <Field label={t('mediaAuthor')} value={imageAuthor} onChangeText={setImageAuthor} maxLength={200} />
-      <Field label={t('mediaLicense')} value={imageLicense} onChangeText={setImageLicense} maxLength={100} />
-      <Field label={t('mediaLicenseUrl')} value={imageLicenseUrl} onChangeText={setImageLicenseUrl} autoCapitalize="none" maxLength={2048} />
-      <Field
         label={`${w.description} (${t('english')})`}
         value={description}
         onChangeText={setDescription}
@@ -164,17 +149,17 @@ export function ExerciseEditor({ exercise, onClose }) {
         maxLength={2000}
       />
       <Field label={`${w.description} (${t('ukrainian')})`} value={ukDescription} onChangeText={setUkDescription} multiline maxLength={2000} />
-      <Field
-        label={`${w.video} (${t('english')})`}
-        value={video}
-        onChangeText={(value) => {
-          setVideoChanged(true);
-          setVideo(value);
-        }}
-        autoCapitalize="none"
-        maxLength={2048}
-      />
-      <Field label={`${w.video} (${t('ukrainian')})`} value={ukVideo} onChangeText={setUkVideo} autoCapitalize="none" maxLength={2048} />
+      <Text style={s.heading}>{w.measurementType}</Text>
+      <View style={s.row}>
+        <Button secondary={measurementType !== "reps"} onPress={() => setMeasurementType("reps")}>{w.measurementReps}</Button>
+        <Button secondary={measurementType !== "duration"} onPress={() => setMeasurementType("duration")}>{w.measurementDuration}</Button>
+      </View>
+      <View style={s.row}>
+        <Field style={{ flex: 1 }} label={w.sets} value={recommendedSets} onChangeText={(value) => /^\d*$/.test(value) && setRecommendedSets(value)} keyboardType="numeric" />
+        {measurementType === 'reps'
+          ? <Field style={{ flex: 1 }} label={w.reps} value={recommendedReps} onChangeText={(value) => /^\d*$/.test(value) && setRecommendedReps(value)} keyboardType="numeric" />
+          : <Field style={{ flex: 1 }} label={w.seconds} value={recommendedDurationSeconds} onChangeText={(value) => /^\d*$/.test(value) && setRecommendedDurationSeconds(value)} keyboardType="numeric" />}
+      </View>
       <Text style={s.heading}>{w.difficulty}</Text>
       <View style={s.row}>
         {[1, 2, 3, 4, 5].map((level) => (
@@ -189,20 +174,7 @@ export function ExerciseEditor({ exercise, onClose }) {
           </Button>
         ))}
       </View>
-      <Field label={w.sets} value={recommendedSets} onChangeText={(value) => /^\d*$/.test(value) && setRecommendedSets(value)} keyboardType="numeric" />
-      {measurementType === 'reps' && <Field label={w.reps} value={recommendedReps} onChangeText={(value) => /^\d*$/.test(value) && setRecommendedReps(value)} keyboardType="numeric" />}
       <DifficultyIndicator difficulty={difficulty} />
-      <Text style={s.heading}>{w.measurementType}</Text>
-      <View style={s.row}>
-        <Button secondary={measurementType !== "reps"} onPress={() => setMeasurementType("reps")}>{w.measurementReps}</Button>
-        <Button secondary={measurementType !== "duration"} onPress={() => setMeasurementType("duration")}>{w.measurementDuration}</Button>
-      </View>
-      {measurementType === "duration" && <Field
-        label={w.seconds}
-        value={recommendedDurationSeconds}
-        onChangeText={(value) => /^\d*$/.test(value) && setRecommendedDurationSeconds(value)}
-        keyboardType="numeric"
-      />}
       <Field
         label={t('requiredEquipment')}
         value={requiredEquipment}
@@ -248,6 +220,36 @@ export function ExerciseEditor({ exercise, onClose }) {
           </View>
         </View>
       ))}
+      <Field
+        label={`${w.video} (${t('english')})`}
+        value={video}
+        onChangeText={(value) => {
+          setVideoChanged(true);
+          setVideo(value);
+        }}
+        autoCapitalize="none"
+        maxLength={2048}
+      />
+      <Field label={`${w.video} (${t('ukrainian')})`} value={ukVideo} onChangeText={setUkVideo} autoCapitalize="none" maxLength={2048} />
+      <ImagePickerField
+        aspect={[1, 1]}
+        disabled={saving}
+        imageUri={image?.uri || exercise?.demonstrationImageUrl || exercise?.imageUrl}
+        label={w.chooseImage}
+        onChange={setImage}
+        onError={(pickerError) => setError(pickerError.message || w.imagePickerError)}
+        previewStyle={{ width: 160, height: 160, borderRadius: 8, alignSelf: "center" }}
+      />
+      <Field label={t('mediaSourceUrl')} value={imageSourceUrl} onChangeText={setImageSourceUrl} autoCapitalize="none" maxLength={2048} />
+      <Field label={t('mediaAuthor')} value={imageAuthor} onChangeText={setImageAuthor} maxLength={200} />
+      <Field label={t('mediaLicense')} value={imageLicense} onChangeText={setImageLicense} maxLength={100} />
+      <Field label={t('mediaLicenseUrl')} value={imageLicenseUrl} onChangeText={setImageLicenseUrl} autoCapitalize="none" maxLength={2048} />
+      <Field
+        label={w.displayedLikes}
+        value={displayedLikesCount}
+        onChangeText={(value) => /^\d*$/.test(value) && setDisplayedLikesCount(value)}
+        keyboardType="numeric"
+      />
       <Feedback error={error} />
       <Button disabled={saving} onPress={save}>
         {saving ? w.loading : w.save}
