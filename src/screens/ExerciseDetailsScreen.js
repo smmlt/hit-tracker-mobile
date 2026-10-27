@@ -73,7 +73,7 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       {videoSource && !videoFailed ? (
         <ExerciseVideoPlayer
           source={videoSource}
-          style={[s.media, styles.videoMedia]}
+          style={styles.videoMedia}
           onError={() => {
             setVideoFailed(true);
             setError(t('videoLoadFailed'));

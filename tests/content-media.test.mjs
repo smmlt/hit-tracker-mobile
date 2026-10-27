@@ -47,7 +47,9 @@ test('exercise video and image media stay in separate visual areas', () => {
   assert.match(exerciseDetails, /const videoSource = exercise\.displayVideoUrl \|\| exercise\.videoUrl/);
   assert.match(exerciseDetails, /useEffect\(\(\) => setVideoFailed\(false\), \[videoSource\]\)/);
   assert.match(exerciseDetails, /\{videoSource && !videoFailed \? \(/);
-  assert.match(exerciseDetails, /<ExerciseVideoPlayer[\s\S]*?style=\{\[s\.media, styles\.videoMedia\]\}/);
+  assert.match(exerciseDetails, /<ExerciseVideoPlayer[\s\S]*?style=\{styles\.videoMedia\}/);
+  const exerciseDetailsStyles = source('src/screens/ExerciseDetailsScreen.styles.js');
+  assert.match(exerciseDetailsStyles, /videoMedia:\s*\{[\s\S]*?aspectRatio: 16 \/ 9/);
   assert.match(exerciseDetails, /setVideoFailed\(true\)/);
   assert.match(exerciseDetails, /\) : \(\s*<>\s*<MediaImage accessibilityLabel=\{w\.noMedia\} source=\{null\} style=\{s\.media\}/);
   assert.match(exerciseDetails, /Linking\.openURL\(videoSource\)/);
