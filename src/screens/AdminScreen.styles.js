@@ -33,6 +33,10 @@ export const createStyles = (theme) => StyleSheet.create({
     gap: 20,
     paddingTop: 16,
   },
+  compactTop: {
+    alignItems: "stretch",
+    flexDirection: "column",
+  },
   brand: {
     color: palette.accent,
     fontSize: 11,
@@ -52,6 +56,7 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   identityText: { flexShrink: 1 },
   topActions: { alignItems: "center", flexBasis: 300, flexDirection: "row", flexGrow: 1, flexShrink: 1, flexWrap: "wrap", gap: 10, justifyContent: "flex-end", maxWidth: "100%" },
+  compactTopActions: { flexBasis: "auto", justifyContent: "flex-start", width: "100%" },
   dot: { width: 7, height: 7, borderRadius: 4 },
   tabs: {
     borderBottomWidth: 1,

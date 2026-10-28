@@ -3,7 +3,7 @@
  */
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { createStyles } from './AdminScreen.styles.js';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProfile } from "../hooks/useProfile";
@@ -30,6 +30,8 @@ const colors = {
 
 /** EN: Verifies staff access and coordinates user, notification, observability, and catalog administration. UK: Перевіряє доступ персоналу та координує керування користувачами, сповіщеннями, спостережуваністю й каталогом. */
 export default function AdminScreen({ navigation }) {
+  const { width } = useWindowDimensions();
+  const compactLayout = width < 600;
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const s = useWorkshopStyles();
@@ -181,7 +183,7 @@ export default function AdminScreen({ navigation }) {
   return (
     <SafeAreaView style={s.screen}>
       <ScrollView contentContainerStyle={styles.page}>
-        <View style={styles.top}>
+        <View style={[styles.top, compactLayout && styles.compactTop]}>
           <View style={styles.headingGroup}>
             <Text style={styles.brand}>HIT TRACKER / {t('adminPanel').toUpperCase()}</Text>
             <Text style={styles.title}>{t('adminPanel')}</Text>
@@ -189,7 +191,7 @@ export default function AdminScreen({ navigation }) {
               {t('manageCommunity')}
             </Text>
           </View>
-          <View style={styles.topActions}>
+          <View style={[styles.topActions, compactLayout && styles.compactTopActions]}>
             <Button secondary onPress={/* EN: Replaces the admin route with the main application. UK: Замінює адміністративний маршрут основним застосунком. */ () => navigation.replace('MainApp')}>{t('backToApp')}</Button>
             <View style={styles.identity}>
               <View
