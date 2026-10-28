@@ -98,15 +98,15 @@ export function ProgramEditor({ initialValues, program, official = false, onClos
                 Number(row.sets) <= 50)) &&
 
                 // Only the compatible target may be present.
-                (row.measurementType === "reps" && (!row.reps ||
-                    (Number.isInteger(Number(row.reps)) &&
-                        Number(row.reps) >= 1 &&
-                        Number(row.reps) <= 1000))) &&
-
-                (row.measurementType === "duration" && (!row.durationSeconds ||
-                    (Number.isInteger(Number(row.durationSeconds)) &&
-                        Number(row.durationSeconds) >= 1 &&
-                        Number(row.durationSeconds) <= 86400))) &&
+                (row.measurementType === "duration"
+                    ? (!row.durationSeconds ||
+                        (Number.isInteger(Number(row.durationSeconds)) &&
+                            Number(row.durationSeconds) >= 1 &&
+                            Number(row.durationSeconds) <= 86400))
+                    : (!row.reps ||
+                        (Number.isInteger(Number(row.reps)) &&
+                            Number(row.reps) >= 1 &&
+                            Number(row.reps) <= 1000))) &&
 
                 // Weight
                 (!row.weight || (Number.isFinite(Number(row.weight)) &&
