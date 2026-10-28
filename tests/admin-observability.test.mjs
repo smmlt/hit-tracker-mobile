@@ -74,10 +74,10 @@ test('user details uses equal responsive top-bar slots', () => {
   assert.match(styles, /flexWrap: 'wrap'/);
 });
 
-test('Android 2.0.3 build 27 is configured and the local builder syncs native versions', () => {
+test('Android 2.0.3 build 28 is configured and the local builder syncs native versions', () => {
   const config = JSON.parse(source('app.json'));
   assert.equal(config.expo.version, '2.0.3');
-  assert.equal(config.expo.android.versionCode, 27);
+  assert.equal(config.expo.android.versionCode, 28);
   assert.ok(!config.expo.plugins.includes('./plugins/withNotificationLargeIcon'));
 
   const buildScript = source('scripts/build-apk.ps1');
