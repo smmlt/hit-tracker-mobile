@@ -41,6 +41,10 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
   useEffect(() => setVideoFailed(false), [videoSource]);
   const muscleGroups = splitMusclesByRole(exercise.muscles);
   const equipment = exerciseEquipment(exercise);
+  const recommendedSets = Number(exercise.recommendedSets) || 0;
+  const recommendedTarget = exercise.measurementType === 'duration'
+    ? Number(exercise.recommendedDurationSeconds) || 0
+    : Number(exercise.recommendedReps) || 0;
   const added = preparedWorkout?.exercises?.some(
     (item) => item.id === exercise.id,
   );
@@ -95,9 +99,18 @@ export function ExerciseDetailsContent({ exercise, allowAdd = true }) {
       <Text style={s.heading}>{w.measurementType}</Text>
       <Text style={s.muted}>
         {exercise.measurementType === 'duration'
-          ? `${w.measurementDuration}${exercise.recommendedDurationSeconds ? ` · ${exercise.recommendedDurationSeconds} ${w.seconds.toLowerCase()}` : ''}`
+          ? w.measurementDuration
           : w.measurementReps}
       </Text>
+      {!!recommendedSets && !!recommendedTarget && (
+        <>
+          <Text style={s.heading}>{w.recommendation}</Text>
+          <Text style={s.muted}>
+            {recommendedSets} {w.sets.toLowerCase()} × {recommendedTarget}{' '}
+            {(exercise.measurementType === 'duration' ? w.seconds : w.reps).toLowerCase()}
+          </Text>
+        </>
+      )}
       <>
         <Text style={s.heading}>{w.equipment}</Text>
         {equipment.required.length ? (
