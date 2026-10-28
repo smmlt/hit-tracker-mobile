@@ -12,11 +12,13 @@ export const getPasswordCriteria = (password) => {
     minLength: password.length >= 12,
     hasNumber: /\d/.test(password),
     hasUpper: /[A-Z]/.test(password),
+    hasLower: /[a-z]/.test(password),
+    hasSpecial: /[^A-Za-z0-9]/.test(password),
   };
 };
 
 /** EN: Accepts a password only when all client-side criteria pass. UK: Приймає пароль лише тоді, коли виконано всі клієнтські вимоги. */
 export const isValidPassword = (password) => {
   const criteria = getPasswordCriteria(password);
-  return criteria.minLength && criteria.hasNumber && criteria.hasUpper;
+  return Object.values(criteria).every(Boolean);
 };

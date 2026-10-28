@@ -73,6 +73,13 @@ export default function RegisterScreen({ navigation, route }) {
   };
 
   const criteria = getPasswordCriteria(password);
+  const passwordRequirements = [
+    ['minLength', 'atLeastEight'],
+    ['hasUpper', 'uppercaseLetter'],
+    ['hasLower', 'lowercaseLetter'],
+    ['hasNumber', 'number'],
+    ['hasSpecial', 'specialCharacter'],
+  ];
 
   useEffect(() => () => {
     clearTimeout(toastTimerRef.current);
@@ -171,17 +178,18 @@ export default function RegisterScreen({ navigation, route }) {
               onTogglePassword={() => setShowPassword(!showPassword)}
             />
 
-            <View style={styles.hintsContainer}>
-              <Text style={[styles.hintItem, criteria.minLength ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.minLength ? '✓' : '•'} {t('atLeastEight')}
-              </Text>
-              <Text style={[styles.hintItem, criteria.hasUpper ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.hasUpper ? '✓' : '•'} {t('uppercaseLetter')}
-              </Text>
-              <Text style={[styles.hintItem, criteria.hasNumber ? styles.hintSuccess : styles.hintPending]}>
-                {criteria.hasNumber ? '✓' : '•'} {t('number')}
-              </Text>
-            </View>
+            {!!password && (
+              <View style={styles.hintsContainer}>
+                {passwordRequirements.map(([criterion, label]) => (
+                  <Text
+                    key={criterion}
+                    style={[styles.hintItem, criteria[criterion] ? styles.hintSuccess : styles.hintPending]}
+                  >
+                    {criteria[criterion] ? '✓' : '•'} {t(label)}
+                  </Text>
+                ))}
+              </View>
+            )}
 
             <PrimaryButton title={t('createAccount')} onPress={handleRegister} isLoading={isLoading} />
             {!!errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
