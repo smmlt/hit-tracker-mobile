@@ -23,7 +23,7 @@ export function ExerciseItem({
   children,
 }) {
   const [open, setOpen] = useState(false);
-  const library = useLibrary(['exercises']);
+  const library = useLibrary(['exercises', 'react']);
   const w = useWords();
   const { theme } = useTheme();
   const { locale } = React.useContext(LanguageContext);

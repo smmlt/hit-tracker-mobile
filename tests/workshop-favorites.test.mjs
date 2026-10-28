@@ -17,3 +17,11 @@ test('Workshop exposes a localized Favorites chip before muscle filters', () => 
   assert.match(words, /relevance: "Relevance"/);
   assert.match(words, /relevance: "За відповідністю"/);
 });
+
+test('Exercise reactions subscribe to the reaction action used by like and bookmark buttons', () => {
+  const item = readFileSync(new URL('../src/components/exercise/ExerciseItem.js', import.meta.url), 'utf8');
+
+  assert.match(item, /useLibrary\(\['exercises', 'react'\]\)/);
+  assert.match(item, /library\?\.react\("exercises", current\.id\)/);
+  assert.match(item, /library\?\.react\("exercises", current\.id, "bookmark"\)/);
+});
