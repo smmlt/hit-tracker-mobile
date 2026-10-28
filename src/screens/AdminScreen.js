@@ -1,7 +1,7 @@
 /**
  * Provides the administrator flow for loading users and managing observability and catalog content, with role checks from the profile/authentication state. / Реалізує адміністративний потік завантаження користувачів і керування спостережуваністю та каталогом із перевіркою ролі через стан профілю й автентифікації.
  */
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { createStyles } from './AdminScreen.styles.js';
@@ -52,6 +52,7 @@ export default function AdminScreen({ navigation }) {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
+  const userRequestId = useRef(0);
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -100,9 +101,14 @@ export default function AdminScreen({ navigation }) {
   useEffect(/* EN: Redirects moderators away from sections reserved for administrators. UK: Перенаправляє модераторів із розділів, призначених лише для адміністраторів. */ () => {
     if (!canUsers && ["users", "notifications", "system"].includes(section)) setSection("programs");
   }, [canUsers, section]);
+  useEffect(/* EN: Debounces user search so typing does not request every keystroke. UK: Затримує пошук користувачів, щоб введення не створювало запит після кожного натискання. */ () => {
+    const timeout = setTimeout(/* EN: Applies the trimmed query after the user pauses typing. UK: Застосовує очищений запит після паузи у введенні. */ () => setSearch(query.trim()), 350);
+    return /* EN: Cancels obsolete searches when text changes or the screen unmounts. UK: Скасовує застарілі пошуки після зміни тексту або демонтажу екрана. */ () => clearTimeout(timeout);
+  }, [query]);
   const loadUsers = useCallback(
     /* EN: Loads one filtered user page only after administrative access is confirmed. UK: Завантажує одну відфільтровану сторінку користувачів лише після підтвердження адміністративного доступу. */ async (targetPage = 1) => {
       if (accessState !== "allowed" || !canUsers) return;
+      const requestId = ++userRequestId.current;
       setLoading(true);
       setError("");
       try {
@@ -110,13 +116,15 @@ export default function AdminScreen({ navigation }) {
           { search, page: targetPage, online: onlineOnly },
           userToken,
         );
+        if (requestId !== userRequestId.current) return;
         setUsers(data.items);
         setTotal(data.total);
         setPage(data.page);
       } catch (e) {
+        if (requestId !== userRequestId.current) return;
         setError(e.message);
       } finally {
-        setLoading(false);
+        if (requestId === userRequestId.current) setLoading(false);
       }
     },
     [accessState, canUsers, onlineOnly, search, userToken],
@@ -274,7 +282,6 @@ export default function AdminScreen({ navigation }) {
                 onChangeText={setQuery}
                 onSubmitEditing={/* EN: Commits the trimmed search query from the keyboard. UK: Застосовує очищений пошуковий запит із клавіатури. */ () => setSearch(query.trim())}
               />
-              <Button onPress={/* EN: Applies the current user search query. UK: Застосовує поточний запит пошуку користувачів. */ () => setSearch(query.trim())}>{t('search')}</Button>
               <Button secondary={!onlineOnly} onPress={/* EN: Toggles the online-only user filter. UK: Перемикає фільтр лише активних користувачів. */ () => setOnlineOnly(/* EN: Inverts the previous online-only filter value. UK: Інвертує попереднє значення фільтра активності. */ (value) => !value)}>
                 {t('online')}
               </Button>
