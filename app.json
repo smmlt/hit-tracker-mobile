@@ -12,7 +12,7 @@
       "bundleIdentifier": "com.auraxa.hittracker"
     },
     "android": {
-      "versionCode": 28,
+      "versionCode": 29,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
